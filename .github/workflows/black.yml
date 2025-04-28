@@ -10,4 +10,3 @@ jobs:
       - uses: psf/black@stable
         with:
           src: "./backend"
-          use_pyproject: true
