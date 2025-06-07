@@ -1,72 +1,67 @@
-/* Reset default styles */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+@font-face {
+  font-family: Author;
+  src: url("./fonts/Author-Variable.ttf");
+}
+@font-face {
+  font-family: AuthorItalic;
+  src: url("./fonts/Author-VariableItalic.ttf");
 }
 
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
+  /* Primary / Brand colors*/
+  --color-primary-500: #22E57D;
+  --color-primary-500-transparent: #22E57D33;
 
-/* Base styles */
-body {
-  margin: 0;
-  min-width: 320px;
-  min-height: 100vh;
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  color: #2c3e50;
-  line-height: 1.6;
-}
+  --color-primary-900: #03401F;
 
-/* Typography */
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
+  /* Neutral colors / greyscale */
+  --color-neutral-100: #FFFFFF;
+  --color-neutral-200: #F6F5F7;
+  --color-neutral-300: #CECCD2;
+  --color-neutral-400: #878291;
+  --color-neutral-500: #423955;
+  --color-neutral-900: #1E152A;
 
-/* Links */
-a {
-  font-weight: 500;
-  color: #42b983;
-  text-decoration: none;
-}
+  /* Support colors */
+  --color-support-info-500: #1D77E4;
+  --color-support-info-500-transparent: #1D77E433;
 
-a:hover {
-  text-decoration: underline;
-}
+  --color-support-positive-500: #30C825;
+  --color-support-positive-500-transparent: #30C82533;
 
-/* Buttons */
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
+  --color-support-warning-500: #F2B61E;
+  --color-support-warning-500-transparent: #F2B61E33;
 
-button:hover {
-  border-color: #42b983;
-}
+  --color-support-danger-500: #EC2723;
+  --color-support-danger-500-transparent: #EC272333;
 
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+  /* Constants */
+  --border-radius: 10px;
+
+  --icon-height-xl: 25px;
+  --icon-height-md: 20px;
+  --icon-height-s: 15px;
+
+  --drop-shadow-blur: 10px;
+
+  --horizontal-padding: 15px;
+
+  --line-width-s: 1px;
+  --line-width-m: 2px;
+
+  --button-padding-horizontal: 35px;
+  --button-padding-vertical: 12px;
+
+  --form-padding-horizontal: 25px;
+  --form-padding-vertical: 6px;
+
+  --body-padding-top: 35px;
+  --body-padding-horizontal: 20px;
+
+  --checkbox-size: 25px;
+  --status-dot-size: 10px;
+
+  --h1-arrow-back-padding: 25px;
 }
 
 /* Layout */
@@ -76,19 +71,61 @@ button:focus-visible {
   padding: 2rem;
 }
 
-/* Components */
-.card {
-  padding: 2em;
+
+
+/* TYPOGRAPHY */
+h1 {
+  font-family: Author;
+  font-size: 36px;
+  margin: 0;
+  font-weight: 600;
+  color: var(--color-neutral-900);
+}
+h2 {
+  font-family: Author;
+  font-size: 26px;
+  margin: 0;
+  font-weight: 600;
+  color: var(--color-neutral-900);
+}
+h3 {
+  font-family: Author;
+  font-size: 20px;
+  margin: 0;
+  font-weight: 600;
+  color: var(--color-neutral-900);
 }
 
-/* Dark/Light mode */
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  
-  button {
-    background-color: #f9f9f9;
-  }
-} 
+p {
+  font-family: Author;
+  font-size: 16px;
+  margin: 0;
+  font-weight: 400;
+}
+
+/* Text font sizes */
+.text-xs {
+  font-size: 14px;
+}
+.text-s {
+  font-size: 16px;
+}
+
+/* Text font weights */
+.text-bold {
+  font-weight: 500;
+}
+
+/* Text colors */
+.text-primary {
+  color: var(--color-primary-500)
+}
+.text-info {
+  color: var(--color-support-info-500)
+}
+.text-warning {
+  color: var(--color-support-warning-500)
+}
+.text-danger {
+  color: var(--color-support-danger-500)
+}
