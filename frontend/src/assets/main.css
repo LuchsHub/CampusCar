@@ -36,46 +36,72 @@
   --color-support-danger-500: #EC2723;
   --color-support-danger-500-transparent: #EC272333;
 
-  /* Constants */
-  --border-radius: 10px;
+  /* CONSTANTS */
+  --app-padding-top: 35px; /* top padding of the #app container */
+  --app-padding-horizontal: 20px;
+  
+  --nav-min-height: 85px; /* minimal height of the bottom tab navigation bar */
 
+  /* Font */
+  --font-weight-normal: 400;
+  --font-weight-bold: 600;
+
+  --text-size-md: 18px;
+  --text-size-s: 16px;
+  --text-size-xs: 14px;
+  
+  /* Headings */
+  --h1-margin-bottom: 30px;
+  --h1-arrow-back-padding: 25px;
+
+  --h2-margin-top: 35px; /* Defaults for every h2, can be omitted if h2 is directly beneath h1 (e.g. "Fahrt anbieten" screen) */
+  --h2-margin-bottom: 20px;
+
+  --button-padding-vertical: 12px;
+  
+  --input-padding-top: 24px;
+  --input-padding-bottom: 8px;
+  --input-padding-horizontal: 25px;
+  
+  /* vertical lines (e.g. "Profil", "Fahrtverlauf" screens) */
+  --line-width-s: 1px;
+  --line-width-m: 2px;
+
+  /* icons */
   --icon-height-xl: 25px;
   --icon-height-md: 20px;
   --icon-height-s: 15px;
 
-  --nav-min-height: 85px;
-
-  --drop-shadow-blur: 10px;
-
-  --horizontal-padding: 15px;
-
-  --line-width-s: 1px;
-  --line-width-m: 2px;
-
-  --button-padding-horizontal: 35px;
-  --button-padding-vertical: 12px;
-
-  --form-padding-horizontal: 25px;
-  --form-padding-vertical: 6px;
-
-  --app-padding-top: 35px;
-  --app-padding-horizontal: 20px;
-
+  /* misc */
   --checkbox-size: 25px;
   --status-dot-size: 10px;
-
-  --h1-arrow-back-padding: 25px;
+  --border-radius: 10px;
+  --drop-shadow-blur: 10px; 
+  --horizontal-gap: 15px; /* default margin between elements like input fields when theyre right below each other and not separeted by headings for example */
 }
 
-/* Layout */
+/* LAYOUT */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
 body {
   margin: 0;
+  padding: 0;
 }
+
 #app {
   max-width: 1280px;
   padding: var(--app-padding-top) var(--app-padding-horizontal) 0; 
   position: relative;
   min-height: 100vh;
+}
+
+.view-container { /* main container for each view */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
 }
 
 /* Navigation */
@@ -97,48 +123,53 @@ nav {
 h1 {
   font-family: Author;
   font-size: 36px;
-  margin: 0;
-  font-weight: 600;
+  margin: 0 0 var(--h1-margin-bottom);
+  font-weight: var(--font-weight-bold);
   color: var(--color-neutral-900);
 }
 h2 {
   font-family: Author;
   font-size: 26px;
-  margin: 0;
-  font-weight: 600;
+  margin: var(--h2-margin-top) 0 var(--h2-margin-bottom);
+  font-weight: var(--font-weight-bold);
   color: var(--color-neutral-900);
 }
 h3 {
   font-family: Author;
   font-size: 20px;
   margin: 0;
-  font-weight: 600;
+  font-weight: var(--font-weight-bold);
   color: var(--color-neutral-900);
 }
 
 p {
   font-family: Author;
+  font-size: var(--text-size-md);
+  color: var(--color-neutral-900);
   margin: 0;
-  font-weight: 400;
+  font-weight: var(--font-weight-normal);
 }
 
 a {
   font-family: Author;
-  font-size: 16px;
+  font-size: var(--text-size-s);
   text-decoration: none;
 }
 
 /* Text font sizes */
-.text-xs {
-  font-size: 14px;
+.text-md {
+  font-size: var(--text-size-md);
 }
 .text-s {
-  font-size: 16px;
+  font-size: var(--text-size-s);
+}
+.text-xs {
+  font-size: var(--text-size-xs);
 }
 
 /* Text font weights */
 .text-bold {
-  font-weight: 600;
+  font-weight: var(--font-weight-bold);
 }
 
 /* Text colors */
@@ -166,7 +197,7 @@ a {
   color: var(--color-support-danger-500)
 }
 
-/* Icons */
+/* ICONS */
 .icon-xl {
   height: var(--icon-height-xl);
 }
