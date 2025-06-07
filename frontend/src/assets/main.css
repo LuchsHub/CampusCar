@@ -21,6 +21,7 @@
   --color-neutral-400: #878291;
   --color-neutral-500: #423955;
   --color-neutral-900: #1E152A;
+  --color-neutral-900-transparent: #1E152A33;
 
   /* Support colors */
   --color-support-info-500: #1D77E4;
@@ -42,6 +43,8 @@
   --icon-height-md: 20px;
   --icon-height-s: 15px;
 
+  --nav-min-height: 85px;
+
   --drop-shadow-blur: 10px;
 
   --horizontal-padding: 15px;
@@ -55,8 +58,8 @@
   --form-padding-horizontal: 25px;
   --form-padding-vertical: 6px;
 
-  --body-padding-top: 35px;
-  --body-padding-horizontal: 20px;
+  --app-padding-top: 35px;
+  --app-padding-horizontal: 20px;
 
   --checkbox-size: 25px;
   --status-dot-size: 10px;
@@ -65,13 +68,30 @@
 }
 
 /* Layout */
+body {
+  margin: 0;
+}
 #app {
   max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
+  padding: var(--app-padding-top) var(--app-padding-horizontal) 0; 
+  position: relative;
+  min-height: 100vh;
 }
 
-
+/* Navigation */
+nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;   
+  display: flex;
+  justify-content: space-around;
+  flex-direction: row;
+  min-height: var(--nav-min-height);
+  width: 100%;
+  box-shadow: 0 -1px 10px var(--color-neutral-900-transparent);
+  background-color: var(--color-neutral-100);
+}
 
 /* TYPOGRAPHY */
 h1 {
@@ -98,9 +118,14 @@ h3 {
 
 p {
   font-family: Author;
-  font-size: 16px;
   margin: 0;
   font-weight: 400;
+}
+
+a {
+  font-family: Author;
+  font-size: 16px;
+  text-decoration: none;
 }
 
 /* Text font sizes */
@@ -113,13 +138,24 @@ p {
 
 /* Text font weights */
 .text-bold {
-  font-weight: 500;
+  font-weight: 600;
 }
 
 /* Text colors */
 .text-primary {
   color: var(--color-primary-500)
 }
+
+.text-neutral-300 {
+  color: var(--color-neutral-300)
+}
+.text-neutral-400 {
+  color: var(--color-neutral-400)
+}
+.text-neutral-900 {
+  color: var(--color-neutral-900)
+}
+
 .text-info {
   color: var(--color-support-info-500)
 }
@@ -128,4 +164,15 @@ p {
 }
 .text-danger {
   color: var(--color-support-danger-500)
+}
+
+/* Icons */
+.icon-xl {
+  height: var(--icon-height-xl);
+}
+.icon-l {
+  height: var(--icon-height-md);
+}
+.icon-s {
+  height: var(--icon-height-s);
 }
