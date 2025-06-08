@@ -13,7 +13,7 @@
         >
             <ChevronLeft class="icon-xl"/>
         </router-link>
-        <h1><slot></slot></h1>
+        <h1><slot/></h1>
     </div>
 </template>
 

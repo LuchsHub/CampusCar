@@ -1,18 +1,27 @@
 <script setup lang="ts">
-    import { ref } from 'vue'
-    import type { Ref } from 'vue'
     import type { InputProps } from '../types/Props';
-    
-    const content: Ref<string> = ref('')
+
 
     const props = withDefaults(defineProps<InputProps>(), {
       placeholder: '-',
     })
+
+    const emit = defineEmits(['update:modelValue'])
+
+    const handleInput = (event: Event) => {
+      const target = event.target as HTMLInputElement
+      emit('update:modelValue', target.value)
+    }
 </script> 
 
 <template>
     <div class="input-container">
-        <input v-model="content" :type="props.type" :placeholder="props.placeholder"/>
+        <input 
+          :type="props.type" 
+          :placeholder="props.placeholder"
+          :value="props.modelValue"
+          @input="handleInput"
+        />
         <label>{{ props.label }}</label>
     </div>
 </template>

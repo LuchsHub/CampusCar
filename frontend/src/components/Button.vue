@@ -10,6 +10,12 @@
       classes.push(`button-${props.color}`) // Add color class
       return classes.join(' ')
     })
+
+    const handleClick = ():void => {
+      if (!props.to && props.onClick){
+        props.onClick()
+      }
+    }
 </script>
 
 <template>
@@ -17,8 +23,9 @@
     :is="props.to ? 'router-link' : 'button'"
     :to="props.to"
     :class="buttonClasses"
+    @click="handleClick"
   >
-    <slot></slot>
+    <slot/>
   </component>
 </template>
 

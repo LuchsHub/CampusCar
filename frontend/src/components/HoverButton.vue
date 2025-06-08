@@ -10,8 +10,7 @@
         <Button 
             v-for="(button, i) in props.buttons"
             :key="i"
-            :variant=button.variant
-            :color=button.color
+            v-bind="button"
         >
             {{ button.text }}
         </Button>

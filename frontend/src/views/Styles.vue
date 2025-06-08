@@ -4,9 +4,23 @@
   import HoverButton from '../components/HoverButton.vue';
   import PageTitle from '../components/PageTitle.vue';
   import type { ButtonProps } from '../types/Props';
+  import { reactive } from 'vue';
 
-  const buttons: ButtonProps[] = [
-    {variant: "primary", color: "primary", text: "Hoverbutton"},
+  const exampleData = reactive({
+    text: "",
+    number: "",
+    email: "",
+    password: "",
+    time: "",
+    date: "",
+  })
+
+  const printExampleData = ():void => {
+    console.log(exampleData);
+  }
+  
+  const hoverButtons: ButtonProps[] = [
+    {variant: "primary", color: "primary", text: "Hoverbutton", onClick:printExampleData},
   ]
 </script>
 
@@ -37,17 +51,17 @@
       <Button variant="secondary" color="primary" to="/example">Example page</Button>
     </div>
     
-    <h2>Input</h2>
+    <h2>Inputs</h2>
     <div class="gap-container">
-      <Input type="text" label="Text"/>
-      <Input type="number" label="Number"/>
-      <Input type="email" label="Email"/>
-      <Input type="password" label="Password"/>
-      <Input type="time" label="Time"/>
-      <Input type="date" label="Date"/>
+      <Input type="text" label="Text" v-model="exampleData.text"/>
+      <Input type="number" label="Number" v-model="exampleData.number"/>
+      <Input type="email" label="Email" v-model="exampleData.email"/>
+      <Input type="password" label="Password" v-model="exampleData.password"/>
+      <Input type="time" label="Time" v-model="exampleData.time"/>
+      <Input type="date" label="Date" v-model="exampleData.date"/>
     </div>
 
-    <h2>Text Examples</h2>
+    <h2>Text Styles</h2>
     <div class="gap-container">
       <p>Medium text</p>
       <p class="text-s">Small text</p>
@@ -59,7 +73,7 @@
       <p class="text-danger">Danger text</p>
     </div>
 
-    <HoverButton :buttons="buttons"/> <!--HoverButtons do not need a container, they are positioned based on view-container-->
+    <HoverButton :buttons="hoverButtons"/> <!--HoverButtons do not need a container, they are positioned based on view-container-->
   </div>
 </template>
 
@@ -68,22 +82,10 @@
   margin: 0
 }
 
-.button-demo {
-  margin-top: 2rem;
-}
-
 .gap-container {
   width: 100%;
   display: flex;
   flex-direction: column;
   gap: var(--horizontal-gap);
-}
-
-h2 {
-  margin-bottom: 1rem;
-}
-
-h3 {
-  margin-bottom: 0.5rem;
 }
 </style>
