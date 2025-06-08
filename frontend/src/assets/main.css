@@ -53,8 +53,8 @@
   --font-size-xs: 14px;
   
   /* Headings */
-  --h1-margin-bottom: 30px;
-  --h1-arrow-back-padding: 25px;
+  --page-title-margin-bottom: 30px;
+  --page-title-back-arrow-gap: 15px;
 
   --h2-margin-top: 35px; /* Defaults for every h2, can be omitted if h2 is directly beneath h1 (e.g. "Fahrt anbieten" screen) */
   --h2-margin-bottom: 20px;
@@ -113,7 +113,7 @@ body {
 h1 {
   font-family: Author;
   font-size: 36px;
-  margin: 0 0 var(--h1-margin-bottom);
+  margin: 0;
   font-weight: var(--font-weight-bold);
   color: var(--color-neutral-900);
 }

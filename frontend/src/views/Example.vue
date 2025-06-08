@@ -2,6 +2,7 @@
 import Input from '../components/Input.vue';
 import Button from '../components/Button.vue';
 import HoverButton from '../components/HoverButton.vue';
+import PageTitle from '../components/PageTitle.vue';
 import type { ButtonProps } from '../types/Props';
 
 const buttons: ButtonProps[] = [
@@ -11,7 +12,8 @@ const buttons: ButtonProps[] = [
 
 <template>
   <div class="view-container">
-    <h1>Fahrt anbieten</h1>
+    <PageTitle to="/">Fahrt anbieten</PageTitle>
+    <h1></h1>
     <h2>Abfahrt</h2>
     <div class="form-container">
       <Input type="date" label="Datum"/>

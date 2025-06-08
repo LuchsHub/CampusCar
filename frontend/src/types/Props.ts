@@ -1,7 +1,10 @@
+export interface PageTitleProps {
+  to?: string
+}
 export interface ButtonProps {
   variant: 'primary' | 'secondary'
   color: 'primary' | 'danger'
-  to?: string
+  to?: string 
   text?: string
 }
 

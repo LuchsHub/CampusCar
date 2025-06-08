@@ -2,6 +2,7 @@
   import Button from '../components/Button.vue'
   import Input from '../components/Input.vue'
   import HoverButton from '../components/HoverButton.vue';
+  import PageTitle from '../components/PageTitle.vue';
   import type { ButtonProps } from '../types/Props';
 
   const buttons: ButtonProps[] = [
@@ -12,7 +13,8 @@
 <template>
   <div class="view-container"> <!--view-container is necessary in each view-->
     <div class="gap-container">
-      <h1 class="margin-0">Heading 1</h1>
+      <PageTitle to="/">Page Title Back</PageTitle>
+      <PageTitle>Page Title</PageTitle>
       <h2 class="margin-0">Heading 2</h2>
       <h3 class="margin-0">Heading 3</h3>
     </div>
