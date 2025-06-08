@@ -1,21 +1,25 @@
 <script setup lang="ts">
 import Input from '../components/Input.vue';
+import Button from '../components/Button.vue';
 </script>
 
 <template>
   <div class="view-container">
-    <h1>Beispiel</h1>
-    <h2>Daten Eintragen 1</h2>
-    <div class="container">
-      <Input />
-      <Input />
+    <h1>Fahrt anbieten</h1>
+    <h2>Abfahrt</h2>
+    <div class="form-container">
+      <Input type="date" label="Datum"/>
+      <Input type="time" label="Uhrzeit"/>
+      <Input type="text" label="Ort"/>
     </div>
-    <h2>Daten Eintragen 2</h2>
-    <div class="container">
-      <Input />
-      <Input />
-      <Input />
+    <h2>Zwischenstopps</h2>
+    <Button variant="secondary" color="primary">Zwischenstopp hinzufügen</Button>
+    <h2>Ankunft</h2>
+    <div class="form-container">
+      <Input type="time" label="Uhrzeit"/>
+      <Input type="text" label="Ort"/>
     </div>
+    <h2>Optionen</h2>
   </div>
 </template>
 
@@ -24,7 +28,7 @@ import Input from '../components/Input.vue';
   margin-top: 0;
 }
 
-.container {
+.form-container {
   width: 100%;
   display: flex;
   flex-direction: column;

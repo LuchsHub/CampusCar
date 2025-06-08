@@ -37,18 +37,19 @@
   --color-support-danger-500-transparent: #EC272333;
 
   /* CONSTANTS */
-  --app-padding-top: 35px; /* top padding of the #app container */
+  --app-padding-vertical: 35px;
   --app-padding-horizontal: 20px;
   
   --nav-min-height: 85px; /* minimal height of the bottom tab navigation bar */
 
   /* Font */
   --font-weight-normal: 400;
+  --font-weight-semibold: 500;
   --font-weight-bold: 600;
 
-  --text-size-md: 18px;
-  --text-size-s: 16px;
-  --text-size-xs: 14px;
+  --font-size-md: 18px;
+  --font-size-s: 16px;
+  --font-size-xs: 14px;
   
   /* Headings */
   --h1-margin-bottom: 30px;
@@ -58,6 +59,7 @@
   --h2-margin-bottom: 20px;
 
   --button-padding-vertical: 12px;
+  --button-padding-horizontal: 35px;
   
   --input-padding-top: 24px;
   --input-padding-bottom: 8px;
@@ -82,7 +84,7 @@
 
 /* LAYOUT */
 *, *::before, *::after {
-  box-sizing: border-box;
+  box-sizing: border-box; /* enable border box box-sizing for EVERY component */
 }
 
 body {
@@ -92,7 +94,7 @@ body {
 
 #app {
   max-width: 1280px;
-  padding: var(--app-padding-top) var(--app-padding-horizontal) 0; 
+  padding: var(--app-padding-vertical) var(--app-padding-horizontal) calc(var(--nav-min-height) + var(--app-padding-vertical)); 
   position: relative;
   min-height: 100vh;
 }
@@ -102,21 +104,7 @@ body {
   flex-direction: column;
   justify-content: center;
   align-items: flex-start;
-}
-
-/* Navigation */
-nav {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;   
-  display: flex;
-  justify-content: space-around;
-  flex-direction: row;
-  min-height: var(--nav-min-height);
   width: 100%;
-  box-shadow: 0 -1px 10px var(--color-neutral-900-transparent);
-  background-color: var(--color-neutral-100);
 }
 
 /* TYPOGRAPHY */
@@ -144,7 +132,7 @@ h3 {
 
 p {
   font-family: Author;
-  font-size: var(--text-size-md);
+  font-size: var(--font-size-md);
   color: var(--color-neutral-900);
   margin: 0;
   font-weight: var(--font-weight-normal);
@@ -152,19 +140,19 @@ p {
 
 a {
   font-family: Author;
-  font-size: var(--text-size-s);
+  font-size: var(--font-size-s);
   text-decoration: none;
 }
 
 /* Text font sizes */
 .text-md {
-  font-size: var(--text-size-md);
+  font-size: var(--font-size-md);
 }
 .text-s {
-  font-size: var(--text-size-s);
+  font-size: var(--font-size-s);
 }
 .text-xs {
-  font-size: var(--text-size-xs);
+  font-size: var(--font-size-xs);
 }
 
 /* Text font weights */

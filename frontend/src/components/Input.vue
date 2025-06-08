@@ -1,13 +1,19 @@
 <script setup lang="ts">
     import { ref } from 'vue'
     import type { Ref } from 'vue'
+    import type { InputProps } from '../types/Props';
+    
     const content: Ref<string> = ref('')
+
+    const props = withDefaults(defineProps<InputProps>(), {
+      placeholder: '-',
+    })
 </script> 
 
 <template>
     <div class="input-container">
-        <input type="text" v-model="content" placeholder="" />
-        <label>Input</label>
+        <input v-model="content" :type="props.type" :placeholder="props.placeholder"/>
+        <label>{{ props.label }}</label>
     </div>
 </template>
 
@@ -23,14 +29,15 @@
     appearance: none;
     outline: none;
       
-    box-sizing: content-box;
+    box-sizing: border-box;
+    /* width: calc(100% - calc(2 * var(--input-padding-horizontal))); */
     width: 100%;
     padding: var(--input-padding-top) var(--input-padding-horizontal) var(--input-padding-bottom);
     border-radius: var(--border-radius);
     background-color: var(--color-neutral-200);
     
     font-family: Author;
-    font-size: 18px;
+    font-size: var(--font-size-md);
     font-weight: var(--font-weight-normal);
     color: var(--color-neutral-900);
   }
@@ -42,14 +49,15 @@
   label {
     position: absolute;
     top: 50%;
+    left: 0;
     margin: 0;
-    padding: 0 var(--input-padding-horizontal);
+    padding: 0 0 0 var(--input-padding-horizontal);
     
     color: #aaa;
     background: var(--color-neutral-200);
     
     font-family: Author;
-    font-size: 18px;
+    font-size: var(--font-size-md);
     color: var(--color-neutral-900);
     font-weight: var(--font-weight-normal);
 
@@ -63,7 +71,7 @@
   input:not(:placeholder-shown) + label {
     top: 14px;
     font-family: Author;
-    font-size: 14px;
+    font-size: var(--font-size-xs);
     font-weight: var(--font-weight-normal);
     color: var(--color-neutral-400);
   }
