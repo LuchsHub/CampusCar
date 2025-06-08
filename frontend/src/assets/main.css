@@ -1,0 +1,199 @@
+@font-face {
+  font-family: Author;
+  src: url("./fonts/Author-Variable.ttf");
+}
+@font-face {
+  font-family: AuthorItalic;
+  src: url("./fonts/Author-VariableItalic.ttf");
+}
+
+:root {
+  /* Primary / Brand colors*/
+  --color-primary-500: #22E57D;
+  --color-primary-500-transparent: #22E57D40;
+
+  --color-primary-900: #03401F;
+
+  /* Neutral colors / greyscale */
+  --color-neutral-100: #FFFFFF;
+  --color-neutral-200: #F6F5F7;
+  --color-neutral-300: #CECCD2;
+  --color-neutral-400: #878291;
+  --color-neutral-500: #423955;
+  --color-neutral-900: #1E152A;
+  --color-neutral-900-transparent: #1E152A40;
+
+  /* Support colors */
+  --color-support-info-500: #1D77E4;
+  --color-support-info-500-transparent: #1D77E440;
+
+  --color-support-positive-500: #30C825;
+  --color-support-positive-500-transparent: #30C82540;
+
+  --color-support-warning-500: #F2B61E;
+  --color-support-warning-500-transparent: #F2B61E40;
+
+  --color-support-danger-500: #EC2723;
+  --color-support-danger-500-transparent: #EC272340;
+
+  /* CONSTANTS */
+  --app-padding-vertical: 35px;
+  --app-padding-horizontal: 20px;
+  
+  --nav-min-height: 85px; /* minimal height of the bottom tab navigation bar */
+  --hover-button-nav-margin: 40px;
+
+  /* Font */
+  --font-weight-normal: 400;
+  --font-weight-semibold: 500;
+  --font-weight-bold: 600;
+
+  --font-size-md: 18px;
+  --font-size-s: 16px;
+  --font-size-xs: 14px;
+  
+  /* Headings */
+  --page-title-margin-bottom: 30px;
+  --page-title-back-arrow-gap: 15px;
+
+  --h2-margin-top: 35px; /* Defaults for every h2, can be omitted if h2 is directly beneath h1 (e.g. "Fahrt anbieten" screen) */
+  --h2-margin-bottom: 20px;
+
+  --button-padding-vertical: 12px;
+  --button-padding-horizontal: 35px;
+  
+  --input-padding-top: 24px;
+  --input-padding-bottom: 8px;
+  --input-padding-horizontal: 25px;
+  
+  /* vertical lines (e.g. "Profil", "Fahrtverlauf" screens) */
+  --line-width-s: 1px;
+  --line-width-m: 2px;
+
+  /* icons */
+  --icon-height-xl: 25px;
+  --icon-height-md: 20px;
+  --icon-height-s: 15px;
+
+  /* misc */
+  --checkbox-size: 25px;
+  --status-dot-size: 10px;
+  --border-radius: 10px;
+  --drop-shadow-blur: 10px; 
+  --horizontal-gap: 15px; /* default margin between elements like input fields when theyre right below each other and not separeted by headings for example */
+}
+
+/* LAYOUT */
+*, *::before, *::after {
+  box-sizing: border-box; /* enable border box box-sizing for EVERY component */
+}
+
+body {
+  margin: 0;
+  padding: 0;
+}
+
+#app {
+  max-width: 1280px;
+  padding: var(--app-padding-vertical) var(--app-padding-horizontal) calc(var(--nav-min-height) + var(--app-padding-vertical)); 
+  position: relative;
+  min-height: 100vh;
+}
+
+.view-container { /* main container for each view */
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  width: 100%;
+}
+
+/* TYPOGRAPHY */
+h1 {
+  font-family: Author;
+  font-size: 36px;
+  margin: 0;
+  font-weight: var(--font-weight-bold);
+  color: var(--color-neutral-900);
+}
+h2 {
+  font-family: Author;
+  font-size: 26px;
+  margin: var(--h2-margin-top) 0 var(--h2-margin-bottom);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-neutral-900);
+}
+h3 {
+  font-family: Author;
+  font-size: 20px;
+  margin: 0;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-neutral-900);
+}
+
+p {
+  font-family: Author;
+  font-size: var(--font-size-md);
+  color: var(--color-neutral-900);
+  margin: 0;
+  font-weight: var(--font-weight-normal);
+}
+
+a {
+  font-family: Author;
+  font-size: var(--font-size-s);
+  text-decoration: none;
+}
+
+/* Text font sizes */
+.text-md {
+  font-size: var(--font-size-md);
+}
+.text-s {
+  font-size: var(--font-size-s);
+}
+.text-xs {
+  font-size: var(--font-size-xs);
+}
+
+/* Text font weights */
+.text-bold {
+  font-weight: var(--font-weight-bold);
+}
+
+/* Text colors */
+.text-primary {
+  color: var(--color-primary-500)
+}
+
+.text-neutral-300 {
+  color: var(--color-neutral-300)
+}
+.text-neutral-400 {
+  color: var(--color-neutral-400)
+}
+.text-neutral-900 {
+  color: var(--color-neutral-900)
+}
+
+.text-info {
+  color: var(--color-support-info-500)
+}
+.text-warning {
+  color: var(--color-support-warning-500)
+}
+.text-danger {
+  color: var(--color-support-danger-500)
+}
+
+/* ICONS */
+.icon-xl {
+  height: var(--icon-height-xl);
+}
+.icon-l {
+  height: var(--icon-height-md);
+}
+.icon-s {
+  height: var(--icon-height-s);
+}
