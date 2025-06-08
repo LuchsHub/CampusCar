@@ -10,7 +10,7 @@
 :root {
   /* Primary / Brand colors*/
   --color-primary-500: #22E57D;
-  --color-primary-500-transparent: #22E57D33;
+  --color-primary-500-transparent: #22E57D40;
 
   --color-primary-900: #03401F;
 
@@ -21,26 +21,27 @@
   --color-neutral-400: #878291;
   --color-neutral-500: #423955;
   --color-neutral-900: #1E152A;
-  --color-neutral-900-transparent: #1E152A33;
+  --color-neutral-900-transparent: #1E152A40;
 
   /* Support colors */
   --color-support-info-500: #1D77E4;
-  --color-support-info-500-transparent: #1D77E433;
+  --color-support-info-500-transparent: #1D77E440;
 
   --color-support-positive-500: #30C825;
-  --color-support-positive-500-transparent: #30C82533;
+  --color-support-positive-500-transparent: #30C82540;
 
   --color-support-warning-500: #F2B61E;
-  --color-support-warning-500-transparent: #F2B61E33;
+  --color-support-warning-500-transparent: #F2B61E40;
 
   --color-support-danger-500: #EC2723;
-  --color-support-danger-500-transparent: #EC272333;
+  --color-support-danger-500-transparent: #EC272340;
 
   /* CONSTANTS */
   --app-padding-vertical: 35px;
   --app-padding-horizontal: 20px;
   
   --nav-min-height: 85px; /* minimal height of the bottom tab navigation bar */
+  --hover-button-nav-margin: 40px;
 
   /* Font */
   --font-weight-normal: 400;
@@ -100,6 +101,7 @@ body {
 }
 
 .view-container { /* main container for each view */
+  position: relative;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -119,14 +121,14 @@ h2 {
   font-family: Author;
   font-size: 26px;
   margin: var(--h2-margin-top) 0 var(--h2-margin-bottom);
-  font-weight: var(--font-weight-bold);
+  font-weight: var(--font-weight-semibold);
   color: var(--color-neutral-900);
 }
 h3 {
   font-family: Author;
   font-size: 20px;
   margin: 0;
-  font-weight: var(--font-weight-bold);
+  font-weight: var(--font-weight-semibold);
   color: var(--color-neutral-900);
 }
 

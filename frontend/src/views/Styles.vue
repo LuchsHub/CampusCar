@@ -1,10 +1,16 @@
 <script setup lang="ts">
-import Button from '../components/Button.vue'
-import Input from '../components/Input.vue'
+  import Button from '../components/Button.vue'
+  import Input from '../components/Input.vue'
+  import HoverButton from '../components/HoverButton.vue';
+  import type { ButtonProps } from '../types/Props';
+
+  const buttons: ButtonProps[] = [
+    {variant: "primary", color: "primary", text: "Hoverbutton"},
+  ]
 </script>
 
 <template>
-  <div class="view-container">
+  <div class="view-container"> <!--view-container is necessary in each view-->
     <div class="gap-container">
       <h1 class="margin-0">Heading 1</h1>
       <h2 class="margin-0">Heading 2</h2>
@@ -31,20 +37,27 @@ import Input from '../components/Input.vue'
     
     <h2>Input</h2>
     <div class="gap-container">
-      <Input type="text" label="Input"/>
+      <Input type="text" label="Text"/>
+      <Input type="number" label="Number"/>
+      <Input type="email" label="Email"/>
+      <Input type="password" label="Password"/>
+      <Input type="time" label="Time"/>
+      <Input type="date" label="Date"/>
     </div>
 
     <h2>Text Examples</h2>
     <div class="gap-container">
-      <p>Normal text</p>
-      <p class="text-bold">Bold text</p>
+      <p>Medium text</p>
       <p class="text-s">Small text</p>
       <p class="text-xs">Extra small text</p>
+      <p class="text-bold">Bold text</p>
       <p class="text-primary">Primary text</p>
       <p class="text-info">Info text</p>
       <p class="text-warning">Warning text</p>
       <p class="text-danger">Danger text</p>
     </div>
+
+    <HoverButton :buttons="buttons"/> <!--HoverButtons do not need a container, they are positioned based on view-container-->
   </div>
 </template>
 
@@ -61,7 +74,6 @@ import Input from '../components/Input.vue'
   width: 100%;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
   gap: var(--horizontal-gap);
 }
 

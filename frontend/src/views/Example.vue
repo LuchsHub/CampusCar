@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import Input from '../components/Input.vue';
 import Button from '../components/Button.vue';
+import HoverButton from '../components/HoverButton.vue';
+import type { ButtonProps } from '../types/Props';
+
+const buttons: ButtonProps[] = [
+  {variant: "primary", color: "primary", text: "Fahrt erstellen"},
+]
 </script>
 
 <template>
@@ -20,6 +26,7 @@ import Button from '../components/Button.vue';
       <Input type="text" label="Ort"/>
     </div>
     <h2>Optionen</h2>
+    <HoverButton :buttons="buttons"/>
   </div>
 </template>
 

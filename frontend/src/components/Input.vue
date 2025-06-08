@@ -29,8 +29,6 @@
     appearance: none;
     outline: none;
       
-    box-sizing: border-box;
-    /* width: calc(100% - calc(2 * var(--input-padding-horizontal))); */
     width: 100%;
     padding: var(--input-padding-top) var(--input-padding-horizontal) var(--input-padding-bottom);
     border-radius: var(--border-radius);
