@@ -2,8 +2,8 @@ export interface PageTitleProps {
   to?: string
 }
 export interface ButtonProps {
-  variant: 'primary' | 'secondary'
-  color: 'primary' | 'danger'
+  variant: 'primary' | 'secondary' | 'tertiary'
+  color?: 'danger'
   to?: string 
   text?: string
   onClick?: () => void

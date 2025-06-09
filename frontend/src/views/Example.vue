@@ -21,7 +21,7 @@ const saveRide = ():void => {
 
 // Buttons to use as Hover Buttons 
 const hoverButtons: ButtonProps[] = [
-  {variant: "primary", color: "primary", text: "Fahrt erstellen", onClick: saveRide},
+  {variant: "primary", text: "Fahrt erstellen", onClick: saveRide},
 ]
 </script>
 
@@ -35,7 +35,7 @@ const hoverButtons: ButtonProps[] = [
       <Input type="text" label="Ort" v-model="ride.departureLocation"/>
     </div>
     <h2>Zwischenstopps</h2>
-    <Button variant="secondary" color="primary">Zwischenstopp hinzufügen</Button>
+    <Button variant="secondary">Zwischenstopp hinzufügen</Button>
     <h2>Ankunft</h2>
     <div class="form-container">
       <Input type="time" label="Uhrzeit" v-model="ride.arrivalTime"/>
