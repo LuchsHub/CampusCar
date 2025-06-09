@@ -13,6 +13,7 @@
     password: "",
     time: "",
     date: "",
+    file: "",
   })
 
   const printExampleData = ():void => {
@@ -65,6 +66,7 @@
       <Input type="password" label="Password" v-model="exampleData.password"/>
       <Input type="time" label="Time" v-model="exampleData.time"/>
       <Input type="date" label="Date" v-model="exampleData.date"/>
+      <Input type="file" label="File" v-model="exampleData.file"/>
     </div>
 
     <h2>Text Styles</h2>

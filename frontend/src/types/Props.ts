@@ -15,7 +15,7 @@ export interface HoverButtonProps {
 
 export interface InputProps {
   modelValue: string
-  type: 'text' | 'email' | 'password' | 'date' | 'time' | 'number' | 'checkbox'
+  type: 'text' | 'email' | 'password' | 'date' | 'time' | 'number' | 'checkbox' | 'file'
   label: string
   placeholder?: string
 }
