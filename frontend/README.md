@@ -15,7 +15,7 @@ npm run dev
 npm run build
 
 # Lint code
-npm run lint
+npm run lint:check
 ```
 
 ## Project Structure
@@ -43,10 +43,12 @@ src/
 
 ## Development
 
+Frontend development happens on the branch `frontend_dev`. If you want to add a feature, create a **new branch** based on this branch and PR when finished. New branches follow the following naming conventions: `issue<issue_no>_<feature_name>`. For example: `issue5_login_view`.
+
 The project uses ESLint for code quality. Make sure to run the linter before committing changes:
 
 ```bash
-npm run lint
+npm run lint:check
 ```
 
 ## Building for Production
