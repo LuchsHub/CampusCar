@@ -1,29 +1,40 @@
 <script setup lang="ts">
-    import type { InputProps } from '../types/Props';
+import { ref, watch, defineProps } from 'vue'
+import type { InputProps } from '../types/Props'
 
+const props = withDefaults(defineProps<InputProps & { error?: string }>(), {
+  placeholder: '-',
+  error: ''
+})
 
-    const props = withDefaults(defineProps<InputProps>(), {
-      placeholder: '-',
-    })
+const emit = defineEmits(['update:modelValue'])
 
-    const emit = defineEmits(['update:modelValue'])
+const localError = ref(props.error)
 
-    const handleInput = (event: Event) => {
-      const target = event.target as HTMLInputElement
-      emit('update:modelValue', target.value)
-    }
-</script> 
+watch(() => props.error, (newError) => {
+  localError.value = newError
+})
+
+const handleInput = (event: Event) => {
+  const target = event.target as HTMLInputElement
+  emit('update:modelValue', target.value)
+  // Fehler beim Tippen zurücksetzen
+  localError.value = ''
+}
+</script>
 
 <template>
-    <div class="input-container">
-        <input 
-          :type="props.type" 
-          :placeholder="props.placeholder"
-          :value="props.modelValue"
-          @input="handleInput"
-        />
-        <label>{{ props.label }}</label>
-    </div>
+  <div class="input-container">
+    <input
+      :type="props.type"
+      :placeholder="props.placeholder"
+      :value="props.modelValue"
+      @input="handleInput"
+      :class="{ 'input-error': !!localError }"
+    />
+    <label>{{ props.label }}</label>
+    <div v-if="localError" class="error">{{ localError }}</div>
+  </div>
 </template>
 
   
@@ -81,6 +92,10 @@
     font-size: var(--font-size-xs);
     font-weight: var(--font-weight-normal);
     color: var(--color-neutral-400);
+  }
+
+  .input-error {
+    border: 1px solid var(--color-support-danger-500);
   }
 </style>
   
