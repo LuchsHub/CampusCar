@@ -24,24 +24,26 @@ const handleInput = (event: Event) => {
 </script>
 
 <template>
-  <div class="input-container">
-    <input
-      :type="props.type"
-      :placeholder="props.placeholder"
-      :value="props.modelValue"
-      @input="handleInput"
-      :class="{ 'input-error': !!localError }"
-    />
-    <label>{{ props.label }}</label>
-    <div v-if="localError" class="error">{{ localError }}</div>
+  <div>
+    <div class="input-container">
+      <input
+        :type="props.type"
+        :placeholder="props.placeholder"
+        :value="props.modelValue"
+        @input="handleInput"
+        :class="{ 'input-error': !!localError }"
+      />
+      <label>{{ props.label }}</label>
+    </div>
+    <p v-if="localError" class="text-s text-danger padding-top-small">{{ localError }}</p>
   </div>
 </template>
 
   
 <style scoped>
   .input-container {
-    position: relative;
     width: 100%;
+    position: relative;
   }
   
   input {
@@ -72,7 +74,6 @@ const handleInput = (event: Event) => {
     padding: 0 0 0 var(--input-padding-horizontal);
     
     color: #aaa;
-    background: var(--color-neutral-200);
     
     font-family: Author;
     font-size: var(--font-size-md);
@@ -95,7 +96,7 @@ const handleInput = (event: Event) => {
   }
 
   .input-error {
-    border: 1px solid var(--color-support-danger-500);
+    border: var(--line-width-m) solid var(--color-support-danger-500);
   }
 </style>
   
