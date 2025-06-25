@@ -1,4 +1,5 @@
 import uuid
+import datetime
 
 from pydantic import EmailStr
 from sqlmodel import Field, Relationship, SQLModel
@@ -39,13 +40,6 @@ class UpdatePassword(SQLModel):
     new_password: str = Field(min_length=8, max_length=40)
 
 
-# Database model, database table inferred from class name
-class User(UserBase, table=True):
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    hashed_password: str
-    items: list["Item"] = Relationship(back_populates="owner", cascade_delete=True)
-
-
 # Properties to return via API, id is always required
 class UserPublic(UserBase):
     id: uuid.UUID
@@ -78,7 +72,7 @@ class Item(ItemBase, table=True):
     owner_id: uuid.UUID = Field(
         foreign_key="user.id", nullable=False, ondelete="CASCADE"
     )
-    owner: User | None = Relationship(back_populates="items")
+    owner: "User" | None = Relationship(back_populates="items")
 
 
 # Properties to return via API, id is always required
@@ -111,3 +105,84 @@ class TokenPayload(SQLModel):
 class NewPassword(SQLModel):
     token: str
     new_password: str = Field(min_length=8, max_length=40)
+
+
+# Database model, database table inferred from class name
+class User(UserBase, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+
+    location_id: uuid.UUID = Field(foreign_key="location.id", unique=True)
+    cars: list["Car"] = Relationship(back_populates="user")
+    received_ratings: list["UserRating"] = Relationship(back_populates="user")
+
+    hashed_password: str
+    first_name: str
+    last_name: str
+    user_name: str
+
+    # profile_picture
+    email: str
+    points: int
+    rating: float
+
+
+class Car(SQLModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+
+    user_id: uuid.UUID = Field(foreign_key="user.id")
+    user: "User" = Relationship(back_populates="cars")
+
+    n_seats: int
+    model: str
+    brand: str
+
+
+class Stop(SQLModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+
+    user: uuid.UUID = Field(foreign_key="user.id")
+    user: "User" = Relationship()
+    ride_id: uuid.UUID = Field(foreign_key="ride.id")
+    ride: "Ride" = Relationship(back_populates="stops")
+    location_id: uuid.UUID = Field(foreign_key="location.id", unique=True)
+
+    time_of_arrial: datetime.datetime
+
+
+class Ride(SQLModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    serial_id: uuid.UUID
+
+    driver: uuid.UUID = Field(foreign_key="user.id")
+    car_id:  uuid.UUID = Field(foreign_key="car.id")
+    car: "Car" = Relationship(back_populates="ride")
+    stops: list["Stop"] = Relationship(back_populates="ride")
+    start_location_id: uuid.UUID = Field(foreign_key="location.id", unique=True)
+    start_location: "Location" = Relationship(back_populates="ride")
+    end_location_id: uuid.UUID = Field(foreign_key="location.id", unique=True)
+    end_location: "Location" = Relationship(back_populates="ride")
+
+    recurring: bool
+    n_co_driver: int
+    starting_time: datetime.datetime
+    time_of_arrial: datetime.datetime
+
+
+class Location(SQLModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+
+    postal_code: str
+    city: str
+    street: str
+
+
+class UserRating(SQLModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    
+    user_id: uuid.UUID = Field(foreign_key="user.id")
+    user: "User" = Relationship(back_populates="received_ratings")
+
+    rater_id: uuid.UUID = Field(foreign_key="user.id")
+    rater: "User" = Relationship()
+
+    rating_value: int
