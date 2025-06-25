@@ -1,5 +1,5 @@
-import uuid
 import datetime
+import uuid
 
 from pydantic import EmailStr
 from sqlmodel import Field, Relationship, SQLModel
@@ -178,7 +178,7 @@ class Location(SQLModel, table=True):
 
 class UserRating(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    
+
     user_id: uuid.UUID = Field(foreign_key="user.id")
     user: "User" = Relationship(back_populates="received_ratings")
 
