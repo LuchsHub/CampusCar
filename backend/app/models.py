@@ -116,14 +116,14 @@ class User(UserBase, table=True):
     received_ratings: list["UserRating"] = Relationship(back_populates="user")
 
     hashed_password: str
-    first_name: str
-    last_name: str
-    user_name: str
+    first_name: str = Field(max_length=255)
+    last_name: str = Field(max_length=255)
+    user_name: str = Field(max_length=255)
 
     # profile_picture
-    email: str
-    points: int
-    rating: float
+    email: str = Field(max_length=255)
+    points: int = Field()
+    rating: float = Field()
 
 
 class Car(SQLModel, table=True):
@@ -132,9 +132,9 @@ class Car(SQLModel, table=True):
     user_id: uuid.UUID = Field(foreign_key="user.id")
     user: "User" = Relationship(back_populates="cars")
 
-    n_seats: int
-    model: str
-    brand: str
+    n_seats: int = Field()
+    model: str = Field(max_length=255)
+    brand: str = Field(max_length=255)
 
 
 class Stop(SQLModel, table=True):
@@ -146,7 +146,7 @@ class Stop(SQLModel, table=True):
     ride: "Ride" = Relationship(back_populates="stops")
     location_id: uuid.UUID = Field(foreign_key="location.id", unique=True)
 
-    time_of_arrial: datetime.datetime
+    time_of_arrial: datetime.datetime = Field()
 
 
 class Ride(SQLModel, table=True):
@@ -162,18 +162,18 @@ class Ride(SQLModel, table=True):
     end_location_id: uuid.UUID = Field(foreign_key="location.id", unique=True)
     end_location: "Location" = Relationship(back_populates="ride")
 
-    recurring: bool
-    n_co_driver: int
-    starting_time: datetime.datetime
-    time_of_arrial: datetime.datetime
+    recurring: bool = Field()
+    n_co_driver: int = Field()
+    starting_time: datetime.datetime = Field()
+    time_of_arrial: datetime.datetime = Field()
 
 
 class Location(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
 
-    postal_code: str
-    city: str
-    street: str
+    postal_code: str = Field(min_length=5, max_length=5)
+    city: str = Field(max_length=255)
+    street: str = Field(max_length=255)
 
 
 class UserRating(SQLModel, table=True):
@@ -185,4 +185,4 @@ class UserRating(SQLModel, table=True):
     rater_id: uuid.UUID = Field(foreign_key="user.id")
     rater: "User" = Relationship()
 
-    rating_value: int
+    rating_value: int = Field()
