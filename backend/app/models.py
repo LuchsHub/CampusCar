@@ -140,7 +140,7 @@ class Car(SQLModel, table=True):
 class Stop(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
 
-    user: uuid.UUID = Field(foreign_key="user.id")
+    user_id: uuid.UUID = Field(foreign_key="user.id")
     user: "User" = Relationship()
     ride_id: uuid.UUID = Field(foreign_key="ride.id")
     ride: "Ride" = Relationship(back_populates="stops")
