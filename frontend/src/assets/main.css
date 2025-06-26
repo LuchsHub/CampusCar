@@ -42,6 +42,7 @@
   
   --nav-min-height: 85px; /* minimal height of the bottom tab navigation bar */
   --hover-button-nav-margin: 40px;
+  --hover-button-width-percentage: 80;
 
   /* Font */
   --font-weight-normal: 400;
@@ -93,7 +94,7 @@
 }
 
 body {
-  margin: 0;
+  margin: 0 auto;
   padding: 0;
   font-family: Author, sans-serif;
   background: var(--color-neutral-100);
@@ -103,7 +104,6 @@ body {
 @media (min-width: 768px) {
   body {
     max-width: var(--tablet-content-max-width);
-    margin: 0 auto;
     box-shadow: 0 -1px 10px var(--color-neutral-900-transparent);
     min-height: 100vh;
     background: var(--color-neutral-100);
