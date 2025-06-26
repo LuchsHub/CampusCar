@@ -1,4 +1,6 @@
+import datetime
 import uuid
+from typing import Optional
 
 from pydantic import EmailStr
 from sqlmodel import Field, Relationship, SQLModel
@@ -9,7 +11,9 @@ class UserBase(SQLModel):
     email: EmailStr = Field(unique=True, index=True, max_length=255)
     is_active: bool = True
     is_superuser: bool = False
-    full_name: str | None = Field(default=None, max_length=255)
+    first_name: str | None = Field(default=None, max_length=255)
+    last_name: str | None = Field(default=None, max_length=255)
+    user_name: str = Field(unique=True, max_length=255)
 
 
 # Properties to receive via API on creation
@@ -20,7 +24,9 @@ class UserCreate(UserBase):
 class UserRegister(SQLModel):
     email: EmailStr = Field(max_length=255)
     password: str = Field(min_length=8, max_length=40)
-    full_name: str | None = Field(default=None, max_length=255)
+    first_name: str | None = Field(default=None, max_length=255)
+    last_name: str | None = Field(default=None, max_length=255)
+    user_name: str = Field(max_length=255)
 
 
 # Properties to receive via API on update, all are optional
@@ -30,7 +36,8 @@ class UserUpdate(UserBase):
 
 
 class UserUpdateMe(SQLModel):
-    full_name: str | None = Field(default=None, max_length=255)
+    first_name: str | None = Field(default=None, max_length=255)
+    last_name: str | None = Field(default=None, max_length=255)
     email: EmailStr | None = Field(default=None, max_length=255)
 
 
@@ -43,7 +50,26 @@ class UpdatePassword(SQLModel):
 class User(UserBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     hashed_password: str
-    items: list["Item"] = Relationship(back_populates="owner", cascade_delete=True)
+
+    location_id: uuid.UUID | None = Field(default=None, foreign_key="location.id")
+    location: Optional["Location"] = Relationship(back_populates="inhabitants")
+
+    cars: list["Car"] = Relationship(back_populates="owner")
+
+    ratings: list["Rating"] = Relationship(
+        back_populates="user",
+        sa_relationship_kwargs={"foreign_keys": "[Rating.user_id]"},
+    )
+    given_ratings: list["Rating"] = Relationship(
+        back_populates="rater",
+        sa_relationship_kwargs={"foreign_keys": "[Rating.rater_id]"},
+    )
+
+    stops: list["Stop"] = Relationship(back_populates="user")
+
+    rides: list["Ride"] = Relationship(back_populates="driver")
+
+    points: int = Field(default=0)
 
 
 # Properties to return via API, id is always required
@@ -56,40 +82,122 @@ class UsersPublic(SQLModel):
     count: int
 
 
-# Shared properties
-class ItemBase(SQLModel):
-    title: str = Field(min_length=1, max_length=255)
-    description: str | None = Field(default=None, max_length=255)
-
-
-# Properties to receive on item creation
-class ItemCreate(ItemBase):
-    pass
-
-
-# Properties to receive on item update
-class ItemUpdate(ItemBase):
-    title: str | None = Field(default=None, min_length=1, max_length=255)  # type: ignore
-
-
-# Database model, database table inferred from class name
-class Item(ItemBase, table=True):
+class Car(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    owner_id: uuid.UUID = Field(
-        foreign_key="user.id", nullable=False, ondelete="CASCADE"
+
+    owner_id: uuid.UUID = Field(foreign_key="user.id")
+    owner: "User" = Relationship(back_populates="cars")
+
+    n_seats: int = Field()
+    model: str = Field(max_length=255)
+    brand: str = Field(max_length=255)
+
+    rides: list["Ride"] = Relationship(back_populates="car")
+
+
+class CarCreate(SQLModel):
+    n_seats: int
+    model: str = Field(max_length=255)
+    brand: str = Field(max_length=255)
+
+
+class CarUpdate(SQLModel):
+    n_seats: int | None = None
+    model: str | None = Field(default=None, max_length=255)
+    brand: str | None = Field(default=None, max_length=255)
+
+
+class Stop(SQLModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+
+    user_id: uuid.UUID = Field(foreign_key="user.id")
+    user: "User" = Relationship(back_populates="stops")
+
+    ride_id: uuid.UUID = Field(foreign_key="ride.id")
+    ride: "Ride" = Relationship(back_populates="stops")
+
+    location_id: uuid.UUID = Field(foreign_key="location.id")
+    location: "Location" = Relationship(back_populates="stops")
+
+    time_of_arrival: datetime.datetime = Field()
+
+
+class Ride(SQLModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    recurring_id: uuid.UUID = Field(default=None)
+
+    driver_id: uuid.UUID = Field(foreign_key="user.id")
+    driver: "User" = Relationship(back_populates="rides")
+
+    car_id: uuid.UUID = Field(foreign_key="car.id")
+    car: "Car" = Relationship(back_populates="rides")
+
+    stops: list["Stop"] = Relationship(back_populates="ride")
+
+    start_location_id: uuid.UUID = Field(foreign_key="location.id")
+    end_location_id: uuid.UUID = Field(foreign_key="location.id")
+
+    start_location: Optional["Location"] = Relationship(
+        back_populates="ride_starts",
+        sa_relationship_kwargs={"foreign_keys": "[Ride.start_location_id]"},
     )
-    owner: User | None = Relationship(back_populates="items")
+    end_location: Optional["Location"] = Relationship(
+        back_populates="ride_ends",
+        sa_relationship_kwargs={"foreign_keys": "[Ride.end_location_id]"},
+    )
+
+    recurring_mon: bool = Field(default=False)
+    recurring_tue: bool = Field(default=False)
+    recurring_wed: bool = Field(default=False)
+    recurring_thu: bool = Field(default=False)
+    recurring_fri: bool = Field(default=False)
+    recurring_sat: bool = Field(default=False)
+    recurring_sun: bool = Field(default=False)
+
+    n_co_driver: int = Field()
+
+    starting_time: datetime.datetime = Field()
+    time_of_arrial: datetime.datetime = Field()
 
 
-# Properties to return via API, id is always required
-class ItemPublic(ItemBase):
-    id: uuid.UUID
-    owner_id: uuid.UUID
+class Location(SQLModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+
+    inhabitants: list["User"] = Relationship(back_populates="location")
+
+    stops: list["Stop"] = Relationship(back_populates="location")
+
+    ride_starts: list["Ride"] = Relationship(
+        back_populates="start_location",
+        sa_relationship_kwargs={"foreign_keys": "[Ride.start_location_id]"},
+    )
+    ride_ends: list["Ride"] = Relationship(
+        back_populates="end_location",
+        sa_relationship_kwargs={"foreign_keys": "[Ride.end_location_id]"},
+    )
+
+    postal_code: str = Field(min_length=5, max_length=5)
+    city: str = Field(max_length=255)
+    street: str = Field(max_length=255)
+    house_number: str = Field(max_length=10)
 
 
-class ItemsPublic(SQLModel):
-    data: list[ItemPublic]
-    count: int
+class Rating(SQLModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+
+    user_id: uuid.UUID = Field(foreign_key="user.id")
+    user: "User" = Relationship(
+        back_populates="ratings",
+        sa_relationship_kwargs={"foreign_keys": "[Rating.user_id]"},
+    )
+
+    rater_id: uuid.UUID = Field(foreign_key="user.id")
+    rater: "User" = Relationship(
+        back_populates="given_ratings",
+        sa_relationship_kwargs={"foreign_keys": "[Rating.rater_id]"},
+    )
+
+    rating_value: int = Field(nullable=False)
 
 
 # Generic message
