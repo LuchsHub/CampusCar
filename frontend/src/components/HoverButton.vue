@@ -4,8 +4,6 @@
   import { useRoute } from 'vue-router'
 
   const route = useRoute()
-  const buttonClass: string = route.meta.hideTabBar ? "lowHoverButton" : "highHoverButton"
-
   const props = defineProps<HoverButtonProps>()
 </script>
 

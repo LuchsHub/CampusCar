@@ -3,65 +3,75 @@ import Input from '../components/Input.vue';
 import HoverButton from '../components/HoverButton.vue';
 import PageTitle from '../components/PageTitle.vue';
 import type { ButtonProps } from '../types/Props';
-import type { UserLogin } from '../types/User';
+import type { UserRegister } from '../types/User';
 import { reactive, ref } from 'vue';
-import { isValidEmail, required, validate } from '../services/validation'
+import { isValidEmail, isTHBEmail, isValidPassword, required, validate } from '../services/validation'
 import type { ValidationSchema } from '../types/Validation';
 import { useAuth } from '../composables/useAuth';
 
-const userLogin = reactive<UserLogin>({
+const userRegister = reactive<UserRegister>({
   email: "",
   password: "",
+  full_name: "",
 })
 
 const errors = ref<Record<string, string[]>>({})
 
-const userLoginValidationSchema: ValidationSchema = {
-  email: [required('E-Mail ist erforderlich'), isValidEmail()],
-  password: [required('Passwort ist erforderlich')],
+const userRegisterValidationSchema: ValidationSchema = {
+  email: [required('E-Mail ist erforderlich'), isValidEmail(), isTHBEmail()],
+  password: [required('Passwort ist erforderlich'), isValidPassword()],
+  full_name: [required('Vor- und Nachname ist erforderlich')],
 }
 
-const { loginUser } = useAuth();
+const { registerUser } = useAuth();
 
-const tryLoginUser = async (): Promise<void> => {
+const tryRegisterUser = async (): Promise<void> => {
   // validate input
-  errors.value = validate(userLogin, userLoginValidationSchema)
+  errors.value = validate(userRegister, userRegisterValidationSchema)
   if (Object.keys(errors.value).length > 0) {
     console.log(errors.value)
     return
   }
 
+  console.log("tryRegisterUser()")
+
   // try to post input data
   try {
-    await loginUser(userLogin)
+    await registerUser(userRegister)
   } catch (error: any) {
     // set some error object
   }
 }
 
 const hoverButtons: ButtonProps[] = [
-  {variant: "primary", text: "Anmelden", onClick: tryLoginUser},
-  {variant: "tertiary", text: "Account erstellen", to: "/signup"},
+  {variant: "primary", text: "Registrieren", onClick: tryRegisterUser},
+  {variant: "tertiary", text: "Ich habe schon einen Account", to: "/login"},
 ]
 </script>
 
 <template>
   <div class="view-container">
 
-    <PageTitle>Login</PageTitle>
+    <PageTitle>Registrieren</PageTitle>
 
-    <h2>Willkommen zurück!</h2>
+    <h2>Erstelle einen Account, um direkt loszulegen!</h2>
     <div class="form-container">
       <Input 
         type="text" 
+        label="Vor- und Nachname" 
+        v-model="userRegister.full_name"
+        :error="errors.full_name?.[0]"
+      />
+      <Input 
+        type="text" 
         label="THB E-Mail" 
-        v-model="userLogin.email"
+        v-model="userRegister.email"
         :error="errors.email?.[0]"
       />
       <Input 
-        type="password" 
+        type="text" 
         label="Passwort" 
-        v-model="userLogin.password"
+        v-model="userRegister.password"
         :error="errors.password?.[0]"
         />
       </div>

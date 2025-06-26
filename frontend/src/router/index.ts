@@ -30,6 +30,12 @@ const routes: RouteRecordRaw[] = [
     meta: { hideTabBar: true }
   },
   {
+    path: '/signup',
+    name: 'signup',
+    component: () => import('../views/Signup.vue'),
+    meta: { hideTabBar: true }
+  },
+  {
     path: '/example',
     name: 'example',
     component: () => import('../views/Example.vue')
