@@ -1,31 +1,34 @@
 <script setup lang="ts">
+import axios from 'axios';
 import Input from '../components/Input.vue';
 import HoverButton from '../components/HoverButton.vue';
 import PageTitle from '../components/PageTitle.vue';
 import type { ButtonProps } from '../types/Props';
-import type { UserLogin } from '../types/User';
-import { reactive, ref } from 'vue';
+import { ref } from 'vue';
 import { isValidEmail, required, validate } from '../services/validation'
 import type { ValidationSchema } from '../types/Validation';
 import { useAuth } from '../composables/useAuth';
 import { useToaster } from '../composables/useToaster';
-import axios from 'axios';
+import { useUser } from '../composables/useUser';
 
-const userLogin = reactive<UserLogin>({
-  email: "",
-  password: "",
-});
 
-const errors = ref<Record<string, string[]>>({});
+// composable functions
+const { loginUser } = useAuth();
+const { showToast, showDefaultError } = useToaster();
+const { getEmptyLoginUser } = useUser();
+
+
+// variables
+const userLogin = getEmptyLoginUser();
 
 const userLoginValidationSchema: ValidationSchema = {
   email: [required('E-Mail ist erforderlich'), isValidEmail()],
   password: [required('Passwort ist erforderlich')],
 }
+const errors = ref<Record<string, string[]>>({});
 
-const { loginUser } = useAuth();
-const { showToast, showDefaultError } = useToaster();
 
+// functions
 const tryLoginUser = async (): Promise<void> => {
   // validate input
   errors.value = validate(userLogin, userLoginValidationSchema)
@@ -33,20 +36,21 @@ const tryLoginUser = async (): Promise<void> => {
     console.log(errors.value)
     return
   }
-
+  
   // try to post input data
   try {
     await loginUser(userLogin)
   } catch (error: unknown) {
-      if (axios.isAxiosError(error)) {
-        showToast("error", "Ungültige Anmeldedaten.")
-      } else {
-        showDefaultError();
-      }
-      throw error
+    if (axios.isAxiosError(error)) {
+      showToast("error", "Ungültige Anmeldedaten.")
+    } else {
+      showDefaultError();
+    }
+    throw error
   }
 }
 
+// Hoverbuttons
 const hoverButtons: ButtonProps[] = [
   {variant: "primary", text: "Anmelden", onClick: tryLoginUser},
   {variant: "tertiary", text: "Account erstellen", to: "/signup"},

@@ -37,13 +37,15 @@ Then start frontend in development mode:
 npm run dev
 ```
 
-And then start the backend: (**NOTE**: May require `docker login` to work. This will also start the `frontend-1`-container, which sits on the same port as the frontend after starting it with `npm run dev`. Just stop the container using docker desktop for example, otherwise **code changes will not be displayed**. Should be easily fixable by configurating the ports properly though.)
+And then start the backend: (**NOTE**: May require `docker login` to work. This will also start the `frontend-1`-container, which sits on the same port as the frontend after starting it with `npm run dev`. If you have trouble with code changes being not displayed, stop the `frontend-1`-container. Should be easily fixable by configurating the ports properly though.)
 
 ```bash
 docker compose watch
 ```
 
 After that, the API documentation is available under `http://localhost:8000/docs` and a tool for the database is available here `http://localhost:8080/` (Database credentials: **System**: _PostgreSQL_, **Server**: _db_, **Username**: _postgres_, **Password**: _postgres_)
+
+When you start the application you will only see the login / signup screen. Just create a new user and authenticate to see the rest of the application.
 
 ### View structure
 

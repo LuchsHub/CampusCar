@@ -6,5 +6,7 @@ interface BaseUser {
 export interface UserLogin extends BaseUser {}
 
 export interface UserRegister extends BaseUser {
-  full_name: string
+  first_name: string
+  last_name: string
+  user_name: string
 }

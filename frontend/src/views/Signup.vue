@@ -1,33 +1,37 @@
 <script setup lang="ts">
+import axios from 'axios';
 import Input from '../components/Input.vue';
 import HoverButton from '../components/HoverButton.vue';
 import PageTitle from '../components/PageTitle.vue';
 import type { ButtonProps } from '../types/Props';
-import type { UserRegister } from '../types/User';
-import { reactive, ref } from 'vue';
+import { ref } from 'vue';
 import { isValidEmail, isTHBEmail, isValidPassword, required, validate } from '../services/validation'
 import type { ValidationSchema } from '../types/Validation';
 import { useAuth } from '../composables/useAuth';
+import { useUser } from '../composables/useUser';
 import { useToaster } from '../composables/useToaster';
-import axios from 'axios';
 
-const userRegister = reactive<UserRegister>({
-  email: "",
-  password: "",
-  full_name: "",
-})
 
-const errors = ref<Record<string, string[]>>({})
-
-const userRegisterValidationSchema: ValidationSchema = {
-  email: [required('E-Mail ist erforderlich'), isValidEmail(), isTHBEmail()],
-  password: [required('Passwort ist erforderlich'), isValidPassword()],
-  full_name: [required('Vor- und Nachname ist erforderlich')],
-}
-
+// composable functions
+const { getEmptyRegisterUser } = useUser();
 const { registerUser } = useAuth();
 const { showDefaultError, showToast } = useToaster();
 
+
+// variables
+const userRegister = getEmptyRegisterUser()
+
+const userRegisterValidationSchema: ValidationSchema = {
+  user_name: [required('Benutzername ist erforderlich')],
+  first_name: [required('Vorname ist erforderlich')],
+  last_name: [required('Nachname ist erforderlich')],
+  email: [required('E-Mail ist erforderlich'), isValidEmail(), isTHBEmail()],
+  password: [required('Passwort ist erforderlich'), isValidPassword()],
+}
+const errors = ref<Record<string, string[]>>({})
+
+
+// functions
 const tryRegisterUser = async (): Promise<void> => {
   // validate input
   errors.value = validate(userRegister, userRegisterValidationSchema)
@@ -35,24 +39,27 @@ const tryRegisterUser = async (): Promise<void> => {
     console.log(errors.value)
     return
   }
-
+  
   // try to post input data
   try {
     await registerUser(userRegister)
   } catch (error: unknown) {
-      if (axios.isAxiosError(error)) {
-        showToast("error", "Fehler beim Registrierungsprozess.")
-      } else {
-        showDefaultError();
-      }
-      throw error
+    if (axios.isAxiosError(error)) {
+      showToast("error", "Fehler beim Registrierungsprozess.")
+    } else {
+      showDefaultError();
+    }
+    throw error
   }
 }
 
+
+// components
 const hoverButtons: ButtonProps[] = [
   {variant: "primary", text: "Registrieren", onClick: tryRegisterUser},
   {variant: "tertiary", text: "Ich habe schon einen Account", to: "/login"},
 ]
+
 </script>
 
 <template>
@@ -64,9 +71,21 @@ const hoverButtons: ButtonProps[] = [
     <div class="form-container">
       <Input 
         type="text" 
-        label="Vor- und Nachname" 
-        v-model="userRegister.full_name"
-        :error="errors.full_name?.[0]"
+        label="Benutzername" 
+        v-model="userRegister.user_name"
+        :error="errors.user_name?.[0]"
+      />
+      <Input 
+        type="text" 
+        label="Vorname" 
+        v-model="userRegister.first_name"
+        :error="errors.first_name?.[0]"
+      />
+      <Input 
+        type="text" 
+        label="Nachname" 
+        v-model="userRegister.last_name"
+        :error="errors.last_name?.[0]"
       />
       <Input 
         type="text" 
