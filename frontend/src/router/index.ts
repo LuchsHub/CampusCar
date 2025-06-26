@@ -1,10 +1,10 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import type { RouteRecordRaw, RouteLocationNormalized } from 'vue-router'
+import type { RouteRecordRaw } from 'vue-router'
 import { useAuthStore } from '../stores/AuthStore';
 
 // Middleware, which checks if the user has the required role
 function requireAuthentication() {
-  return (_to: RouteLocationNormalized, _from: RouteLocationNormalized) => {
+  return () => {
     const authStore = useAuthStore();
     const isAuthenticated = authStore.userAuthenticated;
 

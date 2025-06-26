@@ -8,6 +8,8 @@ import { reactive, ref } from 'vue';
 import { isValidEmail, isTHBEmail, isValidPassword, required, validate } from '../services/validation'
 import type { ValidationSchema } from '../types/Validation';
 import { useAuth } from '../composables/useAuth';
+import { useToaster } from '../composables/useToaster';
+import axios from 'axios';
 
 const userRegister = reactive<UserRegister>({
   email: "",
@@ -24,6 +26,7 @@ const userRegisterValidationSchema: ValidationSchema = {
 }
 
 const { registerUser } = useAuth();
+const { showDefaultError, showToast } = useToaster();
 
 const tryRegisterUser = async (): Promise<void> => {
   // validate input
@@ -36,8 +39,13 @@ const tryRegisterUser = async (): Promise<void> => {
   // try to post input data
   try {
     await registerUser(userRegister)
-  } catch (error: any) {
-    // set some error object
+  } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        showToast("error", "Fehler beim Registrierungsprozess.")
+      } else {
+        showDefaultError();
+      }
+      throw error
   }
 }
 

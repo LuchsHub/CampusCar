@@ -8,13 +8,15 @@ import { reactive, ref } from 'vue';
 import { isValidEmail, required, validate } from '../services/validation'
 import type { ValidationSchema } from '../types/Validation';
 import { useAuth } from '../composables/useAuth';
+import { useToaster } from '../composables/useToaster';
+import axios from 'axios';
 
 const userLogin = reactive<UserLogin>({
   email: "",
   password: "",
-})
+});
 
-const errors = ref<Record<string, string[]>>({})
+const errors = ref<Record<string, string[]>>({});
 
 const userLoginValidationSchema: ValidationSchema = {
   email: [required('E-Mail ist erforderlich'), isValidEmail()],
@@ -22,6 +24,7 @@ const userLoginValidationSchema: ValidationSchema = {
 }
 
 const { loginUser } = useAuth();
+const { showToast, showDefaultError } = useToaster();
 
 const tryLoginUser = async (): Promise<void> => {
   // validate input
@@ -34,8 +37,13 @@ const tryLoginUser = async (): Promise<void> => {
   // try to post input data
   try {
     await loginUser(userLogin)
-  } catch (error: any) {
-    // set some error object
+  } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        showToast("error", "Ungültige Anmeldedaten.")
+      } else {
+        showDefaultError();
+      }
+      throw error
   }
 }
 

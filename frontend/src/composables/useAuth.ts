@@ -1,11 +1,12 @@
-import { ref } from 'vue'
 import api from '../services/api'
 import { useAuthStore } from '../stores/AuthStore';
 import type { UserRegister, UserLogin } from '../types/User';
 import router from "../router";
 import axios from 'axios';
+import { useToaster } from './useToaster';
 
 const authStore = useAuthStore();
+const { showToast } = useToaster();
 
 export function useAuth() {
 
@@ -13,6 +14,7 @@ export function useAuth() {
     const data = await postLoginData(user)
     console.log(data);
     authStore.setAccessToken(data.access_token);
+    showToast('success', "Anmeldung erfolgreich!")
     router.push('/'); // Navigate to home page
   }
 
@@ -33,9 +35,13 @@ export function useAuth() {
         },
       })
       return response.data
-    } catch (error: any) {
-      console.error('Fehler beim Login:', error.response?.data || error.message)
-      throw error
+    } catch (error: unknown) {
+        if (axios.isAxiosError(error)) {
+          console.error('Axios Error:', error.response?.data || error.message)
+        } else {
+          console.error('Unbekannter Fehler:', error)
+        }
+        throw error
     }
   }
 
@@ -50,6 +56,7 @@ export function useAuth() {
 
       const data = await postLoginData(userLogin);
       authStore.setAccessToken(data.access_token);
+      showToast('success', "Registrierung erfolgreich!")
       router.push('/'); // Navigate to home page
   }
 
@@ -60,14 +67,19 @@ export function useAuth() {
         user
       )
       return response.data
-    } catch (error: any) {
-      console.error('Fehler beim Registrieren:', error.response?.data || error.message)
-      throw error
-    }
+    } catch (error: unknown) {
+        if (axios.isAxiosError(error)) {
+          console.error('Axios Error:', error.response?.data || error.message)
+        } else {
+          console.error('Unbekannter Fehler:', error)
+        }
+        throw error
+  }
   }
 
   const logoutUser = () => {
     authStore.removeAccessToken();
+    showToast('success', "Logout erfolgreich!")
     router.push('/login');
   }
 
