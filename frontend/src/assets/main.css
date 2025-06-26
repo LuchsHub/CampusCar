@@ -81,6 +81,10 @@
   --border-radius: 10px;
   --drop-shadow-blur: 10px; 
   --horizontal-gap: 15px; /* default margin between elements like input fields when theyre right below each other and not separeted by headings for example */
+
+  /* responsive */
+  --tablet-content-max-width: 700px;
+  --desktop-content-max-width: 900px;
 }
 
 /* LAYOUT */
@@ -91,6 +95,25 @@
 body {
   margin: 0;
   padding: 0;
+  font-family: Author, sans-serif;
+  background: var(--color-neutral-100);
+  min-height: 100vh;
+}
+
+@media (min-width: 768px) {
+  body {
+    max-width: var(--tablet-content-max-width);
+    margin: 0 auto;
+    box-shadow: 0 -1px 10px var(--color-neutral-900-transparent);
+    min-height: 100vh;
+    background: var(--color-neutral-100);
+  }
+}
+
+@media (min-width: 1200px) {
+  body {
+    max-width: var(--desktop-content-max-width);
+  }
 }
 
 #app {
@@ -196,4 +219,9 @@ a {
 }
 .icon-s {
   height: var(--icon-height-s);
+}
+
+/* PADDING */
+.padding-top-small {
+  padding-top: 5px
 }

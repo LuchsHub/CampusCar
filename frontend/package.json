@@ -12,9 +12,11 @@
     "type-check": "vue-tsc --noEmit"
   },
   "dependencies": {
+    "axios": "^1.10.0",
     "lucide-vue-next": "^0.513.0",
     "vue": "^3.5.13",
-    "vue-router": "^4.5.1"
+    "vue-router": "^4.5.1",
+    "pinia": "^3.0.3"
   },
   "devDependencies": {
     "@types/node": "^22.15.30",
