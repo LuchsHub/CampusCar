@@ -1,4 +1,4 @@
-interface BaseUser {
+interface BaseUser extends Record<string, string> {
     email: string
     password: string
   }
