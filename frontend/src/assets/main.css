@@ -38,10 +38,11 @@
 
   /* CONSTANTS */
   --app-padding-vertical: 35px;
-  --app-padding-horizontal: 20px;
+  --app-padding-horizontal: 30px;
   
   --nav-min-height: 85px; /* minimal height of the bottom tab navigation bar */
   --hover-button-nav-margin: 40px;
+  --hover-button-width-percentage: 80;
 
   /* Font */
   --font-weight-normal: 400;
@@ -93,7 +94,7 @@
 }
 
 body {
-  margin: 0;
+  margin: 0 auto;
   padding: 0;
   font-family: Author, sans-serif;
   background: var(--color-neutral-100);
@@ -103,7 +104,6 @@ body {
 @media (min-width: 768px) {
   body {
     max-width: var(--tablet-content-max-width);
-    margin: 0 auto;
     box-shadow: 0 -1px 10px var(--color-neutral-900-transparent);
     min-height: 100vh;
     background: var(--color-neutral-100);
@@ -130,6 +130,14 @@ body {
   justify-content: center;
   align-items: flex-start;
   width: 100%;
+}
+
+.high-hover-button { /* show the hoverButton above the tab bar */
+  bottom: calc(var(--nav-min-height) + var(--hover-button-nav-margin));
+}
+
+.low-hover-button { /* to show the hover button at the bottom, only for login and register screens */
+  bottom: var(--hover-button-nav-margin)
 }
 
 /* TYPOGRAPHY */

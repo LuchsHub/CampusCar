@@ -36,3 +36,21 @@ export const isDate = (msg: string = 'Ungültiges Datum'): ValidationRule => (va
   if (inputDate < today) return msg
   return null
 } 
+
+export const isValidPassword = (msg = 'Passwort muss mind. 8 Zeichen, Groß-/Kleinbuchstaben & 1 Zahl enthalten.'): ValidationRule => (value) => {
+  const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/
+  if (typeof value !== 'string' || !regex.test(value)) return msg
+  return null
+}
+
+export const isValidEmail = (msg = 'Ungültige E-Mail-Adresse'): ValidationRule => (value) => {
+  const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (typeof value !== 'string' || !regex.test(value)) return msg
+  return null
+}
+
+export const isTHBEmail = (msg = 'Nur THB-Mailadressen erlaubt'): ValidationRule => (value) => {
+  if (typeof value !== 'string' || !value.endsWith('@th-brandenburg.de')) return msg
+  return null
+}
+

@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import TabBar from './components/TabBar.vue'
+import { useRoute } from 'vue-router'
+const route = useRoute()
 </script>
 
 <template>
-  <div class="app">
     <router-view />
-    <TabBar />
-  </div>
+    <TabBar v-if="!route.meta.hideTabBar" />
 </template>

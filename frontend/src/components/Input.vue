@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, defineProps } from 'vue'
+import { defineProps } from 'vue'
 import type { InputProps } from '../types/Props'
 
 const props = withDefaults(defineProps<InputProps & { error?: string }>(), {
@@ -7,18 +7,11 @@ const props = withDefaults(defineProps<InputProps & { error?: string }>(), {
   error: ''
 })
 
-const emit = defineEmits(['update:modelValue'])
-
-const localError = ref(props.error)
-
-watch(() => props.error, (newError) => {
-  localError.value = newError
-})
+const emit = defineEmits(['update:modelValue', 'update:error'])
 
 const handleInput = (event: Event) => {
   const target = event.target as HTMLInputElement
   emit('update:modelValue', target.value)
-  localError.value = '' // reset error message when beginning to type
 }
 </script>
 
@@ -30,11 +23,11 @@ const handleInput = (event: Event) => {
         :placeholder="props.placeholder"
         :value="props.modelValue"
         @input="handleInput"
-        :class="{ 'input-error': !!localError }"
+        :class="{ 'input-error': !!props.error }"
       />
       <label>{{ props.label }}</label>
     </div>
-    <p v-if="localError" class="text-s text-danger padding-top-small">{{ localError }}</p>
+    <p v-if="props.error" class="text-s text-danger padding-top-small">{{ props.error }}</p>
   </div>
 </template>
 
