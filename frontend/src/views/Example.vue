@@ -7,6 +7,7 @@ import type { ButtonProps } from '../types/Props';
 import type { Ride } from '../types/Ride';
 import { reactive, ref } from 'vue';
 import { validate, required, isDate } from '../services/validation'
+import type { ValidationSchema } from '../types/Validation';
 
 const ride = reactive<Ride>({
   date: "",
@@ -18,7 +19,7 @@ const ride = reactive<Ride>({
 
 const errors = ref<Record<string, string[]>>({})
 
-const rideValidationSchema = {
+const rideValidationSchema: ValidationSchema = {
   date: [required('Datum ist erforderlich'), isDate('Ungültiges Datum')],
   departureTime: [required('Abfahrtszeit ist erforderlich')],
   departureLocation: [required('Abfahrtsort ist erforderlich')],
@@ -29,13 +30,11 @@ const rideValidationSchema = {
 const saveRide = ():void => {
   errors.value = validate(ride, rideValidationSchema)
   if (Object.keys(errors.value).length > 0) {
-    // Do not submit, show errors
     return
   }
   console.log(ride);
 }
 
-// Buttons to use as Hover Buttons 
 const hoverButtons: ButtonProps[] = [
   {variant: "primary", text: "Fahrt erstellen", onClick: saveRide},
 ]

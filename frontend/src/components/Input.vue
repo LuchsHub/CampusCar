@@ -18,8 +18,7 @@ watch(() => props.error, (newError) => {
 const handleInput = (event: Event) => {
   const target = event.target as HTMLInputElement
   emit('update:modelValue', target.value)
-  // Fehler beim Tippen zurücksetzen
-  localError.value = ''
+  localError.value = '' // reset error message when beginning to type
 }
 </script>
 

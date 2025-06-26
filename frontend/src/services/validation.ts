@@ -1,17 +1,15 @@
-export type ValidationRule = (value: any, allValues?: Record<string, any>) => string | null
+import type { ValidationRule, ValidationSchema } from "../types/Validation"
 
-export type ValidationSchema = {
-  [field: string]: ValidationRule[]
-}
-
-export function validate(values: Record<string, any>, schema: ValidationSchema) {
+export function validate(values: Record<string, string>, schema: ValidationSchema) {
   const errors: Record<string, string[]> = {}
   for (const field in schema) {
-    const rules = schema[field]
-    const value = values[field]
+    const rules = schema[field] // functions like required()
+    const value = values[field] // field value e.g. name = "Albert"
+
     const fieldErrors = rules
-      .map(rule => rule(value, values))
-      .filter((msg): msg is string => !!msg)
+      .map(rule => rule(value))
+      .filter((msg): msg is string => !!msg) // filter null values
+
     if (fieldErrors.length > 0) {
       errors[field] = fieldErrors
     }
@@ -19,18 +17,18 @@ export function validate(values: Record<string, any>, schema: ValidationSchema) 
   return errors
 }
 
-// TODO: add more reusable rules here 
-export const required = (msg = 'Required'): ValidationRule => (value) => {
+// TODO: add more reusable rules as higher order functions (function that returns a function) here 
+export const required = (msg: string): ValidationRule => (value) => {
   if (value === undefined || value === null || value === '') return msg
   return null
 }
 
-export const minLength = (min: number, msg?: string): ValidationRule => (value) => {
-  if (typeof value === 'string' && value.length < min) return msg || `Must be at least ${min} characters`
+export const minLength = (min: number, msg: string): ValidationRule => (value) => {
+  if (typeof value === 'string' && value.length < min) return msg
   return null
 }
 
-export const isDate = (msg = 'Invalid date'): ValidationRule => (value) => {
+export const isDate = (msg: string): ValidationRule => (value) => {
   if (!value || isNaN(Date.parse(value))) return msg
   return null
 } 
