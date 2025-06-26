@@ -18,10 +18,11 @@ export function useAuth() {
     router.push('/'); // Navigate to home page
   }
 
+  // NOTE: This method does not use the api service since it requires some weird input format, for everything else the api service should be fine
   const postLoginData = async (user: UserLogin) => {
     const data = new URLSearchParams();
     data.append("grant_type", "password");
-    data.append("username", user.email); // beachte die URL-kodierte Form
+    data.append("username", user.email); 
     data.append("password", user.password);
     data.append("scope", "");
     data.append("client_id", "string");

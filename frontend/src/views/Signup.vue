@@ -82,8 +82,8 @@ const hoverButtons: ButtonProps[] = [
         />
       </div>
       
-    <HoverButton :buttons="hoverButtons"/>
-  </div>
+      <HoverButton :buttons="hoverButtons"/>
+    </div>
 </template>
 
 <style scoped>
