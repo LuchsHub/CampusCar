@@ -28,7 +28,11 @@ export const minLength = (min: number, msg: string): ValidationRule => (value) =
   return null
 }
 
-export const isDate = (msg: string): ValidationRule => (value) => {
+export const isDate = (msg: string = 'Ungültiges Datum'): ValidationRule => (value) => {
   if (!value || isNaN(Date.parse(value))) return msg
+  const inputDate = new Date(value)
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  if (inputDate < today) return msg
   return null
 } 

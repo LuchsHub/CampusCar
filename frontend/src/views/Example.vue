@@ -20,7 +20,7 @@ const ride = reactive<Ride>({
 const errors = ref<Record<string, string[]>>({})
 
 const rideValidationSchema: ValidationSchema = {
-  date: [required('Datum ist erforderlich'), isDate('Ungültiges Datum')],
+  date: [required('Datum ist erforderlich'), isDate()],
   departureTime: [required('Abfahrtszeit ist erforderlich')],
   departureLocation: [required('Abfahrtsort ist erforderlich')],
   arrivalTime: [required('Ankunftszeit ist erforderlich')],
