@@ -1,6 +1,6 @@
 import datetime
-from typing import Optional
 import uuid
+from typing import Optional
 
 from pydantic import EmailStr
 from sqlmodel import Field, Relationship, SQLModel
@@ -14,8 +14,6 @@ class UserBase(SQLModel):
     first_name: str | None = Field(default=None, max_length=255)
     last_name: str | None = Field(default=None, max_length=255)
     user_name: str = Field(max_length=255)
-
-    
 
 
 # Properties to receive via API on creation
@@ -53,18 +51,18 @@ class User(UserBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     hashed_password: str
 
-    location_id: Optional[uuid.UUID] = Field(default=None, foreign_key="location.id")
+    location_id: uuid.UUID | None = Field(default=None, foreign_key="location.id")
     location: Optional["Location"] = Relationship(back_populates="inhabitants")
 
     cars: list["Car"] = Relationship(back_populates="owner")
 
     ratings: list["Rating"] = Relationship(
         back_populates="user",
-        sa_relationship_kwargs={"foreign_keys": "[Rating.user_id]"}
+        sa_relationship_kwargs={"foreign_keys": "[Rating.user_id]"},
     )
     given_ratings: list["Rating"] = Relationship(
         back_populates="rater",
-        sa_relationship_kwargs={"foreign_keys": "[Rating.rater_id]"}
+        sa_relationship_kwargs={"foreign_keys": "[Rating.rater_id]"},
     )
 
     stops: list["Stop"] = Relationship(back_populates="user")
@@ -131,7 +129,7 @@ class Ride(SQLModel, table=True):
     driver_id: uuid.UUID = Field(foreign_key="user.id")
     driver: "User" = Relationship(back_populates="rides")
 
-    car_id:  uuid.UUID = Field(foreign_key="car.id")
+    car_id: uuid.UUID = Field(foreign_key="car.id")
     car: "Car" = Relationship(back_populates="rides")
 
     stops: list["Stop"] = Relationship(back_populates="ride")
@@ -141,11 +139,11 @@ class Ride(SQLModel, table=True):
 
     start_location: Optional["Location"] = Relationship(
         back_populates="ride_starts",
-        sa_relationship_kwargs={"foreign_keys": "[Ride.start_location_id]"}
+        sa_relationship_kwargs={"foreign_keys": "[Ride.start_location_id]"},
     )
     end_location: Optional["Location"] = Relationship(
         back_populates="ride_ends",
-        sa_relationship_kwargs={"foreign_keys": "[Ride.end_location_id]"}
+        sa_relationship_kwargs={"foreign_keys": "[Ride.end_location_id]"},
     )
 
     recurring_mon: bool = Field(default=False)
@@ -171,11 +169,11 @@ class Location(SQLModel, table=True):
 
     ride_starts: list["Ride"] = Relationship(
         back_populates="start_location",
-        sa_relationship_kwargs={"foreign_keys": "[Ride.start_location_id]"}
+        sa_relationship_kwargs={"foreign_keys": "[Ride.start_location_id]"},
     )
     ride_ends: list["Ride"] = Relationship(
         back_populates="end_location",
-        sa_relationship_kwargs={"foreign_keys": "[Ride.end_location_id]"}
+        sa_relationship_kwargs={"foreign_keys": "[Ride.end_location_id]"},
     )
 
     postal_code: str = Field(min_length=5, max_length=5)
@@ -190,17 +188,16 @@ class Rating(SQLModel, table=True):
     user_id: uuid.UUID = Field(foreign_key="user.id")
     user: "User" = Relationship(
         back_populates="ratings",
-        sa_relationship_kwargs={"foreign_keys": "[Rating.user_id]"}
+        sa_relationship_kwargs={"foreign_keys": "[Rating.user_id]"},
     )
 
     rater_id: uuid.UUID = Field(foreign_key="user.id")
     rater: "User" = Relationship(
         back_populates="given_ratings",
-        sa_relationship_kwargs={"foreign_keys": "[Rating.rater_id]"}
+        sa_relationship_kwargs={"foreign_keys": "[Rating.rater_id]"},
     )
 
     rating_value: int = Field(nullable=False)
-
 
 
 # Generic message

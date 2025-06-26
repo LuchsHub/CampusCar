@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.api.routes import login, users, utils, cars
+from app.api.routes import cars, login, users, utils
 
 api_router = APIRouter()
 api_router.include_router(login.router)
