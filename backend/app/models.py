@@ -97,6 +97,18 @@ class Car(SQLModel, table=True):
     rides: list["Ride"] = Relationship(back_populates="car")
 
 
+class CarCreate(SQLModel):
+    n_seats: int
+    model: str = Field(max_length=255)
+    brand: str = Field(max_length=255)
+
+
+class CarUpdate(SQLModel):
+    n_seats: int | None = None
+    model: str | None = Field(default=None, max_length=255)
+    brand: str | None = Field(default=None, max_length=255)
+
+
 class Stop(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
 
