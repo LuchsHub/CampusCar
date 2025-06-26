@@ -24,10 +24,10 @@ npm run lint:check
 src/
 ├── assets/        # Static assets like images and global styles
 ├── components/    # Reusable Vue components
-├── composables/   # Vue composition functions
-├── services/      # Services for extracting logic from components
+├── composables/   # Like services but for extracting stateful logic (using ref, computed, etc.)
 ├── layouts/       # Layout components
 ├── router/        # Vue Router configuration
+├── services/      # For extracting stateless logic from components
 ├── stores/        # State management
 ├── types/         # TypeScript type definitions
 ├── utils/         # Utility functions
