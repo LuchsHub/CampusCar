@@ -3,7 +3,7 @@ import { defineStore } from "pinia";
 import type { Ref, ComputedRef } from "vue";
 
 export const useAuthStore = defineStore("role", () => {
-  const accessToken: Ref<string> = ref(localStorage.getItem('access_token') ?? " ");
+  const accessToken: Ref<string> = ref(localStorage.getItem('access_token') ?? "");
   const userAuthenticated: ComputedRef<boolean> = computed(() => !!accessToken.value);
 
 

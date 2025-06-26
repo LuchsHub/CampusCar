@@ -13,7 +13,7 @@ export function useAuth() {
     const data = await postLoginData(user)
     console.log(data);
     authStore.setAccessToken(data.access_token);
-    router.push('/home');
+    router.push('/'); // Navigate to home page
   }
 
   const postLoginData = async (user: UserLogin) => {
@@ -50,7 +50,7 @@ export function useAuth() {
 
       const data = await postLoginData(userLogin);
       authStore.setAccessToken(data.access_token);
-      router.push('/');
+      router.push('/'); // Navigate to home page
   }
 
   const postRegisterData = async (user: UserRegister) => {
@@ -65,15 +65,15 @@ export function useAuth() {
       throw error
     }
   }
-  
 
-  const logout = () => {
-    authStore.removeAccessToken()
+  const logoutUser = () => {
+    authStore.removeAccessToken();
+    router.push('/login');
   }
 
   return {
     registerUser,
     loginUser,
-    logout,
+    logoutUser,
   }
 }
