@@ -33,8 +33,6 @@ const tryRegisterUser = async (): Promise<void> => {
     return
   }
 
-  console.log("tryRegisterUser()")
-
   // try to post input data
   try {
     await registerUser(userRegister)
@@ -69,7 +67,7 @@ const hoverButtons: ButtonProps[] = [
         :error="errors.email?.[0]"
       />
       <Input 
-        type="text" 
+        type="password" 
         label="Passwort" 
         v-model="userRegister.password"
         :error="errors.password?.[0]"
