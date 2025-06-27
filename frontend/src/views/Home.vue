@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import PageTitle from '../components/PageTitle.vue';
-import HoverButton from '../components/HoverButton.vue';
-import type { ButtonProps } from '../types/Props';
-import { useAuth } from '../composables/useAuth';
+import PageTitle from '@/components/PageTitle.vue';
+import HoverButton from '@/components/HoverButton.vue';
+import type { ButtonProps } from '@/types/Props';
+import { useAuth } from '@/composables/useAuth';
 
 const { logoutUser } = useAuth();
 

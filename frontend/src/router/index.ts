@@ -24,13 +24,13 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/login',
     name: 'login',
-    component: () => import('../views/Login.vue'),
+    component: () => import('../views/Auth/Login.vue'),
     meta: { hideTabBar: true }
   },
   {
     path: '/signup',
     name: 'signup',
-    component: () => import('../views/Signup.vue'),
+    component: () => import('../views/Auth/Signup.vue'),
     meta: { hideTabBar: true }
   },
 
@@ -58,7 +58,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/:pathMatch(.*)*",
     name: "notFound",
-    component: import('../views/404.vue'),
+    component: import('../views/Misc/404.vue'),
     meta: {
       title: "404 - Not Found",
       hideTabBar: true

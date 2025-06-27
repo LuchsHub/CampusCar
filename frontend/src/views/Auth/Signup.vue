@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import axios from 'axios';
-import Input from '../components/Input.vue';
-import HoverButton from '../components/HoverButton.vue';
-import PageTitle from '../components/PageTitle.vue';
-import type { ButtonProps } from '../types/Props';
+import Input from '@/components/Input.vue';
+import HoverButton from '@/components/HoverButton.vue';
+import PageTitle from '@/components/PageTitle.vue';
+import type { ButtonProps } from '@/types/Props';
 import { ref } from 'vue';
-import { isValidEmail, isTHBEmail, isValidPassword, required, validate } from '../services/validation'
-import type { ValidationSchema } from '../types/Validation';
-import { useAuth } from '../composables/useAuth';
-import { useUser } from '../composables/useUser';
-import { useToaster } from '../composables/useToaster';
+import { isValidEmail, isTHBEmail, isValidPassword, required, validate } from '@/services/validation'
+import type { ValidationSchema } from '@/types/Validation';
+import { useAuth } from '@/composables/useAuth';
+import { useUser } from '@/composables/useUser';
+import { useToaster } from '@/composables/useToaster';
 
 
 // composable functions

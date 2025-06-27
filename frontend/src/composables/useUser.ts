@@ -1,4 +1,4 @@
-import type { UserRegister, UserLogin } from '../types/User';
+import type { UserRegister, UserLogin } from '@/types/User';
 import { reactive } from 'vue';
 
 

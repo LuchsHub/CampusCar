@@ -1,9 +1,9 @@
 <script setup lang="ts">
-  import Button from '../components/Button.vue'
-  import Input from '../components/Input.vue'
-  import HoverButton from '../components/HoverButton.vue';
-  import PageTitle from '../components/PageTitle.vue';
-  import type { ButtonProps } from '../types/Props';
+  import Button from '@/components/Button.vue'
+  import Input from '@/components/Input.vue'
+  import HoverButton from '@/components/HoverButton.vue';
+  import PageTitle from '@/components/PageTitle.vue';
+  import type { ButtonProps } from '@/types/Props';
   import { reactive } from 'vue';
 
   const exampleData = reactive({

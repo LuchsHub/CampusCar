@@ -1,4 +1,4 @@
-import type { ValidationRule, ValidationSchema } from "../types/Validation"
+import type { ValidationRule, ValidationSchema } from "@/types/Validation"
 
 export function validate(values: Record<string, string>, schema: ValidationSchema) {
   const errors: Record<string, string[]> = {}

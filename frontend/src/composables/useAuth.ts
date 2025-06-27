@@ -1,9 +1,9 @@
-import api from '../services/api'
-import { useAuthStore } from '../stores/AuthStore';
-import type { UserRegister, UserLogin } from '../types/User';
-import router from "../router";
+import api from '@/services/api'
+import { useAuthStore } from '@/stores/AuthStore';
+import type { UserRegister, UserLogin } from '@/types/User';
+import router from "@/router";
 import axios from 'axios';
-import { useToaster } from './useToaster';
+import { useToaster } from '@/composables/useToaster';
 
 const authStore = useAuthStore();
 const { showToast } = useToaster();
