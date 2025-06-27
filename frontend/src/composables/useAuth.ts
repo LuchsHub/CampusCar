@@ -12,10 +12,8 @@ export function useAuth() {
 
   const loginUser = async (user: UserLogin) => {
     const data = await postLoginData(user)
-    console.log(data);
     authStore.setAccessToken(data.access_token);
-    showToast('success', "Anmeldung erfolgreich!")
-    router.push('/'); // Navigate to home page
+    router.push('/home');
   }
 
   // NOTE: This method does not use the api service since it requires some weird input format, for everything else the api service should be fine
@@ -57,8 +55,7 @@ export function useAuth() {
 
       const data = await postLoginData(userLogin);
       authStore.setAccessToken(data.access_token);
-      showToast('success', "Registrierung erfolgreich!")
-      router.push('/'); // Navigate to home page
+      router.push('/signup/address');
   }
 
   const postRegisterData = async (user: UserRegister) => {

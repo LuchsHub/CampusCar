@@ -15,15 +15,15 @@ import { useUser } from '@/composables/useUser';
 // composable functions
 const { loginUser } = useAuth();
 const { showToast, showDefaultError } = useToaster();
-const { getEmptyLoginUser } = useUser();
+const { getEmptyUserLogin } = useUser();
 
 
 // variables
-const userLogin = getEmptyLoginUser();
+const userLogin = getEmptyUserLogin();
 
 const userLoginValidationSchema: ValidationSchema = {
-  email: [required('E-Mail ist erforderlich'), isValidEmail()],
-  password: [required('Passwort ist erforderlich')],
+  email: [required('E-Mail'), isValidEmail()],
+  password: [required('Passwort')],
 }
 const errors = ref<Record<string, string[]>>({});
 

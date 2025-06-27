@@ -13,20 +13,20 @@ import { useToaster } from '@/composables/useToaster';
 
 
 // composable functions
-const { getEmptyRegisterUser } = useUser();
+const { getEmptyUserRegister } = useUser();
 const { registerUser } = useAuth();
 const { showDefaultError, showToast } = useToaster();
 
 
 // variables
-const userRegister = getEmptyRegisterUser()
+const userRegister = getEmptyUserRegister()
 
 const userRegisterValidationSchema: ValidationSchema = {
-  user_name: [required('Benutzername ist erforderlich')],
-  first_name: [required('Vorname ist erforderlich')],
-  last_name: [required('Nachname ist erforderlich')],
-  email: [required('E-Mail ist erforderlich'), isValidEmail(), isTHBEmail()],
-  password: [required('Passwort ist erforderlich'), isValidPassword()],
+  user_name: [required('Benutzername')],
+  first_name: [required('Vorname')],
+  last_name: [required('Nachname')],
+  email: [required('E-Mail'), isValidEmail(), isTHBEmail()],
+  password: [required('Passwort'), isValidPassword()],
 }
 const errors = ref<Record<string, string[]>>({})
 

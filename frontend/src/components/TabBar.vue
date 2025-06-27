@@ -6,7 +6,7 @@ import type { TabItem } from '../types/TabItem'
 const route = useRoute()
 
 const items: TabItem[] = [
-  { label: 'Home', to: '/', icon: Home },
+  { label: 'Home', to: '/home', icon: Home },
   { label: 'Beispiel', to: '/example', icon: Car },
   { label: 'Styles', to: '/styles', icon: User }
 ]

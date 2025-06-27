@@ -18,8 +18,8 @@ export function validate(values: Record<string, string>, schema: ValidationSchem
 }
 
 // TODO: add more reusable rules as higher order functions (function that returns a function) here 
-export const required = (msg: string): ValidationRule => (value) => {
-  if (value === undefined || value === null || value === '') return msg
+export const required = (fieldName: string): ValidationRule => (value) => {
+  if (value === undefined || value === null || value === '') return `${fieldName} ist erforderlich`
   return null
 }
 
@@ -51,6 +51,11 @@ export const isValidEmail = (msg = 'Ungültige E-Mail-Adresse'): ValidationRule 
 
 export const isTHBEmail = (msg = 'Nur THB-Mailadressen erlaubt'): ValidationRule => (value) => {
   if (typeof value !== 'string' || !value.endsWith('@th-brandenburg.de')) return msg
+  return null
+}
+
+export const isValidPostalCode = (msg = 'Ungültige Postleitzahl eingeben'): ValidationRule => (value) => {
+  if (typeof value !== 'string' || !/^\d{5}$/.test(value)) return msg
   return null
 }
 
