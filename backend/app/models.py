@@ -2,6 +2,7 @@ import datetime
 import uuid
 from typing import Optional
 
+from fastapi import File, UploadFile
 from pydantic import EmailStr
 from sqlmodel import JSON, Column, Field, Relationship, SQLModel
 
@@ -11,8 +12,8 @@ class UserBase(SQLModel):
     email: EmailStr = Field(unique=True, index=True, max_length=255)
     is_active: bool = True
     is_superuser: bool = False
-    first_name: str | None = Field(default=None, max_length=255)
-    last_name: str | None = Field(default=None, max_length=255)
+    first_name: Optional[str] = Field(default=None, max_length=255)
+    last_name: Optional[str] = Field(default=None, max_length=255)
     user_name: str = Field(unique=True, max_length=255)
 
 
@@ -70,6 +71,8 @@ class User(UserBase, table=True):
     rides: list["Ride"] = Relationship(back_populates="driver")
 
     points: int = Field(default=0)
+
+    profile_picture: Optional[bytes] = None
 
 
 # Properties to return via API, id is always required
