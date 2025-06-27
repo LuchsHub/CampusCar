@@ -14,6 +14,7 @@ from sqlmodel import func, select
 from app import crud
 from app.api.deps import (
     CurrentUser,
+    ORS_Client,
     SessionDep,
     get_current_active_superuser,
 )
@@ -97,7 +98,11 @@ def create_user(*, session: SessionDep, user_in: UserCreate) -> Any:
 
 @router.patch("/me", response_model=UserPublic)
 def update_user_me(
-    *, session: SessionDep, user_in: UserUpdateMe, current_user: CurrentUser
+    *,
+    session: SessionDep,
+    user_in: UserUpdateMe,
+    current_user: CurrentUser,
+    ors_client: ORS_Client,
 ) -> Any:
     """
     Update own user.
@@ -109,7 +114,13 @@ def update_user_me(
             raise HTTPException(
                 status_code=409, detail="User with this email already exists"
             )
+
     user_data = user_in.model_dump(exclude_unset=True)
+    if user_in.location:
+        loc = crud.get_or_create_location(user_in.location, session, ors_client)
+        user_data.pop("location")
+        current_user.location_id = loc.id
+
     current_user.sqlmodel_update(user_data)
     session.add(current_user)
     session.commit()
