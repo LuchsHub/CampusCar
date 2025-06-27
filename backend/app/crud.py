@@ -1,6 +1,6 @@
 from typing import Any
 
-import openrouteservice # type: ignore
+import openrouteservice  # type: ignore
 from fastapi import HTTPException, status
 from sqlmodel import Session, select
 
