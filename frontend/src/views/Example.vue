@@ -5,7 +5,9 @@ import HoverButton from '../components/HoverButton.vue';
 import PageTitle from '../components/PageTitle.vue';
 import type { ButtonProps } from '../types/Props';
 import type { Ride } from '../types/Ride';
-import { reactive } from 'vue';
+import { reactive, ref } from 'vue';
+import { validate, required, isDate } from '../services/validation'
+import type { ValidationSchema } from '../types/Validation';
 
 const ride = reactive<Ride>({
   date: "",
@@ -15,31 +17,73 @@ const ride = reactive<Ride>({
   arrivalLocation: ""
 })
 
+const errors = ref<Record<string, string[]>>({})
+
+const rideValidationSchema: ValidationSchema = {
+  date: [required('Datum ist erforderlich'), isDate()],
+  departureTime: [required('Abfahrtszeit ist erforderlich')],
+  departureLocation: [required('Abfahrtsort ist erforderlich')],
+  arrivalTime: [required('Ankunftszeit ist erforderlich')],
+  arrivalLocation: [required('Ankunftsort ist erforderlich')],
+}
+
 const saveRide = ():void => {
+  errors.value = validate(ride, rideValidationSchema)
+  if (Object.keys(errors.value).length > 0) {
+    return
+  }
   console.log(ride);
 }
 
-// Buttons to use as Hover Buttons 
 const hoverButtons: ButtonProps[] = [
-  {variant: "primary", color: "primary", text: "Fahrt erstellen", onClick: saveRide},
+  {variant: "primary", text: "Fahrt erstellen", onClick: saveRide},
 ]
 </script>
 
 <template>
   <div class="view-container">
+
     <PageTitle to="/">Fahrt anbieten</PageTitle>
+
     <h2>Abfahrt</h2>
     <div class="form-container">
-      <Input type="date" label="Datum" v-model="ride.date"/>
-      <Input type="time" label="Uhrzeit" v-model="ride.departureTime"/>
-      <Input type="text" label="Ort" v-model="ride.departureLocation"/>
-    </div>
-    <h2>Zwischenstopps</h2>
-    <Button variant="secondary" color="primary">Zwischenstopp hinzufügen</Button>
-    <h2>Ankunft</h2>
-    <div class="form-container">
-      <Input type="time" label="Uhrzeit" v-model="ride.arrivalTime"/>
-      <Input type="text" label="Ort" v-model="ride.arrivalLocation"/>
+      <Input 
+        type="date" 
+        label="Datum" 
+        v-model="ride.date"
+        :error="errors.date?.[0]"
+      />
+      <Input 
+        type="time" 
+        label="Uhrzeit" 
+        v-model="ride.departureTime"
+        :error="errors.departureTime?.[0]"
+      />
+      <Input 
+        type="text" 
+        label="Ort" 
+        v-model="ride.departureLocation"
+        :error="errors.departureLocation?.[0]"
+        />
+      </div>
+      
+      <h2>Zwischenstopps</h2>
+      <Button variant="secondary">Zwischenstopp hinzufügen</Button>
+      
+      <h2>Ankunft</h2>
+      <div class="form-container">
+        <Input 
+        type="time" 
+        label="Uhrzeit" 
+        v-model="ride.arrivalTime"
+        :error="errors.arrivalTime?.[0]"
+        />
+        <Input 
+        type="text" 
+        label="Ort" 
+        v-model="ride.arrivalLocation"
+        :error="errors.arrivalLocation?.[0]"
+      />
     </div>
     <h2>Optionen</h2>
     <HoverButton :buttons="hoverButtons"/>
@@ -56,5 +100,11 @@ const hoverButtons: ButtonProps[] = [
   display: flex;
   flex-direction: column;
   gap: var(--horizontal-gap)
+}
+
+.error {
+  color: var(--color-support-danger-500);
+  font-size: var(--font-size-xs);
+  margin-bottom: 0.5em;
 }
 </style>

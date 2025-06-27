@@ -13,6 +13,7 @@
     password: "",
     time: "",
     date: "",
+    file: "",
   })
 
   const printExampleData = ():void => {
@@ -20,7 +21,7 @@
   }
   
   const hoverButtons: ButtonProps[] = [
-    {variant: "primary", color: "primary", text: "Hoverbutton", onClick:printExampleData},
+    {variant: "primary", text: "Hoverbutton", onClick:printExampleData},
   ]
 </script>
 
@@ -35,20 +36,26 @@
     
     <h2>Primary Buttons</h2>
     <div class="gap-container">
-      <Button variant="primary" color="primary">Default Primary</Button>
+      <Button variant="primary">Default Primary</Button>
       <Button variant="primary" color="danger">Danger Primary</Button>
     </div>
     
     <h2>Secondary Buttons</h2>
     <div class="gap-container">
-      <Button variant="secondary" color="primary">Default Secondary</Button>
+      <Button variant="secondary">Default Secondary</Button>
       <Button variant="secondary" color="danger">Danger Secondary</Button>
+    </div>
+    
+    <h2>Tertiary Button</h2>
+    <div class="gap-container">
+      <Button variant="tertiary">Default Tertiary</Button>
     </div>
     
     <h2>Link Buttons</h2>
     <div class="gap-container">
-      <Button variant="primary" color="primary" to="/">Home</Button>
-      <Button variant="secondary" color="primary" to="/example">Example page</Button>
+      <Button variant="primary" to="/">Example page</Button>
+      <Button variant="secondary" to="/example">Example page</Button>
+      <Button variant="tertiary" to="/example">Example page</Button>
     </div>
     
     <h2>Inputs</h2>
@@ -59,6 +66,7 @@
       <Input type="password" label="Password" v-model="exampleData.password"/>
       <Input type="time" label="Time" v-model="exampleData.time"/>
       <Input type="date" label="Date" v-model="exampleData.date"/>
+      <Input type="file" label="File" v-model="exampleData.file"/>
     </div>
 
     <h2>Text Styles</h2>
