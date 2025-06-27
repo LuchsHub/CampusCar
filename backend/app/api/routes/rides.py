@@ -1,0 +1,154 @@
+import datetime
+from typing import Annotated, Any
+
+import openrouteservice  # type: ignore
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlmodel import select
+
+from app.api.deps import (
+    CurrentUser,
+    SessionDep,
+)
+from app.core.config import settings
+from app.models import Car, Location, LocationCreate, Ride, RideCreate, RidePublic
+
+router = APIRouter(prefix="/rides", tags=["rides"])
+
+
+def get_ors_client() -> openrouteservice.Client:
+    return openrouteservice.Client(key=settings.MAPS_API_KEY)
+
+
+ORS_Client = Annotated[openrouteservice.Client, Depends(get_ors_client)]
+
+
+def get_or_create_location(
+    address: LocationCreate,
+    session: SessionDep,
+    ors_client: openrouteservice.Client,
+) -> Location:
+    statement = select(Location).where(
+        Location.country == address.country,
+        Location.street == address.street,
+        Location.house_number == address.house_number,
+        Location.postal_code == address.postal_code,
+        Location.city == address.city,
+    )
+    db_location = session.exec(statement).first()
+
+    if db_location:
+        return db_location
+
+    address_str = f"f{address.street} {address.house_number}, {address.postal_code} {address.city}, {address.country}"
+    geocode_result = ors_client.pelias_search(text=address_str, size=1)
+
+    if geocode_result and geocode_result["features"]:
+        lat, lon = geocode_result["features"][0]["geometry"]["coordinates"]
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"The provided address could not be found: '{address_str}'. "
+            "Please check for typos or provide a valid address.",
+        )
+
+    new_location = Location.model_validate(
+        address.model_dump(), update={"latitude": lat, "longitude": lon}
+    )
+    session.add(new_location)
+    session.commit()
+    session.refresh(new_location)
+    return new_location
+
+
+@router.post("/", response_model=RidePublic, status_code=status.HTTP_201_CREATED)
+def create_ride(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    ors_client: ORS_Client,
+    ride_in: RideCreate,
+) -> Any:
+    """
+    Create a new ride by providing start and end addresses.
+
+    The backend will geocode the addresses, save them as locations,
+    and calculate the route geometry between them.
+    """
+    if ride_in.starting_time and ride_in.arrival_time:
+        # This case is already handled by the Pydantic validator, but an explicit check is safe.
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Cannot provide both starting_time and arrival_time.",
+        )
+    if not ride_in.starting_time and not ride_in.arrival_time:
+        # Also handled by Pydantic, but kept for clarity.
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Must provide either starting_time or arrival_time.",
+        )
+
+    car = session.get(Car, ride_in.car_id)
+    if not car or car.owner_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Car not found or you are not the owner.",
+        )
+
+    # Get or create the location objects
+    start_location = get_or_create_location(ride_in.start_location, session, ors_client)
+    end_location = get_or_create_location(ride_in.end_location, session, ors_client)
+
+    try:
+        route_request = {
+            "coordinates": [
+                (start_location.latitude, start_location.longitude),
+                (end_location.latitude, end_location.longitude),
+            ],
+            "format": "geojson",
+            "profile": "driving-car",
+        }
+        route_data = ors_client.directions(**route_request)
+
+    except openrouteservice.exceptions.ApiError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No route could be found between the specified start and end locations."
+            " Please ensure they are reachable by car.",
+        )
+
+    route_summary = route_data["features"][0]["properties"]["summary"]
+
+    geometry = route_data["features"][0]["geometry"]["coordinates"]
+
+    duration_seconds = route_summary.get("duration", 0)
+    distance_meters = route_summary.get("distance", 0)
+
+    estimated_duration = datetime.timedelta(seconds=duration_seconds)
+    if ride_in.starting_time:
+        starting_time = ride_in.starting_time
+        time_of_arrival = starting_time + estimated_duration
+    elif ride_in.arrival_time:
+        time_of_arrival = ride_in.arrival_time
+        starting_time = time_of_arrival - estimated_duration
+
+    db_ride = Ride.model_validate(
+        ride_in.model_dump(exclude={"starting_time", "arrival_time"}),
+        update={
+            "driver_id": current_user.id,
+            "start_location_id": start_location.id,
+            "end_location_id": end_location.id,
+            "starting_time": starting_time,
+            "time_of_arrival": time_of_arrival,
+            "route_geometry": geometry,
+            "estimated_duration_seconds": round(duration_seconds),
+            "estimated_distance_meters": round(distance_meters),
+        },
+    )
+
+    session.add(db_ride)
+    session.commit()
+    session.refresh(db_ride)
+
+    ride_public = RidePublic.model_validate(db_ride)
+
+    return ride_public
