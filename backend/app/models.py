@@ -36,9 +36,11 @@ class UserUpdate(UserBase):
 
 
 class UserUpdateMe(SQLModel):
+    user_name: str | None = Field(default=None, max_length=255)
     first_name: str | None = Field(default=None, max_length=255)
     last_name: str | None = Field(default=None, max_length=255)
     email: EmailStr | None = Field(default=None, max_length=255)
+    location: Optional["LocationCreate"] = Field(default=None)
 
 
 class UpdatePassword(SQLModel):
@@ -91,22 +93,28 @@ class Car(SQLModel, table=True):
     owner: "User" = Relationship(back_populates="cars")
 
     n_seats: int = Field()
-    model: str = Field(max_length=255)
-    brand: str = Field(max_length=255)
+    model: str | None = Field(default=None, max_length=255)
+    brand: str | None = Field(default=None, max_length=255)
+    color: str | None = Field(default=None, max_length=255)
+    license_plate: str | None = Field(default=None, max_length=255)
 
     rides: list["Ride"] = Relationship(back_populates="car")
 
 
 class CarCreate(SQLModel):
-    n_seats: int
-    model: str = Field(max_length=255)
-    brand: str = Field(max_length=255)
+    n_seats: int = Field()
+    model: str | None = Field(default=None, max_length=255)
+    brand: str | None = Field(default=None, max_length=255)
+    color: str | None = Field(default=None, max_length=255)
+    license_plate: str | None = Field(default=None, max_length=255)
 
 
 class CarUpdate(SQLModel):
-    n_seats: int | None = None
+    n_seats: int | None = Field(default=None)
     model: str | None = Field(default=None, max_length=255)
     brand: str | None = Field(default=None, max_length=255)
+    color: str | None = Field(default=None, max_length=255)
+    license_plate: str | None = Field(default=None, max_length=255)
 
 
 class Stop(SQLModel, table=True):
