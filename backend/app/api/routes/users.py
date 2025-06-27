@@ -1,7 +1,14 @@
 import uuid
-from typing import Any
+from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import (
+    APIRouter,
+    Depends,
+    File,
+    HTTPException,
+    Response,
+    UploadFile,
+)
 from sqlmodel import func, select
 
 from app import crud
@@ -45,6 +52,20 @@ def read_users(session: SessionDep, skip: int = 0, limit: int = 100) -> Any:
     users = session.exec(statement).all()
 
     return UsersPublic(data=users, count=count)
+
+
+@router.get(
+    "/{user_id}/img",
+)
+def get_profile_picture(
+    user_id: int,
+    session: SessionDep,
+) -> Any:
+    user = session.exec(select(User).where(User.id == user_id)).first()
+    if not user or not user.profile_picture:
+        raise HTTPException(status_code=404, detail="Profile picture not found")
+
+    return Response(content=user.profile_picture, media_type="image/png")
 
 
 @router.post(
@@ -94,6 +115,24 @@ def update_user_me(
     session.commit()
     session.refresh(current_user)
     return current_user
+
+
+@router.put("/me/img", response_model=Message)
+async def update_my_profile_picture(
+    profile_picture: Annotated[UploadFile, File()],
+    session: SessionDep,
+    current_user: CurrentUser,
+) -> Any:
+    if profile_picture.content_type not in ["image/png"]:
+        raise HTTPException(status_code=400, detail="Only PNG files are allowed.")
+
+    image_bytes = await profile_picture.read()
+    current_user.profile_picture = image_bytes
+
+    session.add(current_user)
+    session.commit()
+
+    return Message(message="Profile picture updated successfully")
 
 
 @router.patch("/me/password", response_model=Message)
