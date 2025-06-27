@@ -56,6 +56,7 @@ class Settings(BaseSettings):
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str = ""
     POSTGRES_DB: str = ""
+    MAPS_API_KEY: str = "5b3ce3597851110001cf6248a81537687fb042c29e29ec31fcc482d9"
 
     @computed_field  # type: ignore[prop-decorator]
     @property

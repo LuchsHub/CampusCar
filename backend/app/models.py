@@ -3,7 +3,7 @@ import uuid
 from typing import Optional
 
 from pydantic import EmailStr
-from sqlmodel import Field, Relationship, SQLModel
+from sqlmodel import JSON, Column, Field, Relationship, SQLModel
 
 
 # Shared properties
@@ -71,6 +71,8 @@ class User(UserBase, table=True):
 
     points: int = Field(default=0)
 
+    profile_picture: bytes | None = None
+
 
 # Properties to return via API, id is always required
 class UserPublic(UserBase):
@@ -122,9 +124,73 @@ class Stop(SQLModel, table=True):
     time_of_arrival: datetime.datetime = Field()
 
 
+class Location(SQLModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+
+    inhabitants: list["User"] = Relationship(back_populates="location")
+
+    stops: list["Stop"] = Relationship(back_populates="location")
+
+    ride_starts: list["Ride"] = Relationship(
+        back_populates="start_location",
+        sa_relationship_kwargs={"foreign_keys": "[Ride.start_location_id]"},
+    )
+    ride_ends: list["Ride"] = Relationship(
+        back_populates="end_location",
+        sa_relationship_kwargs={"foreign_keys": "[Ride.end_location_id]"},
+    )
+
+    country: str = Field(max_length=255)
+    postal_code: str = Field(min_length=5, max_length=5)
+    city: str = Field(max_length=255)
+    street: str = Field(max_length=255)
+    house_number: str = Field(max_length=10)
+
+    latitude: float = Field(index=True)
+    longitude: float = Field(index=True)
+
+
+class LocationCreate(SQLModel):
+    """Schema for receiving address information via API."""
+
+    country: str = Field(max_length=255)
+    postal_code: str = Field(min_length=5, max_length=5)
+    city: str = Field(max_length=255)
+    street: str = Field(max_length=255)
+    house_number: str = Field(max_length=10)
+
+
+class LocationPublic(SQLModel):
+    id: uuid.UUID
+    country: str
+    city: str
+    street: str
+    house_number: str
+    latitude: float
+    longitude: float
+
+
+class Rating(SQLModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+
+    user_id: uuid.UUID = Field(foreign_key="user.id")
+    user: "User" = Relationship(
+        back_populates="ratings",
+        sa_relationship_kwargs={"foreign_keys": "[Rating.user_id]"},
+    )
+
+    rater_id: uuid.UUID = Field(foreign_key="user.id")
+    rater: "User" = Relationship(
+        back_populates="given_ratings",
+        sa_relationship_kwargs={"foreign_keys": "[Rating.rater_id]"},
+    )
+
+    rating_value: int = Field(nullable=False)
+
+
 class Ride(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    recurring_id: uuid.UUID = Field(default=None)
+    recurring_id: uuid.UUID | None = Field(default=None)
 
     driver_id: uuid.UUID = Field(foreign_key="user.id")
     driver: "User" = Relationship(back_populates="rides")
@@ -155,49 +221,63 @@ class Ride(SQLModel, table=True):
     recurring_sun: bool = Field(default=False)
 
     n_co_driver: int = Field()
+    max_request_distance: float | None = Field()
 
     starting_time: datetime.datetime = Field()
-    time_of_arrial: datetime.datetime = Field()
+    time_of_arrival: datetime.datetime = Field()
+
+    route_geometry: list[list[float]] = Field(default=[], sa_column=Column(JSON))
+    estimated_duration_seconds: int = Field()
+    estimated_distance_meters: int = Field()
 
 
-class Location(SQLModel, table=True):
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+class RideCreate(SQLModel):
+    """Properties to receive via API on ride creation."""
 
-    inhabitants: list["User"] = Relationship(back_populates="location")
+    car_id: uuid.UUID
+    n_co_driver: int
+    max_request_distance: float | None
 
-    stops: list["Stop"] = Relationship(back_populates="location")
+    starting_time: datetime.datetime | None
+    arrival_time: datetime.datetime | None
 
-    ride_starts: list["Ride"] = Relationship(
-        back_populates="start_location",
-        sa_relationship_kwargs={"foreign_keys": "[Ride.start_location_id]"},
-    )
-    ride_ends: list["Ride"] = Relationship(
-        back_populates="end_location",
-        sa_relationship_kwargs={"foreign_keys": "[Ride.end_location_id]"},
-    )
+    start_location: LocationCreate
+    end_location: LocationCreate
 
-    postal_code: str = Field(min_length=5, max_length=5)
-    city: str = Field(max_length=255)
-    street: str = Field(max_length=255)
-    house_number: str = Field(max_length=10)
+    recurring_mon: bool = False
+    recurring_tue: bool = False
+    recurring_wed: bool = False
+    recurring_thu: bool = False
+    recurring_fri: bool = False
+    recurring_sat: bool = False
+    recurring_sun: bool = False
 
 
-class Rating(SQLModel, table=True):
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+class RidePublic(SQLModel):
+    """Properties to return via API for a single ride."""
 
-    user_id: uuid.UUID = Field(foreign_key="user.id")
-    user: "User" = Relationship(
-        back_populates="ratings",
-        sa_relationship_kwargs={"foreign_keys": "[Rating.user_id]"},
-    )
+    id: uuid.UUID
+    driver_id: uuid.UUID
+    car_id: uuid.UUID
+    starting_time: datetime.datetime
+    time_of_arrival: datetime.datetime
+    n_co_driver: int
 
-    rater_id: uuid.UUID = Field(foreign_key="user.id")
-    rater: "User" = Relationship(
-        back_populates="given_ratings",
-        sa_relationship_kwargs={"foreign_keys": "[Rating.rater_id]"},
-    )
+    start_location: LocationPublic
+    end_location: LocationPublic
 
-    rating_value: int = Field(nullable=False)
+    route_geometry: list[list[float]]
+    max_request_distance: float | None
+    estimated_duration_seconds: int
+    estimated_distance_meters: float
+
+    recurring_mon: bool
+    recurring_tue: bool
+    recurring_wed: bool
+    recurring_thu: bool
+    recurring_fri: bool
+    recurring_sat: bool
+    recurring_sun: bool
 
 
 # Generic message
