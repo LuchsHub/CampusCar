@@ -5,6 +5,7 @@ import jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jwt.exceptions import InvalidTokenError
+import openrouteservice
 from pydantic import ValidationError
 from sqlmodel import Session
 
@@ -55,3 +56,8 @@ def get_current_active_superuser(current_user: CurrentUser) -> User:
             status_code=403, detail="The user doesn't have enough privileges"
         )
     return current_user
+
+def get_ors_client() -> openrouteservice.Client:
+    return openrouteservice.Client(key=settings.MAPS_API_KEY)
+
+ORS_Client = Annotated[openrouteservice.Client, Depends(get_ors_client)]

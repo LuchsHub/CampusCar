@@ -1,64 +1,19 @@
 import datetime
-from typing import Annotated, Any
+from typing import Any
 
+from app.crud import get_or_create_location
 import openrouteservice  # type: ignore
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlmodel import select
+from fastapi import APIRouter, HTTPException, status
 
 from app.api.deps import (
     CurrentUser,
+    ORS_Client,
     SessionDep,
 )
 from app.core.config import settings
-from app.models import Car, Location, LocationCreate, Ride, RideCreate, RidePublic
+from app.models import Car, Ride, RideCreate, RidePublic
 
 router = APIRouter(prefix="/rides", tags=["rides"])
-
-
-def get_ors_client() -> openrouteservice.Client:
-    return openrouteservice.Client(key=settings.MAPS_API_KEY)
-
-
-ORS_Client = Annotated[openrouteservice.Client, Depends(get_ors_client)]
-
-
-def get_or_create_location(
-    address: LocationCreate,
-    session: SessionDep,
-    ors_client: openrouteservice.Client,
-) -> Location:
-    statement = select(Location).where(
-        Location.country == address.country,
-        Location.street == address.street,
-        Location.house_number == address.house_number,
-        Location.postal_code == address.postal_code,
-        Location.city == address.city,
-    )
-    db_location = session.exec(statement).first()
-
-    if db_location:
-        return db_location
-
-    address_str = f"f{address.street} {address.house_number}, {address.postal_code} {address.city}, {address.country}"
-    geocode_result = ors_client.pelias_search(text=address_str, size=1)
-
-    if geocode_result and geocode_result["features"]:
-        lat, lon = geocode_result["features"][0]["geometry"]["coordinates"]
-    else:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"The provided address could not be found: '{address_str}'. "
-            "Please check for typos or provide a valid address.",
-        )
-
-    new_location = Location.model_validate(
-        address.model_dump(), update={"latitude": lat, "longitude": lon}
-    )
-    session.add(new_location)
-    session.commit()
-    session.refresh(new_location)
-    return new_location
-
 
 @router.post("/", response_model=RidePublic, status_code=status.HTTP_201_CREATED)
 def create_ride(
@@ -101,8 +56,8 @@ def create_ride(
     try:
         route_request = {
             "coordinates": [
-                (start_location.latitude, start_location.longitude),
-                (end_location.latitude, end_location.longitude),
+                (start_location.longitude, start_location.latitude),
+                (end_location.longitude, end_location.latitude),
             ],
             "format": "geojson",
             "profile": "driving-car",

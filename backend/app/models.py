@@ -65,7 +65,7 @@ class User(UserBase, table=True):
         sa_relationship_kwargs={"foreign_keys": "[Rating.rater_id]"},
     )
 
-    stops: list["Stop"] = Relationship(back_populates="user")
+    codrives: list["Codrive"] = Relationship(back_populates="user")
 
     rides: list["Ride"] = Relationship(back_populates="driver")
 
@@ -109,27 +109,12 @@ class CarUpdate(SQLModel):
     brand: str | None = Field(default=None, max_length=255)
 
 
-class Stop(SQLModel, table=True):
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-
-    user_id: uuid.UUID = Field(foreign_key="user.id")
-    user: "User" = Relationship(back_populates="stops")
-
-    ride_id: uuid.UUID = Field(foreign_key="ride.id")
-    ride: "Ride" = Relationship(back_populates="stops")
-
-    location_id: uuid.UUID = Field(foreign_key="location.id")
-    location: "Location" = Relationship(back_populates="stops")
-
-    time_of_arrival: datetime.datetime = Field()
-
-
 class Location(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
 
     inhabitants: list["User"] = Relationship(back_populates="location")
 
-    stops: list["Stop"] = Relationship(back_populates="location")
+    codrives: list["Codrive"] = Relationship(back_populates="location")
 
     ride_starts: list["Ride"] = Relationship(
         back_populates="start_location",
@@ -170,6 +155,46 @@ class LocationPublic(SQLModel):
     longitude: float
 
 
+class Codrive(SQLModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+
+    user_id: uuid.UUID = Field(foreign_key="user.id")
+    user: "User" = Relationship(back_populates="codrives")
+
+    ride_id: uuid.UUID = Field(foreign_key="ride.id")
+    ride: "Ride" = Relationship(back_populates="codrives")
+
+    location_id: uuid.UUID = Field(foreign_key="location.id")
+    location: "Location" = Relationship(back_populates="codrives")
+
+    time_of_arrival: datetime.datetime = Field()
+
+    point_contribution: int = Field(default=0)
+
+    accepted: bool = Field(default=False)
+    paid: bool = Field(default=False)
+
+
+class CodriveCreate(SQLModel):
+    """Schema for a user to request to join a ride."""
+
+    location: LocationCreate
+
+
+class CodrivePublic(SQLModel):
+    """Public representation of a Codrive, request or accepted."""
+
+    id: uuid.UUID
+    user_id: uuid.UUID
+    ride_id: uuid.UUID
+    location: LocationPublic
+    time_of_arrival: datetime.datetime
+    accepted: bool
+    paid: bool
+    point_contribution: int
+    updated_route_geometry: list[list[float]]
+
+
 class Rating(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
 
@@ -190,7 +215,6 @@ class Rating(SQLModel, table=True):
 
 class Ride(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    recurring_id: uuid.UUID | None = Field(default=None)
 
     driver_id: uuid.UUID = Field(foreign_key="user.id")
     driver: "User" = Relationship(back_populates="rides")
@@ -198,7 +222,8 @@ class Ride(SQLModel, table=True):
     car_id: uuid.UUID = Field(foreign_key="car.id")
     car: "Car" = Relationship(back_populates="rides")
 
-    stops: list["Stop"] = Relationship(back_populates="ride")
+    codrives: list["Codrive"] = Relationship(back_populates="ride")
+    n_codrives: int = Field(default=0)
 
     start_location_id: uuid.UUID = Field(foreign_key="location.id")
     end_location_id: uuid.UUID = Field(foreign_key="location.id")
@@ -212,15 +237,7 @@ class Ride(SQLModel, table=True):
         sa_relationship_kwargs={"foreign_keys": "[Ride.end_location_id]"},
     )
 
-    recurring_mon: bool = Field(default=False)
-    recurring_tue: bool = Field(default=False)
-    recurring_wed: bool = Field(default=False)
-    recurring_thu: bool = Field(default=False)
-    recurring_fri: bool = Field(default=False)
-    recurring_sat: bool = Field(default=False)
-    recurring_sun: bool = Field(default=False)
-
-    n_co_driver: int = Field()
+    max_n_codrives: int = Field()
     max_request_distance: float | None = Field()
 
     starting_time: datetime.datetime = Field()
@@ -235,7 +252,7 @@ class RideCreate(SQLModel):
     """Properties to receive via API on ride creation."""
 
     car_id: uuid.UUID
-    n_co_driver: int
+    max_n_codrives: int
     max_request_distance: float | None
 
     starting_time: datetime.datetime | None
@@ -243,14 +260,6 @@ class RideCreate(SQLModel):
 
     start_location: LocationCreate
     end_location: LocationCreate
-
-    recurring_mon: bool = False
-    recurring_tue: bool = False
-    recurring_wed: bool = False
-    recurring_thu: bool = False
-    recurring_fri: bool = False
-    recurring_sat: bool = False
-    recurring_sun: bool = False
 
 
 class RidePublic(SQLModel):
@@ -261,7 +270,9 @@ class RidePublic(SQLModel):
     car_id: uuid.UUID
     starting_time: datetime.datetime
     time_of_arrival: datetime.datetime
-    n_co_driver: int
+    max_n_codrives: int
+    n_codrives: int
+
 
     start_location: LocationPublic
     end_location: LocationPublic
@@ -270,14 +281,6 @@ class RidePublic(SQLModel):
     max_request_distance: float | None
     estimated_duration_seconds: int
     estimated_distance_meters: float
-
-    recurring_mon: bool
-    recurring_tue: bool
-    recurring_wed: bool
-    recurring_thu: bool
-    recurring_fri: bool
-    recurring_sat: bool
-    recurring_sun: bool
 
 
 # Generic message
