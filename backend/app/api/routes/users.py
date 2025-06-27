@@ -1,7 +1,14 @@
 import uuid
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, File, HTTPException, Request, Response, UploadFile
+from fastapi import (
+    APIRouter,
+    Depends,
+    File,
+    HTTPException,
+    Response,
+    UploadFile,
+)
 from sqlmodel import func, select
 
 from app import crud
@@ -46,6 +53,7 @@ def read_users(session: SessionDep, skip: int = 0, limit: int = 100) -> Any:
 
     return UsersPublic(data=users, count=count)
 
+
 @router.get(
     "/{user_id}/img",
 )
@@ -57,10 +65,7 @@ def get_profile_picture(
     if not user or not user.profile_picture:
         raise HTTPException(status_code=404, detail="Profile picture not found")
 
-    return Response(
-        content=user.profile_picture,
-        media_type="image/png"
-    )
+    return Response(content=user.profile_picture, media_type="image/png")
 
 
 @router.post(
