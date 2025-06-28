@@ -12,7 +12,7 @@ export function useCar() {
     return reactive<CarCreate>({
       brand: "",
       model: "",
-      n_seats: 5,
+      n_seats: "",
       color: "",
       license_plate: "",
     })

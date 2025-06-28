@@ -1,5 +1,5 @@
 export interface CarCreate extends Record<string, string | number> {
-  n_seats: number;
+  n_seats: number | string;
   model: string;
   brand: string;
   color: string;

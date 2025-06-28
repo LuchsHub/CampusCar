@@ -31,7 +31,7 @@ const tryUploadLicense = async (): Promise<void> => { // this is a mock function
   if (Object.keys(errors.value).length > 0) {
     return
   }
-  showToast('success', 'Führerschein erfolgreich hochgeladen.')
+  showToast('success', 'Führerschein erfolgreich hinterlegt.')
   router.push('/home');
 }
 
