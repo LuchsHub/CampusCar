@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { defineProps } from 'vue'
 import type { InputProps } from '../types/Props'
 
 const props = withDefaults(defineProps<InputProps & { error?: string }>(), {

@@ -4,10 +4,9 @@ import type { UserRegister, UserLogin } from '@/types/User';
 import axios from 'axios';
 import { useToaster } from '@/composables/useToaster';
 
-const authStore = useAuthStore();
-const { showToast, showDefaultError } = useToaster();
-
 export function useAuth() {
+  const authStore = useAuthStore(); // load AuthStore in the function, other wise you will receive a "no active pinia" error on application startup
+  const { showToast, showDefaultError } = useToaster();
 
   const loginUser = async (user: UserLogin) => {
     try {
