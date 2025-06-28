@@ -59,6 +59,24 @@ const routes: RouteRecordRaw[] = [
     component: () => import('../views/Home.vue'),
     beforeEnter: requireAuthentication(),
   },
+  
+  // Meine Fahrten
+  {
+    path: '/my_rides',
+    name: 'myRides',
+    component: () => import('../views/MyRides.vue'),
+    beforeEnter: requireAuthentication(),
+  },
+
+  // Profil
+  {
+    path: '/profile',
+    name: 'Profile',
+    component: () => import('../views/Profile.vue'),
+    beforeEnter: requireAuthentication(),
+  },
+
+  // Example and styles
   {
     path: '/example',
     name: 'example',
