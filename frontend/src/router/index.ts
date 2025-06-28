@@ -47,7 +47,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/signup/drivers_license',
     name: 'signupDriversLicense',
-    component: () => import('../views/Auth/Signup_1_Address.vue'),
+    component: () => import('../views/Auth/Signup_3_DriversLicense.vue'),
     // beforeEnter: requireAuthentication(),
     meta: { hideTabBar: true }
   },
