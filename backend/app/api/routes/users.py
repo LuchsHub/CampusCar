@@ -1,12 +1,20 @@
 import uuid
-from typing import Any
+from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import (
+    APIRouter,
+    Depends,
+    File,
+    HTTPException,
+    Response,
+    UploadFile,
+)
 from sqlmodel import func, select
 
 from app import crud
 from app.api.deps import (
     CurrentUser,
+    ORS_Client,
     SessionDep,
     get_current_active_superuser,
 )
@@ -47,6 +55,20 @@ def read_users(session: SessionDep, skip: int = 0, limit: int = 100) -> Any:
     return UsersPublic(data=users, count=count)
 
 
+@router.get(
+    "/{user_id}/img",
+)
+def get_profile_picture(
+    user_id: int,
+    session: SessionDep,
+) -> Any:
+    user = session.exec(select(User).where(User.id == user_id)).first()
+    if not user or not user.profile_picture:
+        raise HTTPException(status_code=404, detail="Profile picture not found")
+
+    return Response(content=user.profile_picture, media_type="image/png")
+
+
 @router.post(
     "/", dependencies=[Depends(get_current_active_superuser)], response_model=UserPublic
 )
@@ -76,7 +98,11 @@ def create_user(*, session: SessionDep, user_in: UserCreate) -> Any:
 
 @router.patch("/me", response_model=UserPublic)
 def update_user_me(
-    *, session: SessionDep, user_in: UserUpdateMe, current_user: CurrentUser
+    *,
+    session: SessionDep,
+    user_in: UserUpdateMe,
+    current_user: CurrentUser,
+    ors_client: ORS_Client,
 ) -> Any:
     """
     Update own user.
@@ -88,12 +114,36 @@ def update_user_me(
             raise HTTPException(
                 status_code=409, detail="User with this email already exists"
             )
+
     user_data = user_in.model_dump(exclude_unset=True)
+    if user_in.location:
+        loc = crud.get_or_create_location(user_in.location, session, ors_client)
+        user_data.pop("location")
+        current_user.location_id = loc.id
+
     current_user.sqlmodel_update(user_data)
     session.add(current_user)
     session.commit()
     session.refresh(current_user)
     return current_user
+
+
+@router.put("/me/img", response_model=Message)
+async def update_my_profile_picture(
+    profile_picture: Annotated[UploadFile, File()],
+    session: SessionDep,
+    current_user: CurrentUser,
+) -> Any:
+    if profile_picture.content_type not in ["image/png"]:
+        raise HTTPException(status_code=400, detail="Only PNG files are allowed.")
+
+    image_bytes = await profile_picture.read()
+    current_user.profile_picture = image_bytes
+
+    session.add(current_user)
+    session.commit()
+
+    return Message(message="Profile picture updated successfully")
 
 
 @router.patch("/me/password", response_model=Message)

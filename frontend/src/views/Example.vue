@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import Input from '../components/Input.vue';
-import Button from '../components/Button.vue';
-import HoverButton from '../components/HoverButton.vue';
-import PageTitle from '../components/PageTitle.vue';
-import type { ButtonProps } from '../types/Props';
-import type { Ride } from '../types/Ride';
+import Input from '@/components/Input.vue';
+import Button from '@/components/Button.vue';
+import HoverButton from '@/components/HoverButton.vue';
+import PageTitle from '@/components/PageTitle.vue';
+import type { ButtonProps } from '@/types/Props';
+import type { Ride } from '@/types/Ride';
 import { reactive, ref } from 'vue';
-import { validate, required, isDate } from '../services/validation'
-import type { ValidationSchema } from '../types/Validation';
+import { validate, required, isDate } from '@/services/validation'
+import type { ValidationSchema } from '@/types/Validation';
 
 const ride = reactive<Ride>({
   date: "",
@@ -36,7 +36,7 @@ const saveRide = ():void => {
 }
 
 const hoverButtons: ButtonProps[] = [
-  {variant: "primary", text: "Fahrt erstellen", onClick: saveRide},
+  {variant: "primary", text: "Fahrt ", onClick: saveRide},
 ]
 </script>
 

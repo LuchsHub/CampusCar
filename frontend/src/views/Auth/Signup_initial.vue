@@ -1,32 +1,30 @@
 <script setup lang="ts">
-import axios from 'axios';
-import Input from '../components/Input.vue';
-import HoverButton from '../components/HoverButton.vue';
-import PageTitle from '../components/PageTitle.vue';
-import type { ButtonProps } from '../types/Props';
+import Input from '@/components/Input.vue';
+import HoverButton from '@/components/HoverButton.vue';
+import PageTitle from '@/components/PageTitle.vue';
+import type { ButtonProps } from '@/types/Props';
 import { ref } from 'vue';
-import { isValidEmail, isTHBEmail, isValidPassword, required, validate } from '../services/validation'
-import type { ValidationSchema } from '../types/Validation';
-import { useAuth } from '../composables/useAuth';
-import { useUser } from '../composables/useUser';
-import { useToaster } from '../composables/useToaster';
+import { isValidEmail, isTHBEmail, isValidPassword, required, validate } from '@/services/validation'
+import type { ValidationSchema } from '@/types/Validation';
+import { useAuth } from '@/composables/useAuth';
+import { useUser } from '@/composables/useUser';
+import router from '@/router';
 
 
 // composable functions
-const { getEmptyRegisterUser } = useUser();
+const { getEmptyUserRegister } = useUser();
 const { registerUser } = useAuth();
-const { showDefaultError, showToast } = useToaster();
 
 
 // variables
-const userRegister = getEmptyRegisterUser()
+const userRegister = getEmptyUserRegister()
 
 const userRegisterValidationSchema: ValidationSchema = {
-  user_name: [required('Benutzername ist erforderlich')],
-  first_name: [required('Vorname ist erforderlich')],
-  last_name: [required('Nachname ist erforderlich')],
-  email: [required('E-Mail ist erforderlich'), isValidEmail(), isTHBEmail()],
-  password: [required('Passwort ist erforderlich'), isValidPassword()],
+  user_name: [required('Benutzername')],
+  first_name: [required('Vorname')],
+  last_name: [required('Nachname')],
+  email: [required('E-Mail'), isValidEmail(), isTHBEmail()],
+  password: [required('Passwort'), isValidPassword()],
 }
 const errors = ref<Record<string, string[]>>({})
 
@@ -40,17 +38,9 @@ const tryRegisterUser = async (): Promise<void> => {
     return
   }
   
-  // try to post input data
-  try {
-    await registerUser(userRegister)
-  } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      showToast("error", "Fehler beim Registrierungsprozess.")
-    } else {
-      showDefaultError();
-    }
-    throw error
-  }
+  // post input data
+  await registerUser(userRegister);
+  router.push('/signup/address');
 }
 
 
@@ -108,18 +98,5 @@ const hoverButtons: ButtonProps[] = [
 <style scoped>
 .view-container h2:first-of-type {
   margin-top: 0;
-}
-
-.form-container {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: var(--horizontal-gap)
-}
-
-.error {
-  color: var(--color-support-danger-500);
-  font-size: var(--font-size-xs);
-  margin-bottom: 0.5em;
 }
 </style>

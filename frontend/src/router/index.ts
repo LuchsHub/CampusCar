@@ -8,9 +8,6 @@ function requireAuthentication() {
     const authStore = useAuthStore();
     const isAuthenticated = authStore.userAuthenticated;
 
-    console.log("accessToken: " + authStore.accessToken)
-    console.log("User authenticated: " + isAuthenticated)
-
     if (isAuthenticated) {
       return true;
     } else {
@@ -24,23 +21,62 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/login',
     name: 'login',
-    component: () => import('../views/Login.vue'),
+    component: () => import('../views/Auth/Login.vue'),
     meta: { hideTabBar: true }
   },
   {
     path: '/signup',
     name: 'signup',
-    component: () => import('../views/Signup.vue'),
+    component: () => import('../views/Auth/Signup_initial.vue'),
+    meta: { hideTabBar: true }
+  },
+  {
+    path: '/signup/address',
+    name: 'signupAddress',
+    component: () => import('../views/Auth/Signup_1_Address.vue'),
+    beforeEnter: requireAuthentication(),
+    meta: { hideTabBar: true }
+  },
+  {
+    path: '/signup/car',
+    name: 'signupCar',
+    component: () => import('../views/Auth/Signup_2_Car.vue'),
+    beforeEnter: requireAuthentication(),
+    meta: { hideTabBar: true }
+  },
+  {
+    path: '/signup/drivers_license',
+    name: 'signupDriversLicense',
+    component: () => import('../views/Auth/Signup_3_DriversLicense.vue'),
+    beforeEnter: requireAuthentication(),
     meta: { hideTabBar: true }
   },
 
   // Home 
   {
-    path: '/',
+    path: '/home',
     name: 'home',
     component: () => import('../views/Home.vue'),
     beforeEnter: requireAuthentication(),
   },
+  
+  // Meine Fahrten
+  {
+    path: '/my_rides',
+    name: 'myRides',
+    component: () => import('../views/MyRides.vue'),
+    beforeEnter: requireAuthentication(),
+  },
+
+  // Profil
+  {
+    path: '/profile',
+    name: 'Profile',
+    component: () => import('../views/Profile.vue'),
+    beforeEnter: requireAuthentication(),
+  },
+
+  // Example and styles
   {
     path: '/example',
     name: 'example',
@@ -58,7 +94,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/:pathMatch(.*)*",
     name: "notFound",
-    component: import('../views/404.vue'),
+    component: import('../views/Misc/404.vue'),
     meta: {
       title: "404 - Not Found",
       hideTabBar: true

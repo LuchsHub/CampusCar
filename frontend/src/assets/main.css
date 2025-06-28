@@ -132,6 +132,13 @@ body {
   width: 100%;
 }
 
+.form-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--horizontal-gap)
+}
+
 .high-hover-button { /* show the hoverButton above the tab bar */
   bottom: calc(var(--nav-min-height) + var(--hover-button-nav-margin));
 }
@@ -229,7 +236,36 @@ a {
   height: var(--icon-height-s);
 }
 
-/* PADDING */
-.padding-top-small {
-  padding-top: 5px
+
+/* MARGIN (Feel free to add stuff as you go */
+
+/* TOP */
+.margin-top-s {
+  margin-top: 5px;
+}
+
+/* LEFT */
+.margin-left-s {
+  margin-left: 5px;
+}
+
+.margin-left-md {
+  margin-left: 10px;
+}
+
+.margin-left-l {
+  margin-left: 20px;
+}
+
+/* BOTTOM */
+.margin-botton-s {
+  margin-bottom: 5px;
+}
+
+.margin-botton-md {
+  margin-bottom: 10px;
+}
+
+.margin-botton-l {
+  margin-bottom: 20px;
 }

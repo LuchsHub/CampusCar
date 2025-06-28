@@ -6,9 +6,9 @@ import type { TabItem } from '../types/TabItem'
 const route = useRoute()
 
 const items: TabItem[] = [
-  { label: 'Home', to: '/', icon: Home },
-  { label: 'Beispiel', to: '/example', icon: Car },
-  { label: 'Styles', to: '/styles', icon: User }
+  { label: 'Home', to: '/home', icon: Home },
+  { label: 'Fahrten', to: '/my_rides', icon: Car },
+  { label: 'Profil', to: '/profile', icon: User }
 ]
 
 const isActive = (path: string): boolean => route.path === path
