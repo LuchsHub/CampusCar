@@ -8,9 +8,6 @@ function requireAuthentication() {
     const authStore = useAuthStore();
     const isAuthenticated = authStore.userAuthenticated;
 
-    console.log("accessToken: " + authStore.accessToken)
-    console.log("User authenticated: " + isAuthenticated)
-
     if (isAuthenticated) {
       return true;
     } else {

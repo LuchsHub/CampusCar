@@ -3,8 +3,11 @@ import type { LocationCreate } from '@/types/Location';
 import { reactive } from 'vue';
 import { useLocation } from './useLocation';
 import api from '@/services/api';
+import axios from 'axios';
+import { useToaster } from './useToaster';
 
 const { getEmptyLocationCreate } = useLocation()
+const { showDefaultError, showToast } = useToaster()
 
 
 export function useUser() {
@@ -43,7 +46,11 @@ export function useUser() {
     const userUpdateWithLocation = {
       location: location
     }
-    await postUpdateUserData(userUpdateWithLocation)
+    try {
+      await postUpdateUserData(userUpdateWithLocation)
+    } catch (error: unknown) {
+      console.log(error);
+    }
   }
 
   const postUpdateUserData = async (user: UserUpdate) => {
@@ -52,9 +59,15 @@ export function useUser() {
         '/users/me',
         user
       )
+      showToast('success', 'Aktualisierung deiner Daten erfolgreich.');
       return response.data
     } catch (error: unknown) {
-        throw error
+      if (axios.isAxiosError(error)) {
+        showToast('error', 'Aktualisierung der Daten fehlgeschlagen. Versuche es später nochmal.');
+      } else {
+        showDefaultError();
+      }
+      throw error
     }
   }
 

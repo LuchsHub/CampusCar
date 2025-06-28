@@ -9,14 +9,11 @@ import type { ValidationSchema } from '@/types/Validation';
 import { useLocation } from '@/composables/useLocation';
 import router from "@/router";
 import { useUser } from '@/composables/useUser';
-import axios from 'axios';
-import { useToaster } from '@/composables/useToaster';
 
 
 // composable functions
 const { getEmptyLocationCreate } = useLocation();
 const { updateUserLocation } = useUser();
-const { showToast, showDefaultError } = useToaster();
 
 
 // variables
@@ -39,16 +36,8 @@ const tryUpdateUserLocation = async (): Promise<void> => {
     return
   }
 
-  try {
-    await updateUserLocation(locationCreate);
-    router.push('/signup/car');
-  } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      showToast("error", "Deine Adresse konnte nicht gespeichert werden.")
-    } else {
-      showDefaultError();
-    }
-  }
+  await updateUserLocation(locationCreate);
+  router.push('/signup/car');
 }
 
 // components

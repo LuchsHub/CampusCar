@@ -36,7 +36,7 @@ const saveRide = ():void => {
 }
 
 const hoverButtons: ButtonProps[] = [
-  {variant: "primary", text: "Fahrt erstellen", onClick: saveRide},
+  {variant: "primary", text: "Fahrt ", onClick: saveRide},
 ]
 </script>
 

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import axios from 'axios';
 import Input from '@/components/Input.vue';
 import HoverButton from '@/components/HoverButton.vue';
 import PageTitle from '@/components/PageTitle.vue';
@@ -8,13 +7,12 @@ import { ref } from 'vue';
 import { isValidEmail, required, validate } from '@/services/validation'
 import type { ValidationSchema } from '@/types/Validation';
 import { useAuth } from '@/composables/useAuth';
-import { useToaster } from '@/composables/useToaster';
 import { useUser } from '@/composables/useUser';
+import router from '@/router';
 
 
 // composable functions
 const { loginUser } = useAuth();
-const { showToast, showDefaultError } = useToaster();
 const { getEmptyUserLogin } = useUser();
 
 
@@ -36,17 +34,9 @@ const tryLoginUser = async (): Promise<void> => {
     console.log(errors.value)
     return
   }
-  
-  // try to post input data
-  try {
-    await loginUser(userLogin)
-  } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      showToast("error", "Ungültige Anmeldedaten.")
-    } else {
-      showDefaultError();
-    }
-  }
+
+  await loginUser(userLogin);
+  router.push('/home');
 }
 
 // Hoverbuttons

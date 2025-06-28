@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import axios from 'axios';
 import Input from '@/components/Input.vue';
 import HoverButton from '@/components/HoverButton.vue';
 import PageTitle from '@/components/PageTitle.vue';
@@ -9,13 +8,12 @@ import { isValidEmail, isTHBEmail, isValidPassword, required, validate } from '@
 import type { ValidationSchema } from '@/types/Validation';
 import { useAuth } from '@/composables/useAuth';
 import { useUser } from '@/composables/useUser';
-import { useToaster } from '@/composables/useToaster';
+import router from '@/router';
 
 
 // composable functions
 const { getEmptyUserRegister } = useUser();
 const { registerUser } = useAuth();
-const { showDefaultError, showToast } = useToaster();
 
 
 // variables
@@ -40,17 +38,9 @@ const tryRegisterUser = async (): Promise<void> => {
     return
   }
   
-  // try to post input data
-  try {
-    await registerUser(userRegister)
-  } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      showToast("error", "Fehler beim Registrierungsprozess.")
-    } else {
-      showDefaultError();
-    }
-    throw error
-  }
+  // post input data
+  await registerUser(userRegister);
+  router.push('/signup/address');
 }
 
 

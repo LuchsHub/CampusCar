@@ -1,19 +1,21 @@
 import api from '@/services/api'
 import { useAuthStore } from '@/stores/AuthStore';
 import type { UserRegister, UserLogin } from '@/types/User';
-import router from "@/router";
 import axios from 'axios';
 import { useToaster } from '@/composables/useToaster';
 
 const authStore = useAuthStore();
-const { showToast } = useToaster();
+const { showToast, showDefaultError } = useToaster();
 
 export function useAuth() {
 
   const loginUser = async (user: UserLogin) => {
-    const data = await postLoginData(user)
-    authStore.setAccessToken(data.access_token);
-    router.push('/home');
+    try {
+      const data = await postLoginData(user)
+      authStore.setAccessToken(data.access_token);
+    } catch (error: unknown) {
+      console.log(error);
+    }
   }
 
   // NOTE: This method does not use the api service since it requires some weird input format, for everything else the api service should be fine
@@ -33,18 +35,20 @@ export function useAuth() {
           "Content-Type": "application/x-www-form-urlencoded",
         },
       })
+      showToast('success', 'Anmeldung erfolgreich.');
       return response.data
     } catch (error: unknown) {
         if (axios.isAxiosError(error)) {
-          console.error('Axios Error:', error.response?.data || error.message)
+          showToast('error', 'Ungültige Anmeldedaten.');
         } else {
-          console.error('Unbekannter Fehler:', error)
+          showDefaultError();
         }
         throw error
     }
   }
 
-  const registerUser = async (user: UserRegister) => {
+  const registerUser = async (user: UserRegister): Promise<void> => {
+    try {
       await postRegisterData(user);
 
       // turn UserRegister into UserLogin
@@ -55,7 +59,10 @@ export function useAuth() {
 
       const data = await postLoginData(userLogin);
       authStore.setAccessToken(data.access_token);
-      router.push('/signup/address');
+    } catch (error: unknown) {
+      console.log(error);
+      throw error;
+    }
   }
 
   const postRegisterData = async (user: UserRegister) => {
@@ -64,12 +71,13 @@ export function useAuth() {
         '/users/signup',
         user
       )
+      showToast('success', 'Registrierung erfolgreich.');
       return response.data
     } catch (error: unknown) {
         if (axios.isAxiosError(error)) {
-          console.error('Axios Error:', error.response?.data || error.message)
+          showToast('error', 'Fehler beim Registrierungsprozess. Versuche es später nochmal.');
         } else {
-          console.error('Unbekannter Fehler:', error)
+          showDefaultError();
         }
         throw error
   }
@@ -77,8 +85,7 @@ export function useAuth() {
 
   const logoutUser = () => {
     authStore.removeAccessToken();
-    showToast('success', "Logout erfolgreich!")
-    router.push('/login');
+    showToast('success', "Logout erfolgreich.");
   }
 
   return {
