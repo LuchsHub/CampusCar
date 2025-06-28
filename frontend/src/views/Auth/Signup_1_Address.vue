@@ -53,7 +53,7 @@ const hoverButtons: ButtonProps[] = [
 
     <PageTitle>Account einrichten 1/3</PageTitle>
 
-    <p class="text-md text-bold margin-botton-md">Teile uns deine Adresse mit für die bequeme Planung deiner ersten Fahrt.</p>
+    <p class="text-md text-bold margin-botton-l">Teile uns deine Adresse mit - für die bequeme Planung deiner ersten Fahrt.</p>
     <div class="form-container">
       <Input 
         type="text" 

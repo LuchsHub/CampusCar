@@ -59,3 +59,21 @@ export const isValidPostalCode = (msg = 'Ungültige Postleitzahl'): ValidationRu
   return null
 }
 
+export const largerThan = (min: number, msg: string): ValidationRule => (value) => {
+  const numValue = Number(value)
+  if (isNaN(numValue) || numValue <= min) return msg
+  return null
+}
+
+export const smallerThan = (max: number, msg: string): ValidationRule => (value) => {
+  const numValue = Number(value)
+  if (isNaN(numValue) || numValue >= max) return msg
+  return null
+}
+
+export const isValidLicensePlate = (msg = 'Ungültiges KFZ-Kennzeichen'): ValidationRule => (value) => {
+  const regex = /^[A-ZÄÖÜ]{1,3}-[A-ZÄÖÜ]{1,2}-\d{1,4}$|^[A-ZÄÖÜ]{1,3}-\d{1,4}$/
+  if (typeof value !== 'string' || !regex.test(value.toUpperCase())) return msg
+  return null
+}
+

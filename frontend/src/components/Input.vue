@@ -37,7 +37,7 @@ const handleInput = (event: Event) => {
       />
       <label>{{ props.label }}</label>
     </div>
-    <p v-if="props.error" class="text-s text-danger padding-top-s">{{ props.error }}</p>
+    <p v-if="props.error" class="text-s text-danger margin-top-s margin-left-md">{{ props.error }}</p>
   </div>
 </template>
 
