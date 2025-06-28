@@ -1,10 +1,29 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
-import { useAuthStore } from '../stores/AuthStore';
+
+import Login from '@/views/Auth/Login.vue';
+
+import SignupInitial from '@/views/Auth/SignupInitial.vue';
+import Signup_1_Address from '@/views/Auth/Signup_1_Address.vue';
+import Signup_2_Car from '@/views/Auth/Signup_2_Car.vue';
+import Signup_3_DriversLicense from '@/views/Auth/Signup_3_DriversLicense.vue';
+
+import Home from '@/views/Home.vue';
+
+import MyRides from '@/views/MyRides.vue';
+
+import Profile from '@/views/Profile.vue';
+
+import Example from '@/views/Example.vue';
+import Styles from '@/views/Styles.vue';
+
+import NotFound from '@/views/Misc/NotFound.vue';
 
 // Middleware, which checks if the user has the required role
 function requireAuthentication() {
-  return () => {
+  return async () => {
+    // Import store inside the function to avoid Pinia initialization issues
+    const { useAuthStore } = await import('../stores/AuthStore'); // dynamic import to prevent "no active pinia" error on application startup
     const authStore = useAuthStore();
     const isAuthenticated = authStore.userAuthenticated;
 
@@ -21,33 +40,33 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/login',
     name: 'login',
-    component: () => import('../views/Auth/Login.vue'),
+    component: Login,
     meta: { hideTabBar: true }
   },
   {
     path: '/signup',
     name: 'signup',
-    component: () => import('../views/Auth/Signup_initial.vue'),
+    component: SignupInitial,
     meta: { hideTabBar: true }
   },
   {
     path: '/signup/address',
     name: 'signupAddress',
-    component: () => import('../views/Auth/Signup_1_Address.vue'),
+    component: Signup_1_Address,
     beforeEnter: requireAuthentication(),
     meta: { hideTabBar: true }
   },
   {
     path: '/signup/car',
     name: 'signupCar',
-    component: () => import('../views/Auth/Signup_2_Car.vue'),
+    component: Signup_2_Car,
     beforeEnter: requireAuthentication(),
     meta: { hideTabBar: true }
   },
   {
     path: '/signup/drivers_license',
     name: 'signupDriversLicense',
-    component: () => import('../views/Auth/Signup_3_DriversLicense.vue'),
+    component: Signup_3_DriversLicense,
     beforeEnter: requireAuthentication(),
     meta: { hideTabBar: true }
   },
@@ -56,7 +75,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/home',
     name: 'home',
-    component: () => import('../views/Home.vue'),
+    component: Home,
     beforeEnter: requireAuthentication(),
   },
   
@@ -64,7 +83,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/my_rides',
     name: 'myRides',
-    component: () => import('../views/MyRides.vue'),
+    component: MyRides,
     beforeEnter: requireAuthentication(),
   },
 
@@ -72,7 +91,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/profile',
     name: 'Profile',
-    component: () => import('../views/Profile.vue'),
+    component: Profile,
     beforeEnter: requireAuthentication(),
   },
 
@@ -80,13 +99,13 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/example',
     name: 'example',
-    component: () => import('../views/Example.vue'),
+    component: Example,
     beforeEnter: requireAuthentication(),
   },
   {
     path: '/styles',
     name: 'styles',
-    component: () => import('../views/Styles.vue'),
+    component: Styles,
     beforeEnter: requireAuthentication(),
   },
   
@@ -94,7 +113,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/:pathMatch(.*)*",
     name: "notFound",
-    component: import('../views/Misc/404.vue'),
+    component: NotFound,
     meta: {
       title: "404 - Not Found",
       hideTabBar: true
