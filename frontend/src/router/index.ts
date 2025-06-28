@@ -34,21 +34,21 @@ const routes: RouteRecordRaw[] = [
     path: '/signup/address',
     name: 'signupAddress',
     component: () => import('../views/Auth/Signup_1_Address.vue'),
-    // beforeEnter: requireAuthentication(),
+    beforeEnter: requireAuthentication(),
     meta: { hideTabBar: true }
   },
   {
     path: '/signup/car',
     name: 'signupCar',
     component: () => import('../views/Auth/Signup_2_Car.vue'),
-    // beforeEnter: requireAuthentication(),
+    beforeEnter: requireAuthentication(),
     meta: { hideTabBar: true }
   },
   {
     path: '/signup/drivers_license',
     name: 'signupDriversLicense',
     component: () => import('../views/Auth/Signup_3_DriversLicense.vue'),
-    // beforeEnter: requireAuthentication(),
+    beforeEnter: requireAuthentication(),
     meta: { hideTabBar: true }
   },
 

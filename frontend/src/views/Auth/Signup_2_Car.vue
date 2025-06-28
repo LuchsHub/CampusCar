@@ -49,7 +49,7 @@ const hoverButtons: ButtonProps[] = [
 <template>
   <div class="view-container">
 
-    <PageTitle>Account einrichten 2/3</PageTitle>
+    <PageTitle :goBack="true">Account einrichten 2/3</PageTitle>
 
     <p class="text-md text-bold margin-botton-l">Trage deine Autodetails ein, damit dich deine Mitfahrer rechtzeitig erkennen.</p>
     <div class="form-container">

@@ -7,7 +7,10 @@ import { ref, reactive } from 'vue';
 import { required, validate } from '@/services/validation'
 import type { ValidationSchema } from '@/types/Validation';
 import router from "@/router";
+import { useToaster } from '@/composables/useToaster';
 
+
+const { showToast } = useToaster()
 
 // composable functions
 const license = reactive({ // mock license
@@ -28,6 +31,7 @@ const tryUploadLicense = async (): Promise<void> => { // this is a mock function
   if (Object.keys(errors.value).length > 0) {
     return
   }
+  showToast('success', 'Führerschein erfolgreich hochgeladen.')
   router.push('/home');
 }
 
@@ -42,7 +46,7 @@ const hoverButtons: ButtonProps[] = [
 <template>
   <div class="view-container">
 
-    <PageTitle>Account einrichten 3/3</PageTitle>
+    <PageTitle :goBack="true">Account einrichten 3/3</PageTitle>
 
     <p class="text-md text-bold margin-botton-l">Lade ein Bild der Vorder- und Rückseite deines Führerscheins hoch.</p>
     <div class="form-container">
