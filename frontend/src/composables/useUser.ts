@@ -1,12 +1,10 @@
 import type { UserRegister, UserLogin, UserUpdate } from '@/types/User';
+import type { LocationCreate } from '@/types/Location';
 import { reactive } from 'vue';
 import { useLocation } from './useLocation';
 import api from '@/services/api';
-import axios from 'axios';
-import { useAuthStore } from '@/stores/AuthStore';
 
 const { getEmptyLocationCreate } = useLocation()
-const authStore = useAuthStore()
 
 
 export function useUser() {
@@ -39,40 +37,31 @@ export function useUser() {
   }
 
 
-  const updateUser = async (user: UserUpdate) => {
-    await postUpdateUserData(user);
-
-    // turn UserRegister into UserLogin
-    const userLogin: UserLogin = {
-      email: user.email,
-      password: user.password
+  // functions 
+  const updateUserLocation = async (location: LocationCreate) => {
+    // wrap location in a UserUpdate object
+    const userUpdateWithLocation = {
+      location: location
     }
-
-    const data = await postLoginData(userLogin);
-    authStore.setAccessToken(data.access_token);
-    router.push('/signup/address');
-}
-
-const postUpdateUserData = async (user: UserUpdate) => {
-  try {
-    const response = await api.patch(
-      '/users/me',
-      user
-    )
-    return response.data
-  } catch (error: unknown) {
-      if (axios.isAxiosError(error)) {
-        console.error('Axios Error:', error.response?.data || error.message)
-      } else {
-        console.error('Unbekannter Fehler:', error)
-      }
-      throw error
+    await postUpdateUserData(userUpdateWithLocation)
   }
-}
+
+  const postUpdateUserData = async (user: UserUpdate) => {
+    try {
+      const response = await api.patch(
+        '/users/me',
+        user
+      )
+      return response.data
+    } catch (error: unknown) {
+        throw error
+    }
+  }
 
   return {
     getEmptyUserLogin,
     getEmptyUserRegister,
-    getEmptyUserUpdate
+    getEmptyUserUpdate,
+    updateUserLocation
   }
 }

@@ -54,7 +54,7 @@ export const isTHBEmail = (msg = 'Nur THB-Mailadressen erlaubt'): ValidationRule
   return null
 }
 
-export const isValidPostalCode = (msg = 'Ungültige Postleitzahl eingeben'): ValidationRule => (value) => {
+export const isValidPostalCode = (msg = 'Ungültige Postleitzahl'): ValidationRule => (value) => {
   if (typeof value !== 'string' || !/^\d{5}$/.test(value)) return msg
   return null
 }

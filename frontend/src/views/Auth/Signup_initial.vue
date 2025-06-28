@@ -109,17 +109,4 @@ const hoverButtons: ButtonProps[] = [
 .view-container h2:first-of-type {
   margin-top: 0;
 }
-
-.form-container {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: var(--horizontal-gap)
-}
-
-.error {
-  color: var(--color-support-danger-500);
-  font-size: var(--font-size-xs);
-  margin-bottom: 0.5em;
-}
 </style>

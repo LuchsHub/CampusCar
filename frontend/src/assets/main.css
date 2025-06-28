@@ -132,6 +132,13 @@ body {
   width: 100%;
 }
 
+.form-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--horizontal-gap)
+}
+
 .high-hover-button { /* show the hoverButton above the tab bar */
   bottom: calc(var(--nav-min-height) + var(--hover-button-nav-margin));
 }
@@ -230,6 +237,11 @@ a {
 }
 
 /* PADDING */
-.padding-top-small {
+.padding-top-s {
   padding-top: 5px
+}
+
+/* MARGIN */
+.margin-botton-md {
+  margin-bottom: 20px;
 }

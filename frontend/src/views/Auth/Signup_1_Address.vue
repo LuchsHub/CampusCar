@@ -1,32 +1,27 @@
 <script setup lang="ts">
-import axios from 'axios';
 import Input from '@/components/Input.vue';
 import HoverButton from '@/components/HoverButton.vue';
 import PageTitle from '@/components/PageTitle.vue';
 import type { ButtonProps } from '@/types/Props';
 import { ref } from 'vue';
-import { isValidEmail, isTHBEmail, isValidPassword, required, validate, isValidPostalCode } from '@/services/validation'
+import { required, validate, isValidPostalCode } from '@/services/validation'
 import type { ValidationSchema } from '@/types/Validation';
-import { useAuth } from '@/composables/useAuth';
+import { useLocation } from '@/composables/useLocation';
+import router from "@/router";
 import { useUser } from '@/composables/useUser';
+import axios from 'axios';
 import { useToaster } from '@/composables/useToaster';
 
 
 // composable functions
-const { getEmptyUserUpdate } = useUser();
-const { registerUser } = useAuth();
-const { showDefaultError, showToast } = useToaster();
+const { getEmptyLocationCreate } = useLocation();
+const { updateUserLocation } = useUser();
+const { showToast, showDefaultError } = useToaster();
 
 
 // variables
-const userUpdate = getEmptyUserUpdate()
-
-const userUpdateValidationSchema: ValidationSchema = {
-  user_name: [required('Benutzername')],
-  first_name: [required('Vorname')],
-  last_name: [required('Nachname')],
-  email: [required('E-Mail'), isValidEmail(), isTHBEmail()],
-
+const locationCreate = getEmptyLocationCreate()
+const locationCreateValidationSchema: ValidationSchema = {
   country: [required('Land')],
   postal_code: [required('PLZ'), isValidPostalCode()],
   city: [required('Stadt')],
@@ -37,31 +32,28 @@ const errors = ref<Record<string, string[]>>({})
 
 
 // functions
-const tryRegisterUser = async (): Promise<void> => {
-  // validate input
-  errors.value = validate(userUpdate, userUpdateValidationSchema)
+const tryUpdateUserLocation = async (): Promise<void> => {
+
+  errors.value = validate(locationCreate as Record<string, string>, locationCreateValidationSchema)
   if (Object.keys(errors.value).length > 0) {
-    console.log(errors.value)
     return
   }
-  
-  // try to post input data
+
   try {
-    await registerUser(userUpdate)
+    await updateUserLocation(locationCreate);
+    router.push('/signup/car');
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
-      showToast("error", "Fehler beim Registrierungsprozess.")
+      showToast("error", "Deine Adresse konnte nicht gespeichert werden.")
     } else {
       showDefaultError();
     }
-    throw error
   }
 }
 
-
 // components
 const hoverButtons: ButtonProps[] = [
-  {variant: "primary", text: "Nächster Schritt", onClick: tryRegisterUser},
+  {variant: "primary", text: "Nächster Schritt", onClick: tryUpdateUserLocation},
   {variant: "tertiary", text: "Später", to: "/signup/car"},
 ]
 
@@ -72,59 +64,41 @@ const hoverButtons: ButtonProps[] = [
 
     <PageTitle>Account einrichten 1/3</PageTitle>
 
-    <h2>Teile uns deine Adresse mit für bequeme Planung deiner ersten Fahrt.</h2>
+    <p class="text-md text-bold margin-botton-md">Teile uns deine Adresse mit für die bequeme Planung deiner ersten Fahrt.</p>
     <div class="form-container">
       <Input 
         type="text" 
-        label="Benutzername" 
-        v-model="userUpdate.user_name"
-        :error="errors.user_name?.[0]"
+        label="Land" 
+        v-model="locationCreate.country"
+        :error="errors.country?.[0]"
       />
       <Input 
         type="text" 
-        label="Vorname" 
-        v-model="userUpdate.first_name"
-        :error="errors.first_name?.[0]"
+        label="Straße" 
+        v-model="locationCreate.street"
+        :error="errors.street?.[0]"
       />
       <Input 
-        type="text" 
-        label="Nachname" 
-        v-model="userUpdate.last_name"
-        :error="errors.last_name?.[0]"
-      />
-      <Input 
-        type="text" 
-        label="THB E-Mail" 
-        v-model="userUpdate.email"
-        :error="errors.email?.[0]"
-      />
-      <Input 
-        type="password" 
-        label="Passwort" 
-        v-model="userUpdate.password"
-        :error="errors.password?.[0]"
+        type="text"
+        label="Hausnummer" 
+        v-model="locationCreate.house_number"
+        :error="errors.house_number?.[0]"
         />
+      <Input 
+        type="text" 
+        label="Stadt" 
+        v-model="locationCreate.city"
+        :error="errors.city?.[0]"
+      />
+      <Input 
+        type="number" 
+        label="PLZ" 
+        v-model="locationCreate.postal_code"
+        :error="errors.postal_code?.[0]"
+        :maxLength="5"
+      />
       </div>
       
       <HoverButton :buttons="hoverButtons"/>
     </div>
 </template>
-
-<style scoped>
-.view-container h2:first-of-type {
-  margin-top: 0;
-}
-
-.form-container {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: var(--horizontal-gap)
-}
-
-.error {
-  color: var(--color-support-danger-500);
-  font-size: var(--font-size-xs);
-  margin-bottom: 0.5em;
-}
-</style>
