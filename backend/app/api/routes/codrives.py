@@ -207,7 +207,7 @@ def request_codrive(
     user_ids_to_fetch = [
         uuid.UUID(uid) for uid in db_route_update.codriver_arrival_times
     ]
-    users = session.exec(select(User).where(User.id.in_(user_ids_to_fetch))).all() # type: ignore[attr-defined]
+    users = session.exec(select(User).where(User.id.in_(user_ids_to_fetch))).all()  # type: ignore[attr-defined]
     users_by_id = {str(user.id): user for user in users}
 
     passenger_arrivals: list[PassengerArrivalTime] = []
@@ -247,12 +247,13 @@ def accept_codrive(
     codrive_to_accept = session.get(
         Codrive,
         codrive_id,
-        options=[  
-            selectinload(Codrive.ride).options( # type: ignore[arg-type]
-                selectinload(Ride.start_location), # type: ignore[arg-type]
-                selectinload(Ride.end_location), # type: ignore[arg-type]
-                selectinload(Ride.codrives).options( # type: ignore[arg-type]
-                    selectinload(Codrive.user), selectinload(Codrive.location) # type: ignore[arg-type]
+        options=[
+            selectinload(Codrive.ride).options(  # type: ignore[arg-type]
+                selectinload(Ride.start_location),  # type: ignore[arg-type]
+                selectinload(Ride.end_location),  # type: ignore[arg-type]
+                selectinload(Ride.codrives).options(  # type: ignore[arg-type]
+                    selectinload(Codrive.user),
+                    selectinload(Codrive.location),  # type: ignore[arg-type]
                 ),
             )
         ],
