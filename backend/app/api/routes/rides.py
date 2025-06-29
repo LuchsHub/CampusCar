@@ -1,7 +1,6 @@
 import datetime
 from typing import Any
 
-from app.crud import get_or_create_location
 import openrouteservice  # type: ignore
 from fastapi import APIRouter, HTTPException, status
 
@@ -10,10 +9,11 @@ from app.api.deps import (
     ORS_Client,
     SessionDep,
 )
-from app.core.config import settings
+from app.crud import get_or_create_location
 from app.models import Car, Ride, RideCreate, RidePublic
 
 router = APIRouter(prefix="/rides", tags=["rides"])
+
 
 @router.post("/", response_model=RidePublic, status_code=status.HTTP_201_CREATED)
 def create_ride(
@@ -29,18 +29,6 @@ def create_ride(
     The backend will geocode the addresses, save them as locations,
     and calculate the route geometry between them.
     """
-    if ride_in.starting_time and ride_in.arrival_time:
-        # This case is already handled by the Pydantic validator, but an explicit check is safe.
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail="Cannot provide both starting_time and arrival_time.",
-        )
-    if not ride_in.starting_time and not ride_in.arrival_time:
-        # Also handled by Pydantic, but kept for clarity.
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail="Must provide either starting_time or arrival_time.",
-        )
 
     car = session.get(Car, ride_in.car_id)
     if not car or car.owner_id != current_user.id:
@@ -79,12 +67,8 @@ def create_ride(
     distance_meters = route_summary.get("distance", 0)
 
     estimated_duration = datetime.timedelta(seconds=duration_seconds)
-    if ride_in.starting_time:
-        starting_time = ride_in.starting_time
-        time_of_arrival = starting_time + estimated_duration
-    elif ride_in.arrival_time:
-        time_of_arrival = ride_in.arrival_time
-        starting_time = time_of_arrival - estimated_duration
+    time_of_arrival = ride_in.time_of_arrival
+    starting_time = time_of_arrival - estimated_duration
 
     db_ride = Ride.model_validate(
         ride_in.model_dump(exclude={"starting_time", "arrival_time"}),

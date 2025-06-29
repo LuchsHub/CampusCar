@@ -155,44 +155,44 @@ class LocationPublic(SQLModel):
     longitude: float
 
 
+class RouteUpdate(SQLModel):
+    """A comprehensive, structured object containing all proposed route changes."""
+
+    geometry: list[list[float]]
+    distance_meters: int
+    duration_seconds: int
+    codriver_arrival_times: dict[str, datetime.datetime]
+    updated_ride_departure_time: datetime.datetime
+
+
 class Codrive(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-
     user_id: uuid.UUID = Field(foreign_key="user.id")
     user: "User" = Relationship(back_populates="codrives")
-
     ride_id: uuid.UUID = Field(foreign_key="ride.id")
     ride: "Ride" = Relationship(back_populates="codrives")
-
     location_id: uuid.UUID = Field(foreign_key="location.id")
     location: "Location" = Relationship(back_populates="codrives")
-
     time_of_arrival: datetime.datetime = Field()
-
     point_contribution: int = Field(default=0)
-
+    route_update: RouteUpdate | None = Field(default=None, sa_column=Column(JSON))
     accepted: bool = Field(default=False)
     paid: bool = Field(default=False)
 
 
 class CodriveCreate(SQLModel):
-    """Schema for a user to request to join a ride."""
-
     location: LocationCreate
 
 
 class CodrivePublic(SQLModel):
-    """Public representation of a Codrive, request or accepted."""
-
     id: uuid.UUID
     user_id: uuid.UUID
     ride_id: uuid.UUID
     location: LocationPublic
-    time_of_arrival: datetime.datetime
     accepted: bool
     paid: bool
     point_contribution: int
-    updated_route_geometry: list[list[float]]
+    route_update: RouteUpdate
 
 
 class Rating(SQLModel, table=True):
@@ -228,11 +228,11 @@ class Ride(SQLModel, table=True):
     start_location_id: uuid.UUID = Field(foreign_key="location.id")
     end_location_id: uuid.UUID = Field(foreign_key="location.id")
 
-    start_location: Optional["Location"] = Relationship(
+    start_location: "Location" = Relationship(
         back_populates="ride_starts",
         sa_relationship_kwargs={"foreign_keys": "[Ride.start_location_id]"},
     )
-    end_location: Optional["Location"] = Relationship(
+    end_location: "Location" = Relationship(
         back_populates="ride_ends",
         sa_relationship_kwargs={"foreign_keys": "[Ride.end_location_id]"},
     )
@@ -255,8 +255,7 @@ class RideCreate(SQLModel):
     max_n_codrives: int
     max_request_distance: float | None
 
-    starting_time: datetime.datetime | None
-    arrival_time: datetime.datetime | None
+    time_of_arrival: datetime.datetime
 
     start_location: LocationCreate
     end_location: LocationCreate
@@ -272,7 +271,6 @@ class RidePublic(SQLModel):
     time_of_arrival: datetime.datetime
     max_n_codrives: int
     n_codrives: int
-
 
     start_location: LocationPublic
     end_location: LocationPublic

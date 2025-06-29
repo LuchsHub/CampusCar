@@ -1,7 +1,7 @@
 from typing import Any
 
+import openrouteservice  # type: ignore
 from fastapi import HTTPException, status
-import openrouteservice
 from sqlmodel import Session, select
 
 from app.core.security import get_password_hash, verify_password
