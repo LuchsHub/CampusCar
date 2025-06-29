@@ -252,7 +252,7 @@ def accept_codrive(
                 selectinload(Ride.start_location),  # type: ignore[arg-type]
                 selectinload(Ride.end_location),  # type: ignore[arg-type]
                 selectinload(Ride.codrives).options(  # type: ignore[arg-type]
-                    selectinload(Codrive.user),
+                    selectinload(Codrive.user),  # type: ignore[arg-type]
                     selectinload(Codrive.location),  # type: ignore[arg-type]
                 ),
             )
