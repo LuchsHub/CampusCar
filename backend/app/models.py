@@ -156,12 +156,23 @@ class LocationPublic(SQLModel):
 
 
 class RouteUpdate(SQLModel):
-    """A comprehensive, structured object containing all proposed route changes."""
-
     geometry: list[list[float]]
     distance_meters: int
     duration_seconds: int
     codriver_arrival_times: dict[str, datetime.datetime]
+    updated_ride_departure_time: datetime.datetime
+
+
+class PassengerArrivalTime(SQLModel):
+    user: UserPublic
+    arrival_time: datetime.datetime
+
+
+class RouteUpdatePublic(SQLModel):
+    geometry: list[list[float]]
+    distance_meters: int
+    duration_seconds: int
+    codriver_arrival_times: list[PassengerArrivalTime]
     updated_ride_departure_time: datetime.datetime
 
 
@@ -192,7 +203,14 @@ class CodrivePublic(SQLModel):
     accepted: bool
     paid: bool
     point_contribution: int
-    route_update: RouteUpdate
+    route_update: RouteUpdatePublic
+
+
+class CodrivePassenger(SQLModel):
+    id: uuid.UUID
+    user: UserPublic
+    location: LocationPublic
+    time_of_arrival: datetime.datetime
 
 
 class Rating(SQLModel, table=True):
@@ -279,6 +297,10 @@ class RidePublic(SQLModel):
     max_request_distance: float | None
     estimated_duration_seconds: int
     estimated_distance_meters: float
+
+
+class RideWithPassengersPublic(RidePublic):
+    codrives: list[CodrivePassenger]
 
 
 # Generic message

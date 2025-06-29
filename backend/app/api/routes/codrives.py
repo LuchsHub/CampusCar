@@ -16,9 +16,14 @@ from app.models import (
     CodriveCreate,
     CodrivePublic,
     Location,
-    Message,
+    LocationPublic,
+    PassengerArrivalTime,
     Ride,
+    RideWithPassengersPublic,
     RouteUpdate,
+    RouteUpdatePublic,
+    User,
+    UserPublic,
 )
 
 router = APIRouter(prefix="/codrives", tags=["codrives"])
@@ -197,17 +202,60 @@ def request_codrive(
     session.add(codrive_db)
     session.commit()
     session.refresh(codrive_db)
-    return CodrivePublic.model_validate(codrive_db)
+
+    db_route_update = RouteUpdate.model_validate(codrive_db.route_update)
+    user_ids_to_fetch = [
+        uuid.UUID(uid) for uid in db_route_update.codriver_arrival_times
+    ]
+    users = session.exec(select(User).where(User.id.in_(user_ids_to_fetch))).all() # type: ignore[attr-defined]
+    users_by_id = {str(user.id): user for user in users}
+
+    passenger_arrivals: list[PassengerArrivalTime] = []
+    for user_id_str, arrival_time in db_route_update.codriver_arrival_times.items():
+        user_obj = users_by_id.get(user_id_str)
+        if user_obj:
+            passenger_arrivals.append(
+                PassengerArrivalTime(
+                    user=UserPublic.model_validate(user_obj), arrival_time=arrival_time
+                )
+            )
+
+    route_update_public = RouteUpdatePublic(
+        geometry=db_route_update.geometry,
+        distance_meters=db_route_update.distance_meters,
+        duration_seconds=db_route_update.duration_seconds,
+        updated_ride_departure_time=db_route_update.updated_ride_departure_time,
+        codriver_arrival_times=passenger_arrivals,
+    )
+
+    return CodrivePublic(
+        id=codrive_db.id,
+        user_id=codrive_db.user_id,
+        ride_id=codrive_db.ride_id,
+        location=LocationPublic.model_validate(new_pickup_location),
+        accepted=codrive_db.accepted,
+        paid=codrive_db.paid,
+        point_contribution=codrive_db.point_contribution,
+        route_update=route_update_public,
+    )
 
 
-@router.patch("/{codrive_id}/accept", response_model=Message)
+@router.patch("/{codrive_id}/accept", response_model=RideWithPassengersPublic)
 def accept_codrive(
     *, session: SessionDep, current_user: CurrentUser, codrive_id: uuid.UUID
 ) -> Any:
     codrive_to_accept = session.get(
         Codrive,
         codrive_id,
-        options=[selectinload(Codrive.ride).selectinload(Ride.codrives)],  # type: ignore[arg-type]
+        options=[  
+            selectinload(Codrive.ride).options( # type: ignore[arg-type]
+                selectinload(Ride.start_location), # type: ignore[arg-type]
+                selectinload(Ride.end_location), # type: ignore[arg-type]
+                selectinload(Ride.codrives).options( # type: ignore[arg-type]
+                    selectinload(Codrive.user), selectinload(Codrive.location) # type: ignore[arg-type]
+                ),
+            )
+        ],
     )
     if not codrive_to_accept:
         raise HTTPException(
@@ -247,6 +295,9 @@ def accept_codrive(
     session.add(ride)
 
     session.commit()
-    return Message(
-        message="Codrive request accepted. The ride and all passenger arrival times have been updated."
+
+    accepted_codrives = [c for c in ride.codrives if c.accepted]
+
+    return RideWithPassengersPublic.model_validate(
+        ride, update={"codrives": accepted_codrives}
     )
