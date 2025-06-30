@@ -4,7 +4,6 @@ import { ref, onMounted } from 'vue'
 import { fetchCurrentUser } from '../services/user'
 import { useRouter } from 'vue-router'
 import { useAccount } from '@/composables/useAccount'
-import api from '@/services/api'
 
 const router = useRouter()
 const auth = useAuth()
