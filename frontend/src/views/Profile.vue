@@ -35,7 +35,7 @@ const actions = [
 ]
 
 const dangerActions = [
-  { icon: '🚪', text: 'Abmelden', onClick: () => auth.logout() },
+  { icon: '🚪', text: 'Abmelden', onClick: () => auth.logoutUser() },
   { icon: '🗑️', text: 'Konto löschen', onClick: deleteAccount }
 ]
 
