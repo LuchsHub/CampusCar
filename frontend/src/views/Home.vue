@@ -7,10 +7,10 @@ import BottomSheet from '../components/BottomSheet.vue'
 
 import { ref, computed, onMounted } from 'vue'
 import { fetchRidesFromApi } from '../services/rides'
-import type { RideDto } from '../services/rides'
+import type { RideCardData } from '../types/RideCardData'
 
 const searchQuery = ref('')
-const rides = ref<RideDto[]>([])
+const rides = ref<RideCardData[]>([])
 
 const sheetY = ref(0)
 
