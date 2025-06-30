@@ -7,23 +7,23 @@ import BottomSheet from '../components/BottomSheet.vue'
 
 import { ref, computed, onMounted } from 'vue'
 import { fetchRidesFromApi } from '../services/rides'
-import type { Ride } from '../types/Ride'
+import type { RideDto } from '../services/rides'
+import type { RideCardData } from '../types/Ride'
 
 const searchQuery = ref('')
-const rides = ref<Ride[]>([])
+const rides = ref<RideCardData[]>([])
 
 const sheetY = ref(0)
 
 const fetchRides = async () => {
   try {
-    const data = await fetchRidesFromApi()
-
-    rides.value = data.map((ride) => ({
+    const data: RideDto[] = await fetchRidesFromApi()
+    rides.value = data.map((ride): RideCardData => ({
       id: ride.id,
-      to: `${ride.end_location?.street}, ${ride.end_location?.postal_code} ${ride.end_location?.city}`,
+      to: `${ride.end_location.street}, ${ride.end_location.postal_code} ${ride.end_location.city}`,
       date: new Date(ride.arrival_time).toLocaleDateString('de-DE', { day: '2-digit', month: 'short' }),
       time: new Date(ride.arrival_time).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }),
-      price: ride.price?.toFixed(2) + ' €' || '4,50 €',
+      price: ride.price.toFixed(2) + ' €',
       image: 'https://randomuser.me/api/portraits/women/1.jpg'
     }))
   } catch (error) {

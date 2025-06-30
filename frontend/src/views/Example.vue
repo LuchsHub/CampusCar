@@ -4,18 +4,20 @@ import Button from '@/components/Button.vue';
 import HoverButton from '@/components/HoverButton.vue';
 import PageTitle from '@/components/PageTitle.vue';
 import type { ButtonProps } from '@/types/Props';
-import type { Ride } from '@/types/Ride';
+import type { RideDto } from '@/services/rides'
 import { reactive, ref } from 'vue';
 import { validate, required, isDate } from '@/services/validation'
 import type { ValidationSchema } from '@/types/Validation';
 
-const ride = reactive<Ride>({
-  id: ride.id,
-  to: `${ride.end_location?.street}, ${ride.end_location?.postal_code} ${ride.end_location?.city}`,
-  date: new Date(ride.arrival_time).toLocaleDateString('de-DE', { day: '2-digit', month: 'short' }),
-  time: new Date(ride.arrival_time).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }),
-  price: ride.price?.toFixed(2) + ' €' || '4,50 €',
-  image: 'https://randomuser.me/api/portraits/women/1.jpg'
+const ride = reactive<RideDto>({
+  id: 0,
+  arrival_time: '',
+  price: 0,
+  end_location: {
+    street: '',
+    postal_code: '',
+    city: ''
+  }
 })
 
 const errors = ref<Record<string, string[]>>({})

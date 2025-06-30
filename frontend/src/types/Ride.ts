@@ -1,5 +1,5 @@
-// Just for creating the example, this needs te be adjustet to the backend representation of a ride
-export interface Ride {
+// src/types/Ride.ts
+export interface RideCardData {
   id: number
   to: string
   date: string
