@@ -1,31 +1,31 @@
 <script setup lang="ts">
-import Input from '@/components/Input.vue';
-import Button from '@/components/Button.vue';
-import HoverButton from '@/components/HoverButton.vue';
-import PageTitle from '@/components/PageTitle.vue';
-import type { ButtonProps } from '@/types/Props';
-import type { RideCardData } from '@/types/Ride';
+/*
+import Input from '../components/Input.vue';
+import Button from '../components/Button.vue';
+import HoverButton from '../components/HoverButton.vue';
+import PageTitle from '../components/PageTitle.vue';
+import type { ButtonProps } from '../types/Props';
+import type { Ride } from '../types/Ride';
 import { reactive, ref } from 'vue';
-import { validate, required, isDate } from '@/services/validation'
-import type { ValidationSchema } from '@/types/Validation';
+import { validate, required, isDate } from '../services/validation'
+import type { ValidationSchema } from '../types/Validation';
 
-const ride = reactive<RideCardData>({
-  id: 0,
-  to: "",
+const ride = reactive<Ride>({
   date: "",
-  time: "",
-  price: "",
-  image: ""
+  departureTime: "",
+  departureLocation: "",
+  arrivalTime: "",
+  arrivalLocation: ""
 })
 
 const errors = ref<Record<string, string[]>>({})
 
 const rideValidationSchema: ValidationSchema = {
   date: [required('Datum ist erforderlich'), isDate()],
-  price: [required('Preis ist erforderlich')],
-  image: [required('Bild ist erforderlich')],
-  time: [required('Ankunftszeit ist erforderlich')],
-  to: [required('Ankunftsort ist erforderlich')],
+  departureTime: [required('Abfahrtszeit ist erforderlich')],
+  departureLocation: [required('Abfahrtsort ist erforderlich')],
+  arrivalTime: [required('Ankunftszeit ist erforderlich')],
+  arrivalLocation: [required('Ankunftsort ist erforderlich')],
 }
 
 const saveRide = ():void => {
@@ -37,11 +37,13 @@ const saveRide = ():void => {
 }
 
 const hoverButtons: ButtonProps[] = [
-  {variant: "primary", text: "Fahrt ", onClick: saveRide},
+  {variant: "primary", text: "Fahrt erstellen", onClick: saveRide},
 ]
+*/
 </script>
 
 <template>
+  <!--
   <div class="view-container">
 
     <PageTitle to="/">Fahrt anbieten</PageTitle>
@@ -89,9 +91,11 @@ const hoverButtons: ButtonProps[] = [
     <h2>Optionen</h2>
     <HoverButton :buttons="hoverButtons"/>
   </div>
+  -->
 </template>
 
 <style scoped>
+/*
 .view-container h2:first-of-type {
   margin-top: 0;
 }
@@ -108,4 +112,5 @@ const hoverButtons: ButtonProps[] = [
   font-size: var(--font-size-xs);
   margin-bottom: 0.5em;
 }
+*/
 </style>
