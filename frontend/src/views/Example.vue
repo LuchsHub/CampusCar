@@ -9,16 +9,23 @@ import { reactive, ref } from 'vue';
 import { validate, required, isDate } from '@/services/validation'
 import type { ValidationSchema } from '@/types/Validation';
 
-const ride = reactive<RideDto>({
-  id: 0,
-  arrival_time: '',
-  price: 0,
-  end_location: {
-    street: '',
-    postal_code: '',
-    city: ''
+const rides = ref<RideCardData[]>([])
+
+const fetchRides = async () => {
+  try {
+    const data: RideDto[] = await fetchRidesFromApi()
+    rides.value = data.map((ride): RideCardData => ({
+      id: ride.id,
+      to: `${ride.end_location.street}, ${ride.end_location.postal_code} ${ride.end_location.city}`,
+      date: new Date(ride.arrival_time).toLocaleDateString('de-DE', { day: '2-digit', month: 'short' }),
+      time: new Date(ride.arrival_time).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }),
+      price: ride.price.toFixed(2) + ' €',
+      image: 'https://randomuser.me/api/portraits/women/1.jpg'
+    }))
+  } catch (error) {
+    console.error('Fehler beim Abrufen der Fahrten:', error)
   }
-})
+}
 
 const errors = ref<Record<string, string[]>>({})
 
