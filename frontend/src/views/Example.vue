@@ -4,39 +4,28 @@ import Button from '@/components/Button.vue';
 import HoverButton from '@/components/HoverButton.vue';
 import PageTitle from '@/components/PageTitle.vue';
 import type { ButtonProps } from '@/types/Props';
-import type { RideDto } from '@/services/rides'
-import type { RideCardData } from '@/types/Ride'
-import { fetchRidesFromApi } from '@/services/rides'
+import type { RideCardData } from '@/types/Ride';
 import { reactive, ref } from 'vue';
 import { validate, required, isDate } from '@/services/validation'
 import type { ValidationSchema } from '@/types/Validation';
 
-const rides = ref<RideCardData[]>([])
-
-const fetchRides = async () => {
-  try {
-    const data: RideDto[] = await fetchRidesFromApi()
-    rides.value = data.map((ride): RideCardData => ({
-      id: ride.id,
-      to: `${ride.end_location.street}, ${ride.end_location.postal_code} ${ride.end_location.city}`,
-      date: new Date(ride.arrival_time).toLocaleDateString('de-DE', { day: '2-digit', month: 'short' }),
-      time: new Date(ride.arrival_time).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }),
-      price: ride.price.toFixed(2) + ' €',
-      image: 'https://randomuser.me/api/portraits/women/1.jpg'
-    }))
-  } catch (error) {
-    console.error('Fehler beim Abrufen der Fahrten:', error)
-  }
-}
+const ride = reactive<RideCardData>({
+  id: 0,
+  to: "",
+  date: "",
+  time: "",
+  price: "",
+  image: ""
+})
 
 const errors = ref<Record<string, string[]>>({})
 
 const rideValidationSchema: ValidationSchema = {
   date: [required('Datum ist erforderlich'), isDate()],
-  departureTime: [required('Abfahrtszeit ist erforderlich')],
-  departureLocation: [required('Abfahrtsort ist erforderlich')],
-  arrivalTime: [required('Ankunftszeit ist erforderlich')],
-  arrivalLocation: [required('Ankunftsort ist erforderlich')],
+  price: [required('Preis ist erforderlich')],
+  image: [required('Bild ist erforderlich')],
+  time: [required('Ankunftszeit ist erforderlich')],
+  to: [required('Ankunftsort ist erforderlich')],
 }
 
 const saveRide = ():void => {
