@@ -5,6 +5,8 @@ import HoverButton from '@/components/HoverButton.vue';
 import PageTitle from '@/components/PageTitle.vue';
 import type { ButtonProps } from '@/types/Props';
 import type { RideDto } from '@/services/rides'
+import type { RideCardData } from '@/types/Ride'
+import { fetchRidesFromApi } from '@/services/rides'
 import { reactive, ref } from 'vue';
 import { validate, required, isDate } from '@/services/validation'
 import type { ValidationSchema } from '@/types/Validation';
