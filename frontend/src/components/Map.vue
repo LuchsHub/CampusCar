@@ -1,9 +1,9 @@
 <template>
-  <div id="map" ref="mapContainer"></div>
+  <div id="map" ref="mapContainer"/>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted } from 'vue'
 import L from 'leaflet'
 
 const mapContainer = ref<HTMLElement | null>(null)
@@ -18,7 +18,6 @@ onMounted(() => {
     }).addTo(map)
   }
 
-  // WICHTIG: Trigger ein Resize, damit Leaflet das Rendering korrigiert!
   setTimeout(() => {
     map?.invalidateSize()
   }, 200)

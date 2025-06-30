@@ -5,7 +5,6 @@ const emit = defineEmits(['update:query'])
 
 const query = ref('')
 
-// Wenn sich die Eingabe ändert → nach außen geben
 watch(query, (newVal) => {
   emit('update:query', newVal)
 })
