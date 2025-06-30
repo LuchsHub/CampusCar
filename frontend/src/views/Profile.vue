@@ -14,13 +14,7 @@ const userName = ref('')
 const profileImage = ref('')
 
 const loadUser = async () => {
-  console.log('[loadUser] Wird ausgeführt...')
   try {
-    const fetchCurrentUser = async () => {
-      const res = await api.get('/users/me')
-      return res.data
-    }
-
     const user = await fetchCurrentUser()
 
     userName.value = `${user.first_name} ${user.last_name}`
