@@ -29,16 +29,6 @@ def create_ride(
     The backend will geocode the addresses, save them as locations,
     and calculate the route geometry between them.
     """
-    if ride_in.starting_time and ride_in.arrival_time:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail="Cannot provide both starting_time and arrival_time.",
-        )
-    if not ride_in.starting_time and not ride_in.arrival_time:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail="Must provide either starting_time or arrival_time.",
-        )
 
     car = session.get(Car, ride_in.car_id)
     if not car or car.owner_id != current_user.id:
@@ -77,12 +67,8 @@ def create_ride(
     distance_meters = route_summary.get("distance", 0)
 
     estimated_duration = datetime.timedelta(seconds=duration_seconds)
-    if ride_in.starting_time:
-        starting_time = ride_in.starting_time
-        time_of_arrival = starting_time + estimated_duration
-    elif ride_in.arrival_time:
-        time_of_arrival = ride_in.arrival_time
-        starting_time = time_of_arrival - estimated_duration
+    time_of_arrival = ride_in.time_of_arrival
+    starting_time = time_of_arrival - estimated_duration
 
     db_ride = Ride.model_validate(
         ride_in.model_dump(exclude={"starting_time", "arrival_time"}),
