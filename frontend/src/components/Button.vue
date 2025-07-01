@@ -41,7 +41,6 @@
       font-size: var(--font-size-s);
       font-weight: var(--font-weight-semibold);
       cursor: pointer;
-      text-decoration: none;
     }
 
     /* Primary variant */
@@ -57,6 +56,15 @@
       background-color: var(--color-neutral-100);
       border: 2px solid var(--color-primary-500);
       color: var(--color-primary-500);
+    }
+    
+    /* Tertiary variant */
+    .button-tertiary {
+      background-color: transparent;
+      border: none;
+      color: var(--color-neutral-900);
+      text-decoration: underline;
+      box-shadow: none;
     }
     
     /* Color variations */

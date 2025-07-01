@@ -1,36 +1,41 @@
 <script setup lang="ts">
-    import type { InputProps } from '../types/Props';
+import { defineProps } from 'vue'
+import type { InputProps } from '../types/Props'
 
+const props = withDefaults(defineProps<InputProps & { error?: string }>(), {
+  placeholder: '-',
+  error: ''
+})
 
-    const props = withDefaults(defineProps<InputProps>(), {
-      placeholder: '-',
-    })
+const emit = defineEmits(['update:modelValue', 'update:error'])
 
-    const emit = defineEmits(['update:modelValue'])
-
-    const handleInput = (event: Event) => {
-      const target = event.target as HTMLInputElement
-      emit('update:modelValue', target.value)
-    }
-</script> 
+const handleInput = (event: Event) => {
+  const target = event.target as HTMLInputElement
+  emit('update:modelValue', target.value)
+}
+</script>
 
 <template>
+  <div>
     <div class="input-container">
-        <input 
-          :type="props.type" 
-          :placeholder="props.placeholder"
-          :value="props.modelValue"
-          @input="handleInput"
-        />
-        <label>{{ props.label }}</label>
+      <input
+        :type="props.type"
+        :placeholder="props.placeholder"
+        :value="props.modelValue"
+        @input="handleInput"
+        :class="{ 'input-error': !!props.error }"
+      />
+      <label>{{ props.label }}</label>
     </div>
+    <p v-if="props.error" class="text-s text-danger padding-top-small">{{ props.error }}</p>
+  </div>
 </template>
 
   
 <style scoped>
   .input-container {
-    position: relative;
     width: 100%;
+    position: relative;
   }
   
   input {
@@ -61,7 +66,6 @@
     padding: 0 0 0 var(--input-padding-horizontal);
     
     color: #aaa;
-    background: var(--color-neutral-200);
     
     font-family: Author;
     font-size: var(--font-size-md);
@@ -81,6 +85,10 @@
     font-size: var(--font-size-xs);
     font-weight: var(--font-weight-normal);
     color: var(--color-neutral-400);
+  }
+
+  .input-error {
+    border: var(--line-width-m) solid var(--color-support-danger-500);
   }
 </style>
   
