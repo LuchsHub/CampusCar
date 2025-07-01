@@ -8,16 +8,19 @@ import { required, validate } from '@/services/validation'
 import type { ValidationSchema } from '@/types/Validation';
 import router from "@/router";
 import { useToaster } from '@/composables/useToaster';
+import { useUser } from '@/composables/useUser';
 
-
-const { showToast } = useToaster()
 
 // composable functions
+const { showToast } = useToaster()
+const { updateUserHasLicense } = useUser()
+
+
+// variables
 const license = reactive({ // mock license
   file: ""
 })
 
-// variables
 const licenseValidationSchema: ValidationSchema = {
   file: [required('Führerschein')],
 }
@@ -31,7 +34,8 @@ const tryUploadLicense = async (): Promise<void> => { // this is a mock function
   if (Object.keys(errors.value).length > 0) {
     return
   }
-  showToast('success', 'Führerschein erfolgreich hinterlegt.')
+
+  await updateUserHasLicense(true);
   router.push('/home');
 }
 

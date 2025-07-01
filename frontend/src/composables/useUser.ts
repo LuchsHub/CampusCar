@@ -43,11 +43,22 @@ export function useUser() {
   // functions 
   const updateUserLocation = async (location: LocationCreate) => {
     // wrap location in a UserUpdate object
-    const userUpdateWithLocation = {
+    const userUpdateWithLocation: UserUpdate = {
       location: location
     }
     try {
       await postUpdateUserData(userUpdateWithLocation)
+    } catch (error: unknown) {
+      console.log(error);
+    }
+  }
+
+  const updateUserHasLicense = async (has_license: boolean) => {
+    const userUpdateWithLicense: UserUpdate = {
+      has_license: has_license
+    }
+    try {
+      await postUpdateUserData(userUpdateWithLicense)
     } catch (error: unknown) {
       console.log(error);
     }
@@ -75,6 +86,7 @@ export function useUser() {
     getEmptyUserLogin,
     getEmptyUserRegister,
     getEmptyUserUpdate,
-    updateUserLocation
+    updateUserLocation,
+    updateUserHasLicense
   }
 }
