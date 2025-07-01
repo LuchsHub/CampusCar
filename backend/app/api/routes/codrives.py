@@ -17,6 +17,7 @@ from app.models import (
     CodrivePublic,
     Location,
     LocationPublic,
+    PassengerArrival,
     PassengerArrivalTime,
     Ride,
     RideWithPassengersPublic,
@@ -97,7 +98,10 @@ def request_codrive(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Cannot join own ride."
         )
-    if ride.starting_time <= datetime.datetime.utcnow():
+    departure_datetime = datetime.datetime.combine(
+        ride.departure_date, ride.departure_time
+    )
+    if departure_datetime <= datetime.datetime.utcnow():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Ride is in the past."
         )
@@ -167,35 +171,45 @@ def request_codrive(
         )
 
     new_duration = datetime.timedelta(seconds=summary["duration"])
-    new_starting_time = ride.time_of_arrival - new_duration
+    arrival_datetime = datetime.datetime.combine(ride.arrival_date, ride.arrival_time)
+    new_departure_datetime = arrival_datetime - new_duration
 
     segments = final_route_data["features"][0]["properties"]["segments"]
-    updated_codriver_arrival_times, duration_to_stop = {}, 0
+    updated_codriver_arrival_times: dict[str, PassengerArrival] = {}
+    duration_to_stop = 0.0
     for i, loc in enumerate(ordered_pickup_locations):
         if i == 0:
             continue
         duration_to_stop += segments[i - 1]["duration"]
-        arrival_time = new_starting_time + datetime.timedelta(seconds=duration_to_stop)
+        passenger_arrival_datetime = new_departure_datetime + datetime.timedelta(
+            seconds=duration_to_stop
+        )
         user_id = (
             current_user.id
             if loc.id == new_pickup_location.id
             else all_passengers_by_loc_id[loc.id]
         )
-        updated_codriver_arrival_times[str(user_id)] = arrival_time
+        updated_codriver_arrival_times[str(user_id)] = PassengerArrival(
+            date=passenger_arrival_datetime.date(),
+            time=passenger_arrival_datetime.time(),
+        )
 
     route_update_obj = RouteUpdate(
         geometry=final_route_data["features"][0]["geometry"]["coordinates"],
         distance_meters=round(summary["distance"]),
         duration_seconds=round(summary["duration"]),
         codriver_arrival_times=updated_codriver_arrival_times,
-        updated_ride_departure_time=new_starting_time,
+        updated_ride_departure_date=new_departure_datetime.date(),
+        updated_ride_departure_time=new_departure_datetime.time(),
     )
 
+    current_user_arrival = updated_codriver_arrival_times[str(current_user.id)]
     codrive_db = Codrive(
         user_id=current_user.id,
         ride_id=ride.id,
         location_id=new_pickup_location.id,
-        time_of_arrival=updated_codriver_arrival_times[str(current_user.id)],
+        arrival_date=current_user_arrival.date,
+        arrival_time=current_user_arrival.time,
         point_contribution=round(added_distance / 100),
         route_update=route_update_obj.model_dump(mode="json"),
     )
@@ -211,12 +225,17 @@ def request_codrive(
     users_by_id = {str(user.id): user for user in users}
 
     passenger_arrivals: list[PassengerArrivalTime] = []
-    for user_id_str, arrival_time in db_route_update.codriver_arrival_times.items():
+    for (
+        user_id_str,
+        arrival_details,
+    ) in db_route_update.codriver_arrival_times.items():
         user_obj = users_by_id.get(user_id_str)
         if user_obj:
             passenger_arrivals.append(
                 PassengerArrivalTime(
-                    user=UserPublic.model_validate(user_obj), arrival_time=arrival_time
+                    user=UserPublic.model_validate(user_obj),
+                    arrival_date=arrival_details.date,
+                    arrival_time=arrival_details.time,
                 )
             )
 
@@ -224,6 +243,7 @@ def request_codrive(
         geometry=db_route_update.geometry,
         distance_meters=db_route_update.distance_meters,
         duration_seconds=db_route_update.duration_seconds,
+        updated_ride_departure_date=db_route_update.updated_ride_departure_date,
         updated_ride_departure_time=db_route_update.updated_ride_departure_time,
         codriver_arrival_times=passenger_arrivals,
     )
@@ -282,13 +302,16 @@ def accept_codrive(
     ride.route_geometry = update_data.geometry
     ride.estimated_distance_meters = update_data.distance_meters
     ride.estimated_duration_seconds = update_data.duration_seconds
-    ride.starting_time = update_data.updated_ride_departure_time
+    ride.departure_date = update_data.updated_ride_departure_date
+    ride.departure_time = update_data.updated_ride_departure_time
     ride.n_codrives += 1
 
     for codrive in ride.codrives:
         user_id_str = str(codrive.user_id)
         if user_id_str in update_data.codriver_arrival_times:
-            codrive.time_of_arrival = update_data.codriver_arrival_times[user_id_str]
+            arrival_details = update_data.codriver_arrival_times[user_id_str]
+            codrive.arrival_date = arrival_details.date
+            codrive.arrival_time = arrival_details.time
             session.add(codrive)
 
     codrive_to_accept.accepted = True

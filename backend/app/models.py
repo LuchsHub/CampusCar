@@ -168,17 +168,24 @@ class LocationPublic(SQLModel):
     longitude: float
 
 
+class PassengerArrival(SQLModel):
+    date: datetime.date
+    time: datetime.time
+
+
 class RouteUpdate(SQLModel):
     geometry: list[list[float]]
     distance_meters: int
     duration_seconds: int
-    codriver_arrival_times: dict[str, datetime.datetime]
-    updated_ride_departure_time: datetime.datetime
+    codriver_arrival_times: dict[str, PassengerArrival]
+    updated_ride_departure_date: datetime.date
+    updated_ride_departure_time: datetime.time
 
 
 class PassengerArrivalTime(SQLModel):
     user: UserPublic
-    arrival_time: datetime.datetime
+    arrival_date: datetime.date
+    arrival_time: datetime.time
 
 
 class RouteUpdatePublic(SQLModel):
@@ -186,7 +193,8 @@ class RouteUpdatePublic(SQLModel):
     distance_meters: int
     duration_seconds: int
     codriver_arrival_times: list[PassengerArrivalTime]
-    updated_ride_departure_time: datetime.datetime
+    updated_ride_departure_date: datetime.date
+    updated_ride_departure_time: datetime.time
 
 
 class Codrive(SQLModel, table=True):
@@ -197,7 +205,8 @@ class Codrive(SQLModel, table=True):
     ride: "Ride" = Relationship(back_populates="codrives")
     location_id: uuid.UUID = Field(foreign_key="location.id")
     location: "Location" = Relationship(back_populates="codrives")
-    time_of_arrival: datetime.datetime = Field()
+    arrival_date: datetime.date = Field()
+    arrival_time: datetime.time = Field()
     point_contribution: int = Field(default=0)
     route_update: RouteUpdate | None = Field(default=None, sa_column=Column(JSON))
     accepted: bool = Field(default=False)
@@ -223,7 +232,8 @@ class CodrivePassenger(SQLModel):
     id: uuid.UUID
     user: UserPublic
     location: LocationPublic
-    time_of_arrival: datetime.datetime
+    arrival_date: datetime.date
+    arrival_time: datetime.time
 
 
 class Rating(SQLModel, table=True):
@@ -271,8 +281,10 @@ class Ride(SQLModel, table=True):
     max_n_codrives: int = Field()
     max_request_distance: float | None = Field()
 
-    starting_time: datetime.datetime = Field()
-    time_of_arrival: datetime.datetime = Field()
+    departure_date: datetime.date = Field()
+    departure_time: datetime.time = Field()
+    arrival_date: datetime.date = Field()
+    arrival_time: datetime.time = Field()
 
     route_geometry: list[list[float]] = Field(default=[], sa_column=Column(JSON))
     estimated_duration_seconds: int = Field()
@@ -286,7 +298,8 @@ class RideCreate(SQLModel):
     max_n_codrives: int
     max_request_distance: float | None
 
-    time_of_arrival: datetime.datetime
+    arrival_date: datetime.date
+    arrival_time: datetime.time
 
     start_location: LocationCreate
     end_location: LocationCreate
@@ -298,8 +311,10 @@ class RidePublic(SQLModel):
     id: uuid.UUID
     driver_id: uuid.UUID
     car_id: uuid.UUID
-    starting_time: datetime.datetime
-    time_of_arrival: datetime.datetime
+    departure_date: datetime.date
+    departure_time: datetime.time
+    arrival_date: datetime.date
+    arrival_time: datetime.time
     max_n_codrives: int
     n_codrives: int
 
