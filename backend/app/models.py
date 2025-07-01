@@ -41,6 +41,7 @@ class UserUpdateMe(SQLModel):
     last_name: str | None = Field(default=None, max_length=255)
     email: EmailStr | None = Field(default=None, max_length=255)
     location: Optional["LocationCreate"] = Field(default=None)
+    has_license: bool | None = Field(default=None)
 
 
 class UpdatePassword(SQLModel):
@@ -74,11 +75,14 @@ class User(UserBase, table=True):
     points: int = Field(default=0)
 
     profile_picture: bytes | None = None
+    has_license: bool = Field(default=False)
 
 
 # Properties to return via API, id is always required
 class UserPublic(UserBase):
     id: uuid.UUID
+    location: Optional["LocationPublic"]
+    has_license: bool
 
 
 class UsersPublic(SQLModel):
