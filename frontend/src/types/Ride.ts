@@ -1,8 +1,6 @@
-// Just for creating the example, this needs te be adjustet to the backend representation of a ride
-export interface Ride {
-    date: string
-    departureTime: string
-    departureLocation: string
-    arrivalTime: string
-    arrivalLocation: string
+export interface RideCreate extends Record<string, string | number>{
+    car_id: number | string
+    max_n_codrives: number
+    max_request_distance: number
+    time_of_arrival: number | string
 }

@@ -1,4 +1,4 @@
-import type { LocationCreate } from "./Location"
+import type { LocationCreate, LocationGet } from "./Location"
 
 export interface UserLogin extends Record<string, string>  {
   email: string
@@ -20,4 +20,16 @@ export interface UserUpdate extends Record<string, string | boolean | LocationCr
   email?: string
   location?: LocationCreate 
   has_license?: boolean
+}
+
+export interface UserMeGet extends Record<string, string | boolean | LocationGet> {
+  id: string
+  email: string
+  is_active: boolean
+  is_superuser: boolean
+  first_name: string
+  last_name: string
+  user_name: string
+  has_license: boolean
+  location: LocationGet
 }

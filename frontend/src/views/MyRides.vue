@@ -4,7 +4,7 @@ import HoverButton from '@/components/HoverButton.vue';
 import type { ButtonProps } from '@/types/Props';
 
 const hoverButtons: ButtonProps[] = [
-    {variant: "primary", text: "Fahrt anbieten"},
+    {variant: "primary", text: "Fahrt anbieten", to: "/create_ride"},
 ]
 
 </script>

@@ -1,5 +1,5 @@
-import type { UserRegister, UserLogin, UserUpdate } from '@/types/User';
-import type { LocationCreate } from '@/types/Location';
+import type { UserRegister, UserLogin, UserUpdate, UserMeGet } from '@/types/User';
+import type { LocationCreate, LocationGet } from '@/types/Location';
 import { reactive } from 'vue';
 import { useLocation } from './useLocation';
 import api from '@/services/api';
@@ -82,11 +82,37 @@ export function useUser() {
     }
   }
 
+  const getCurrentUserLocation = async (): Promise<LocationGet | null> => {
+    try {
+      const user: UserMeGet = await getUserMe();
+      return user.location;
+    } catch (error: unknown) {
+      return null
+    }
+  }
+
+  const getUserMe = async (): Promise<UserMeGet> => {
+    try {
+      const response = await api.get(
+        '/users/me'
+      )
+      return response.data
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        showToast('error', 'Fehler beim Abrufen des aktuellen Users.');
+      } else {
+        showDefaultError();
+      }
+      throw error
+    }
+  }
+
   return {
     getEmptyUserLogin,
     getEmptyUserRegister,
     getEmptyUserUpdate,
     updateUserLocation,
-    updateUserHasLicense
+    updateUserHasLicense,
+    getCurrentUserLocation
   }
 }
