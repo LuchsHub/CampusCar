@@ -160,6 +160,7 @@ class LocationCreate(SQLModel):
 class LocationPublic(SQLModel):
     id: uuid.UUID
     country: str
+    postal_code: str
     city: str
     street: str
     house_number: str
