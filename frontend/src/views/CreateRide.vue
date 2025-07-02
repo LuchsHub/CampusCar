@@ -10,10 +10,12 @@ import type { ValidationSchema } from '@/types/Validation';
 import { useRide } from '@/types/useRide';
 import { useLocation } from '@/composables/useLocation';
 import { useUser } from '@/composables/useUser';
+import { useToaster } from '@/composables/useToaster';
 
 const { getEmptyRideCreate } = useRide();
 const { getLocationCreateValidationSchema, getEmptyLocationCreate } = useLocation();
 const { getCurrentUserLocation } = useUser();
+const { showToast } = useToaster();
 
 // Variables 
 const rideCreate = getEmptyRideCreate(); 
@@ -52,7 +54,7 @@ const createRide = ():void => {
 }
 
 const addStop = ():void => {
-  console.log("addStop");
+  showToast("info", "Dieses Feature ist noch nicht implementiert.");
 }
 
 const hoverButtons: ButtonProps[] = [
