@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { defineEmits, ref, watch } from 'vue'
+import { Search } from 'lucide-vue-next'
 
 const emit = defineEmits(['update:query'])
 
@@ -12,7 +13,7 @@ watch(query, (newVal) => {
 
 <template>
   <div class="search-bar">
-    <i class="icon">🔍</i>
+    <Search class="icon" />
     <input
       type="text"
       v-model="query"
