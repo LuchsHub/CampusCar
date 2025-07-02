@@ -8,16 +8,10 @@ export function useAccount() {
 
   const deleteAccount = async () => {
     try {
-      const res = await api.delete('/users/me')
-      console.log('Konto erfolgreich gelöscht:', res.data)
+      await api.delete('/users/me')
       auth.logoutUser()
-    } catch (error) {
-      const message =
-        (error as any)?.response?.data?.message ||
-        (error as any)?.message ||
-        'Unbekannter Fehler'
-      console.error('Fehler beim Löschen:', message)
-      showToast('error', message)
+    } catch {
+      showToast('error', 'Fehler beim Löschen des Kontos')
     }
   }
 

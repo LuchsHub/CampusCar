@@ -1,9 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
-
-const props = defineProps<{
-  open: boolean
-}>()
+import { ref } from 'vue'
 
 const emit = defineEmits(['cancel', 'confirm'])
 
