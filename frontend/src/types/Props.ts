@@ -1,3 +1,5 @@
+import type { CarGet } from "./Car"
+
 export interface PageTitleProps {
   goBack?: boolean
 }
@@ -19,4 +21,9 @@ export interface InputProps {
   label: string
   placeholder?: string
   maxLength?: number
+}
+
+export interface CarSelectProps{
+  car: CarGet
+  selected: boolean
 }

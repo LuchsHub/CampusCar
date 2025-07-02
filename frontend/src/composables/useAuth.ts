@@ -64,14 +64,13 @@ export function useAuth() {
     }
   }
 
-  const postRegisterData = async (user: UserRegister) => {
+  const postRegisterData = async (user: UserRegister): Promise<void> => {
     try {
-      const response = await api.post(
+      await api.post(
         '/users/signup',
         user
       )
       showToast('success', 'Registrierung erfolgreich.');
-      return response.data
     } catch (error: unknown) {
         if (axios.isAxiosError(error)) {
           showToast('error', 'Fehler beim Registrierungsprozess. Versuche es später nochmal.');

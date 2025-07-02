@@ -5,52 +5,90 @@ import HoverButton from '@/components/HoverButton.vue';
 import PageTitle from '@/components/PageTitle.vue';
 import type { ButtonProps } from '@/types/Props';
 import { ref, onMounted } from 'vue'
-import { validate, required, largerThan } from '@/services/validation'
-import type { ValidationSchema } from '@/types/Validation';
+import { validate, required, largerThan, smallerThan } from '@/services/validation'
 import { useRide } from '@/types/useRide';
 import { useLocation } from '@/composables/useLocation';
 import { useUser } from '@/composables/useUser';
 import { useToaster } from '@/composables/useToaster';
+import type { RideCreateBase } from '@/types/Ride';
+import type { LocationCreate } from '@/types/Location';
+import router from '@/router';
+import type { CarGet } from '@/types/Car';
+import { useCar } from '@/composables/useCar';
+import CarSelect from '@/components/CarSelect.vue';
 
-const { getEmptyRideCreate } = useRide();
+const { getEmptyRideCreate, postRide } = useRide();
 const { getLocationCreateValidationSchema, getEmptyLocationCreate } = useLocation();
 const { getCurrentUserLocation } = useUser();
 const { showToast } = useToaster();
+const { getUserCarsData } = useCar();
 
 // Variables 
-const rideCreate = getEmptyRideCreate(); 
-const rideCreateStartLocation = getEmptyLocationCreate()
-const rideCreateEndLocation = getEmptyLocationCreate()
-console.log(rideCreateStartLocation)
+const rideCreate: RideCreateBase = getEmptyRideCreate(); 
+const rideCreateStartLocation: LocationCreate = getEmptyLocationCreate();
+const rideCreateEndLocation: LocationCreate = getEmptyLocationCreate();
+const userCars = ref<CarGet[]>([]);
+const selectedCar = ref<CarGet | null>(null);
+
+const errorsRideCreate = ref<Record<string, string[]>>({})
+const errorsStartLocation = ref<Record<string, string[]>>({})
+const errorsEndLocation = ref<Record<string, string[]>>({})
+
+// fetch data async from backend when component gets loaded
 onMounted(async () => {
-  const location = await getCurrentUserLocation()
+  userCars.value = await getUserCarsData();
+  handleCarSelect(userCars.value[0]) // set first car as selected car
+
+  const location = await getCurrentUserLocation();
   if (location) {
     Object.assign(rideCreateStartLocation, location)
   }
 })
 
-const rideValidationSchema: ValidationSchema = {
-    car_id: [required('Auto')],
-    max_n_codrives: [required('Maximale Anzahl an Mitfahrern')],
-    max_request_distance: [required('Maximaler Umweg'), largerThan(0, "Maximaler Umweg muss größer als 0 sein.")],
-    time_of_arrival: [required('Ankunftszeit')]
-}
-const locationValidationSchema: ValidationSchema = getLocationCreateValidationSchema();
-const errorsRideCreate = ref<Record<string, string[]>>({})
-const errorsStartLocation = ref<Record<string, string[]>>({})
-const errorsEndLocation = ref<Record<string, string[]>>({})
+// ensure responsitivity -> when selectedCar updates
+const getRideValidationSchema = () => ({
+  car_id: [required('Auto')],
+  max_n_codrives: [
+    required('Max. Mitfahrer'),
+    largerThan(0, "Max. Mitfahrer muss größer als 0 sein."),
+    smallerThan(
+      Number(selectedCar.value?.n_seats),
+      `Max. Mitfahrer für ausgewähltes Auto: ${Number(selectedCar.value?.n_seats) - 1}`
+    )
+  ],
+  max_request_distance: [required('Max. Umweg'), largerThan(0, "Max. Umweg muss größer als 0 sein.")],
+  arrival_date: [required('Tag')],
+  arrival_time: [required('Ankunftszeit')],
+});
 
-const createRide = ():void => {
-  errorsRideCreate.value = validate(rideCreate as Record<string, string>, rideValidationSchema)
-  errorsStartLocation.value = validate(rideCreateStartLocation as Record<string, string>, locationValidationSchema)
-  errorsEndLocation.value = validate(rideCreateEndLocation as Record<string, string>, locationValidationSchema)
+const handleCarSelect = (car: CarGet) => {
+  selectedCar.value = car;
+  rideCreate.car_id = car.id;
+  rideCreate.max_n_codrives = Number(car.n_seats)-1 // take driver into account
+}
+
+const createRide = async (): Promise<void> => {
+  errorsRideCreate.value = validate(rideCreate as Record<string, string>, getRideValidationSchema())
+  errorsStartLocation.value = validate(rideCreateStartLocation as Record<string, string>, getLocationCreateValidationSchema())
+  errorsEndLocation.value = validate(rideCreateEndLocation as Record<string, string>, getLocationCreateValidationSchema())
+  
   if (
     Object.keys(errorsRideCreate.value).length > 0 
     && Object.keys(errorsEndLocation.value).length > 0 
     && Object.keys(errorsRideCreate.value).length > 0) {
     return
   }
-  console.log(rideCreate);
+
+  try{
+    await postRide(rideCreate, rideCreateStartLocation, rideCreateEndLocation);
+    showToast("success", "Fahrt erstellt.")
+    router.push("/my_rides");
+  } catch (error: unknown){
+    // reset form data
+    Object.assign(rideCreate, getEmptyRideCreate());
+    Object.assign(rideCreateStartLocation, getEmptyLocationCreate());
+    Object.assign(rideCreateEndLocation, getEmptyLocationCreate());
+  }
 }
 
 const addStop = ():void => {
@@ -63,24 +101,21 @@ const hoverButtons: ButtonProps[] = [
 </script>
 
 <template>
-  <div class="view-container">
+  <div class="view-container padding-bottom-hb-1">
 
     <PageTitle :goBack="true">Fahrt anbieten</PageTitle>
+    <div v-if="userCars.length === 0" class="margin-botton-l error-message-container">
+      <p class="text-danger">Du hast noch kein Auto hinterlegt. Füge zunächst ein Auto zu deinem Profil hinzu bevor du eine Fahrt erstellst.</p>
+    </div>
 
     <h2>Abfahrt</h2>
     <div class="form-container">
-      <!-- <Input 
+      <Input 
         type="date" 
         label="Datum" 
-        v-model="rideCreate.date"
-        :error="errorsRideCreate.date?.[0]"
-      /> -->
-      <!-- <Input 
-        type="time" 
-        label="Uhrzeit" 
-        v-model="rideCreate.time_of_departure"
-        :error="errorsRideCreate.time_of_departure?.[0]"
-      /> -->
+        v-model="rideCreate.arrival_date"
+        :error="errorsRideCreate.arrival_date?.[0]"
+      />
       <Input 
         type="text" 
         label="Land" 
@@ -122,8 +157,8 @@ const hoverButtons: ButtonProps[] = [
       <Input 
         type="time" 
         label="Uhrzeit" 
-        v-model="rideCreate.time_of_arrival"
-        :error="errorsRideCreate.time_of_arrival?.[0]"
+        v-model="rideCreate.arrival_time"
+        :error="errorsRideCreate.arrival_time?.[0]"
       />
       <Input 
         type="text" 
@@ -157,7 +192,38 @@ const hoverButtons: ButtonProps[] = [
         :maxLength="5"
       />
     </div>
+
     <h2>Optionen</h2>
+    <div class="form-container">
+      <Input 
+        type="number" 
+        label="Max. Umweg (km)" 
+        v-model="rideCreate.max_request_distance"
+        :error="errorsRideCreate.max_request_distance?.[0]"
+      />
+      <Input 
+        type="number" 
+        label="Max. Mitfahrer" 
+        v-model="rideCreate.max_n_codrives"
+        :error="errorsRideCreate.max_n_codrives?.[0]"
+      />
+    </div>
+
+    <h2>Auto</h2>
+    <div v-if="userCars.length === 0" class="width-100">
+      <Button variant="secondary" @click="router.push('/profile')">
+        Auto hinzufügen
+      </Button>
+    </div>
+    <div v-else class="width-100">
+      <CarSelect
+        v-for="car in userCars"
+        :key="car.id"
+        :car="car"
+        :selected="car.id === selectedCar?.id"
+        @select="handleCarSelect"
+      />
+    </div>
     <HoverButton :buttons="hoverButtons"/>
   </div>
 </template>

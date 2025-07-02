@@ -36,10 +36,7 @@
   --color-support-danger-500: #EC2723;
   --color-support-danger-500-transparent: #EC272340;
 
-  /* CONSTANTS */
-  --app-padding-vertical: 35px;
-  --app-padding-horizontal: 30px;
-  
+  /* CONSTANTS */  
   --nav-min-height: 85px; /* minimal height of the bottom tab navigation bar */
   --hover-button-nav-margin: 40px;
   --hover-button-width-percentage: 80;
@@ -60,12 +57,20 @@
   --h2-margin-top: 35px; /* Defaults for every h2, can be omitted if h2 is directly beneath h1 (e.g. "Fahrt anbieten" screen) */
   --h2-margin-bottom: 20px;
 
+  /* Padding */
+  --app-padding-vertical: 35px;
+  --app-padding-horizontal: 30px;
+
   --button-padding-vertical: 12px;
   --button-padding-horizontal: 35px;
+
+  --container-padding-vertical: 12px;
+  --container-padding-horizontal: 24px;
   
   --input-padding-top: 24px;
-  --input-padding-bottom: 8px;
-  --input-padding-horizontal: 25px;
+
+  --single-hover-button-view-container-padding: 60px;
+  --double-hover-button-view-container-padding: 135px;
   
   /* vertical lines (e.g. "Profil", "Fahrtverlauf" screens) */
   --line-width-s: 1px;
@@ -137,6 +142,16 @@ body {
   display: flex;
   flex-direction: column;
   gap: var(--horizontal-gap)
+}
+
+.width-100 {
+  width: 100%;
+}
+
+.error-message-container {
+  padding: var(--container-padding-vertical) var(--container-padding-horizontal);
+  background-color: var(--color-support-danger-500-transparent);
+  border-radius: var(--border-radius);
 }
 
 .high-hover-button { /* show the hoverButton above the tab bar */
@@ -234,6 +249,15 @@ a {
 }
 .icon-s {
   height: var(--icon-height-s);
+}
+
+/* PADDING (Feel free to add stuff as you go */
+.padding-bottom-hb-1 { /* Add this to the view-container if a single hoverbutton hides some of the contents */
+  padding-bottom: var(--single-hover-button-view-container-padding);
+}
+
+.padding-bottom-hb-2 { /* Add this to the view-container if a double hoverbutton hides some of the contents */
+  padding-bottom: var(--double-hover-button-view-container-padding);
 }
 
 
