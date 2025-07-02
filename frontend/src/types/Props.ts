@@ -23,7 +23,12 @@ export interface InputProps {
   maxLength?: number
 }
 
-export interface CarSelectProps{
+export interface CarSelectProps {
   car: CarGet
   selected: boolean
+}
+
+export interface TabSwitcherProps {
+  tabs: string[]
+  modelValue: string
 }
