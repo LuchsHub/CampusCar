@@ -265,6 +265,23 @@ onMounted(() => {
   align-items: center;
 }
 
+.danger-label {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-support-danger-500);
+  margin-top: 2rem;
+  padding-left: 1rem;
+  padding-bottom: 0.5rem;
+}
+
+.profile-action.danger {
+  background-color: var(--color-support-danger-50); /* leicht roter Hintergrund */
+}
+
+.profile-action.danger:hover {
+  background-color: var(--color-support-danger-100); /* dunkler beim Hover */
+}
+
 .profile-action.danger:last-of-type .icon,
 .profile-action.danger:last-of-type .text,
 .profile-action.danger:last-of-type .arrow {
