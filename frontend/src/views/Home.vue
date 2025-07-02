@@ -29,7 +29,7 @@ const fetchRides = async () => {
       price: ride.price.toFixed(2) + ' €',
       image: 'https://randomuser.me/api/portraits/women/1.jpg'
     }))
-  } catch (error) {
+  } catch {
     showToast('error', 'Fehler beim Abrufen der Fahrten')
   }
 }
