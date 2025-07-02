@@ -1,10 +1,9 @@
-import { useRouter } from 'vue-router'
-import { useAuthStore } from '@/stores/AuthStore'
 import api from '@/services/api'
+import { useAuth } from '@/composables/useAuth';
 
 export function useAccount() {
-  const router = useRouter()
-  const authStore = useAuthStore()
+
+  const auth = useAuth()
 
   const deleteAccount = async () => {
     const confirmation = window.prompt(
@@ -19,8 +18,7 @@ export function useAccount() {
     try {
       await api.delete('/users/me')
 
-      authStore.removeAccessToken()
-      router.push('/login')
+      auth.logoutUser()
     } catch (error) {
       console.error('Fehler beim Löschen des Kontos:', error)
       alert('❌ Konto konnte nicht gelöscht werden.')
