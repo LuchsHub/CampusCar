@@ -7,8 +7,11 @@ import BottomSheet from '../components/BottomSheet.vue'
 
 import { ref, computed, onMounted } from 'vue'
 import { fetchRidesFromApi } from '../services/rides'
-import type { RideDto } from '../services/rides'
+import type { RideDto } from '../types/Ride'
 import type { RideCardData } from '../types/Ride'
+import { useToaster } from '@/composables/useToaster'
+
+const { showToast } = useToaster()
 
 const searchQuery = ref('')
 const rides = ref<RideCardData[]>([])
@@ -27,7 +30,7 @@ const fetchRides = async () => {
       image: 'https://randomuser.me/api/portraits/women/1.jpg'
     }))
   } catch (error) {
-    console.error('Fehler beim Abrufen der Fahrten:', error)
+    showToast('error', 'Fehler beim Abrufen der Fahrten')
   }
 }
 
