@@ -1,13 +1,14 @@
 <script setup lang="ts">
-import Input from '@/components/Input.vue';
-import Button from '@/components/Button.vue';
-import HoverButton from '@/components/HoverButton.vue';
-import PageTitle from '@/components/PageTitle.vue';
-import type { ButtonProps } from '@/types/Props';
-import type { Ride } from '@/types/Ride';
+/*
+import Input from '../components/Input.vue';
+import Button from '../components/Button.vue';
+import HoverButton from '../components/HoverButton.vue';
+import PageTitle from '../components/PageTitle.vue';
+import type { ButtonProps } from '../types/Props';
+import type { Ride } from '../types/Ride';
 import { reactive, ref } from 'vue';
-import { validate, required, isDate } from '@/services/validation'
-import type { ValidationSchema } from '@/types/Validation';
+import { validate, required, isDate } from '../services/validation'
+import type { ValidationSchema } from '../types/Validation';
 
 const ride = reactive<Ride>({
   date: "",
@@ -36,11 +37,13 @@ const saveRide = ():void => {
 }
 
 const hoverButtons: ButtonProps[] = [
-  {variant: "primary", text: "Fahrt ", onClick: saveRide},
+  {variant: "primary", text: "Fahrt erstellen", onClick: saveRide},
 ]
+*/
 </script>
 
 <template>
+  <!--
   <div class="view-container">
 
     <PageTitle to="/">Fahrt anbieten</PageTitle>
@@ -88,9 +91,11 @@ const hoverButtons: ButtonProps[] = [
     <h2>Optionen</h2>
     <HoverButton :buttons="hoverButtons"/>
   </div>
+  -->
 </template>
 
 <style scoped>
+/*
 .view-container h2:first-of-type {
   margin-top: 0;
 }
@@ -107,4 +112,5 @@ const hoverButtons: ButtonProps[] = [
   font-size: var(--font-size-xs);
   margin-bottom: 0.5em;
 }
+*/
 </style>
