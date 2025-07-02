@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 
+const props = defineProps<{
+  open: boolean
+}>()
+
 const emit = defineEmits(['cancel', 'confirm'])
 
 const input = ref('')
