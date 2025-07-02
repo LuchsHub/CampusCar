@@ -144,6 +144,13 @@ body {
   gap: var(--horizontal-gap)
 }
 
+hr {
+  border: none;
+  border-top: var(--line-width-s) solid var(--color-neutral-300);
+  margin: var(--horizontal-gap) 0;
+  width: 100%;
+}
+
 .width-100 {
   width: 100%;
 }

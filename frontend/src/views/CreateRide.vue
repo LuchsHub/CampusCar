@@ -212,18 +212,20 @@ const hoverButtons: ButtonProps[] = [
 
     <h2>Auto</h2>
     <div v-if="userCars.length === 0" class="width-100">
+      <!-- TODO: change route to go directly to the add car form -->
       <Button variant="secondary" @click="router.push('/profile')">
         Auto hinzufügen
       </Button>
     </div>
     <div v-else class="width-100">
-      <CarSelect
-        v-for="car in userCars"
-        :key="car.id"
-        :car="car"
-        :selected="car.id === selectedCar?.id"
-        @select="handleCarSelect"
-      />
+      <template v-for="(car, index) in userCars" :key="car.id">
+        <CarSelect
+          :car="car"
+          :selected="car.id === selectedCar?.id"
+          @select="handleCarSelect"
+        />
+        <hr v-if="index < userCars.length - 1" />
+      </template>
     </div>
     <HoverButton :buttons="hoverButtons"/>
   </div>

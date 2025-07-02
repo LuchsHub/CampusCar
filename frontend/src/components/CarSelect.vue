@@ -12,7 +12,7 @@ const emit = defineEmits(['select']);
   :class="{'selected': props.selected}"
   @click="emit('select', props.car)"  
 >
-  <p class="text-s, text-neutral-400">{{ props.car.license_plate }}</p>
+  <p class="text-s text-neutral-400">{{ props.car.license_plate }}</p>
   <div class="car-info-container">
     <p 
       class="text-md text-neutral-400"
