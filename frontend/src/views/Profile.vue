@@ -6,6 +6,7 @@ import { useRouter } from 'vue-router'
 import { useAccount } from '@/composables/useAccount'
 import PageTitle from '@/components/PageTitle.vue'
 import { useToaster } from '@/composables/useToaster'
+import ConfirmDeleteModal from '@/components/ConfirmDeleteModal.vue'
 
 // Lucide Icons
 import {
@@ -22,6 +23,7 @@ const firstName = ref('')
 const lastName = ref('')
 const profileImage = ref('')
 const rating = ref(0)
+const showDeleteConfirm = ref(false)
 
 const loadUser = async () => {
   try {
@@ -87,7 +89,9 @@ const dangerActions = [
     icon: Trash2,
     isComponent: true,
     text: 'Konto löschen',
-    onClick: deleteAccount
+    onClick: () => {
+      showDeleteConfirm.value = true
+    }
   }
 ]
 
@@ -156,6 +160,11 @@ onMounted(() => {
         <ChevronRight class="arrow" />
       </div>
     </div>
+    <ConfirmDeleteModal
+      :open="showDeleteConfirm"
+      @cancel="showDeleteConfirm = false"
+      @confirm="deleteAccount"
+    />
   </div>
 </template>
 

@@ -1,27 +1,23 @@
 import api from '@/services/api'
-import { useAuth } from '@/composables/useAuth';
+import { useAuth } from '@/composables/useAuth'
+import { useToaster } from '@/composables/useToaster'
 
 export function useAccount() {
-
   const auth = useAuth()
+  const { showToast } = useToaster()
 
   const deleteAccount = async () => {
-    const confirmation = window.prompt(
-      '⚠️ Bist du sicher, dass du dein Konto löschen möchtest?\n\nGib bitte "löschen" ein, um fortzufahren.'
-    )
-
-    if (confirmation !== 'löschen') {
-      alert('Konto wurde nicht gelöscht.')
-      return
-    }
-
     try {
-      await api.delete('/users/me')
-
+      const res = await api.delete('/users/me')
+      console.log('Konto erfolgreich gelöscht:', res.data)
       auth.logoutUser()
     } catch (error) {
-      console.error('Fehler beim Löschen des Kontos:', error)
-      alert('❌ Konto konnte nicht gelöscht werden.')
+      const message =
+        (error as any)?.response?.data?.message ||
+        (error as any)?.message ||
+        'Unbekannter Fehler'
+      console.error('Fehler beim Löschen:', message)
+      showToast('error', message)
     }
   }
 
