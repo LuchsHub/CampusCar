@@ -1,13 +1,10 @@
 <script setup lang="ts">
-// Hier kannst du später Imports ergänzen (Form, Store etc.)
 </script>
 
 <template>
   <div class="profile-edit-wrapper">
-    <!-- Seitenüberschrift -->
-    <h1 class="page-title">Profil bearbeiten</h1>
+    <PageTitle>Profil bearbeiten</PageTitle>
 
-    <!-- Platzhalter-Bereich -->
     <div class="placeholder-box">
       <p>🛠️ Hier wird gerade dran gearbeitet</p>
     </div>
