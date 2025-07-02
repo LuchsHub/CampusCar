@@ -67,17 +67,19 @@ def create_ride(
     distance_meters = route_summary.get("distance", 0)
 
     estimated_duration = datetime.timedelta(seconds=duration_seconds)
-    time_of_arrival = ride_in.time_of_arrival
-    starting_time = time_of_arrival - estimated_duration
+    arrival_datetime = datetime.datetime.combine(
+        ride_in.arrival_date, ride_in.arrival_time
+    )
+    departure_datetime = arrival_datetime - estimated_duration
 
     db_ride = Ride.model_validate(
-        ride_in.model_dump(exclude={"starting_time", "arrival_time"}),
+        ride_in.model_dump(exclude={"start_location", "end_location"}),
         update={
             "driver_id": current_user.id,
             "start_location_id": start_location.id,
             "end_location_id": end_location.id,
-            "starting_time": starting_time,
-            "time_of_arrival": time_of_arrival,
+            "departure_date": departure_datetime.date(),
+            "departure_time": departure_datetime.time(),
             "route_geometry": geometry,
             "estimated_duration_seconds": round(duration_seconds),
             "estimated_distance_meters": round(distance_meters),
