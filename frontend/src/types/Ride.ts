@@ -7,3 +7,14 @@ export interface RideCardData {
   price: string
   image: string
 }
+
+export interface RideDto {
+  id: number
+  arrival_time: string
+  price: number
+  end_location: {
+    street: string
+    postal_code: string
+    city: string
+  }
+}

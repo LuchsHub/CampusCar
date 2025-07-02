@@ -1,16 +1,6 @@
 // src/services/rides.ts
 import api from './api'
-
-export interface RideDto {
-  id: number
-  arrival_time: string
-  price: number
-  end_location: {
-    street: string
-    postal_code: string
-    city: string
-  }
-}
+import type { RideDto } from '@/types/Ride'
 
 export const fetchRidesFromApi = async (): Promise<RideDto[]> => {
   const res = await api.get('/rides/')
