@@ -19,7 +19,7 @@ let initialY = 0
 onMounted(() => {
   const vh = window.innerHeight
   minY.value = props.minY ?? vh * 0.33
-  maxY.value = props.maxY ?? vh - 150
+  maxY.value = props.maxY ?? vh - 120
   sheetY.value = props.modelValue || maxY.value
 })
 
@@ -88,6 +88,8 @@ onBeforeUnmount(() => {
   overflow: hidden;
   box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.15);
   will-change: transform;
+  bottom: -5px;
+  border-radius: 12px;
 }
 
 .drag-handle {
