@@ -1,42 +1,75 @@
 <script setup lang="ts">
-import { useAuth } from '@/composables/useAuth';
+import { useAuth } from '@/composables/useAuth'
 import { ref, onMounted } from 'vue'
 import { fetchCurrentUser } from '../services/user'
 import { useRouter } from 'vue-router'
 import { useAccount } from '@/composables/useAccount'
+import PageTitle from '@/components/PageTitle.vue'
+import { useToaster } from '@/composables/useToaster'
+
+// Lucide Icons
+import { Settings, Wallet, Lock, Shield, LogOut, Trash2 } from 'lucide-vue-next'
 
 const router = useRouter()
 const auth = useAuth()
 const { deleteAccount } = useAccount()
+const { showToast } = useToaster()
 
-const userName = ref('')
+const firstName = ref('')
+const lastName = ref('')
 const profileImage = ref('')
 
 const loadUser = async () => {
   try {
     const user = await fetchCurrentUser()
-
-    userName.value = `${user.first_name} ${user.last_name}`
+    firstName.value = user.first_name
+    lastName.value = user.last_name
     profileImage.value = user.avatar_url || 'https://randomuser.me/api/portraits/lego/1.jpg'
-  } catch (error) {
-    console.error('Fehler beim Laden des Profils:', error)
+  } catch {
+    showToast('error', 'Fehler beim Laden des Profils')
   }
 }
 
 const actions = [
-   {
-    icon: '⚙️',
+  {
+    icon: Settings,
+    isComponent: true,
     text: 'Profil bearbeiten',
     onClick: () => router.push('/profile/edit')
   },
-  { icon: '💰', text: 'Guthaben aufladen', onClick: () => console.log('Guthaben aufladen') },
-  { icon: '🔒', text: 'Sicherheit', onClick: () => console.log('Sicherheit') },
-  { icon: '🛡️', text: 'Datenschutz', onClick: () => console.log('Datenschutz') }
+  {
+    icon: Wallet,
+    isComponent: true,
+    text: 'Guthaben aufladen',
+    onClick: () => console.log('Guthaben aufladen')
+  },
+  {
+    icon: Lock,
+    isComponent: true,
+    text: 'Sicherheit',
+    onClick: () => console.log('Sicherheit')
+  },
+  {
+    icon: Shield,
+    isComponent: true,
+    text: 'Datenschutz',
+    onClick: () => console.log('Datenschutz')
+  }
 ]
 
 const dangerActions = [
-  { icon: '🚪', text: 'Abmelden', onClick: () => auth.logoutUser() },
-  { icon: '🗑️', text: 'Konto löschen', onClick: deleteAccount }
+  {
+    icon: LogOut,
+    isComponent: true,
+    text: 'Abmelden',
+    onClick: () => auth.logoutUser()
+  },
+  {
+    icon: Trash2,
+    isComponent: true,
+    text: 'Konto löschen',
+    onClick: deleteAccount
+  }
 ]
 
 onMounted(() => {
@@ -45,18 +78,14 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="profile-wrapper">
-    <!-- Überschrift oben links -->
-    <h1 class="page-title">Profil</h1>
+  <div class="view-container">
+    <PageTitle>Profil</PageTitle>
 
     <div class="profile-header">
-      <div class="profile-info">
-        <img :src="profileImage" alt="Profilbild" class="profile-image" />
-        <h2>{{ userName }}</h2>
-      </div>
+      <img :src="profileImage" alt="Profilbild" class="profile-image" />
+      <h2 class="user-name">{{ firstName }} {{ lastName }}</h2>
     </div>
 
-    <!-- Aktionen direkt auf der Seite -->
     <div class="action-list">
       <div
         v-for="action in actions"
@@ -65,13 +94,13 @@ onMounted(() => {
         @click="action.onClick"
       >
         <div class="action-left">
-          <span class="icon">{{ action.icon }}</span>
-          <span>{{ action.text }}</span>
+          <component v-if="action.isComponent" :is="action.icon" class="icon" />
+          <span class="text">{{ action.text }}</span>
         </div>
         <span class="arrow">›</span>
       </div>
 
-      <p class="danger-label">Danger Zone</p>
+      <h2 class="danger-label">Danger Zone</h2>
 
       <div
         v-for="danger in dangerActions"
@@ -80,8 +109,8 @@ onMounted(() => {
         @click="danger.onClick"
       >
         <div class="action-left">
-          <span class="icon">{{ danger.icon }}</span>
-          <span>{{ danger.text }}</span>
+          <component v-if="danger.isComponent" :is="danger.icon" class="icon" />
+          <span class="text">{{ danger.text }}</span>
         </div>
         <span class="arrow">›</span>
       </div>
@@ -90,29 +119,19 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.profile-wrapper {
-  padding: 2rem 1rem;
-  max-width: 768px;
-  margin: 0 auto;
-}
-
-/* Überschrift oben links */
 .page-title {
   font-size: 1.5rem;
   font-weight: bold;
   margin-bottom: 1.5rem;
+  color: var(--color-neutral-900);
 }
 
 .profile-header {
   display: flex;
-  justify-content: center;
-  margin-bottom: 2rem;
-}
-
-.profile-info {
-  display: flex;
   flex-direction: column;
   align-items: center;
+  margin-bottom: 2rem;
+  width: 100%;
 }
 
 .profile-image {
@@ -123,31 +142,34 @@ onMounted(() => {
   margin-bottom: 0.5rem;
 }
 
-h2 {
+.user-name {
   font-size: 1.2rem;
   font-weight: 600;
+  color: var(--color-neutral-900);
 }
 
 .action-list {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  margin-top: 1rem;
+  width: 100%;
 }
 
 .profile-action {
+  width: 100%;
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 0.75rem 1rem;
-  border-radius: 12px;
-  background-color: #f9fafb;
-  border: 1px solid #e5e7eb;
+  border-radius: var(--border-radius);
+  background-color: var(--color-neutral-200);
+  border: 1px solid var(--color-neutral-300);
   cursor: pointer;
+  transition: background-color 0.2s;
 }
 
 .profile-action:hover {
-  background-color: #f3f4f6;
+  background-color: var(--color-neutral-300);
 }
 
 .action-left {
@@ -157,23 +179,30 @@ h2 {
 }
 
 .icon {
-  font-size: 1.25rem;
+  height: 20px;
+  width: 20px;
+  color: var(--color-neutral-900);
 }
 
 .arrow {
   font-size: 1.25rem;
-  color: #9ca3af;
+  color: var(--color-neutral-400);
+}
+
+.text {
+  color: var(--color-neutral-900);
+  font-weight: var(--font-weight-semibold);
 }
 
 .danger-label {
-  color: #dc2626;
+  color: var(--color-support-danger-500);
   font-weight: 600;
   margin-top: 1rem;
 }
 
 .danger {
-  color: #dc2626;
-  border-color: #fecaca;
-  background-color: #fef2f2;
+  color: var(--color-support-danger-500);
+  background-color: var(--color-support-danger-500-transparent);
+  border-color: var(--color-support-danger-500-transparent);
 }
 </style>
