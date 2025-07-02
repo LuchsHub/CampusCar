@@ -7,15 +7,12 @@ import BottomSheet from '../components/BottomSheet.vue'
 
 import { ref, computed, onMounted } from 'vue'
 import { fetchRidesFromApi } from '../services/rides'
-import type { RideDto } from '../types/Ride'
-import type { RideCardData } from '../types/Ride'
+import type { RideDto, RideCardData } from '../types/Ride'
 import { useToaster } from '@/composables/useToaster'
 
 const { showToast } = useToaster()
-
 const searchQuery = ref('')
 const rides = ref<RideCardData[]>([])
-
 const sheetY = ref(0)
 
 const fetchRides = async () => {
@@ -46,7 +43,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="home-wrapper">
+  <div class="view-container">
     <div class="map-container" :style="{ height: `${sheetY}px` }">
       <Map />
     </div>
@@ -62,13 +59,6 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.home-wrapper {
-  position: fixed;
-  height: 100vh;
-  width: 100vw;
-  overflow: hidden;
-}
-
 .map-container {
   position: fixed;
   top: 0;
