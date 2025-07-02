@@ -92,6 +92,16 @@ export function useUser() {
     }
   }
 
+  const getCurrentUserId = async (): Promise<string | null> => {
+    try {
+      const user: UserMeGet = await getUserMe();
+      return user.id;
+    } catch (error: unknown) {
+      console.log(error);
+      return null
+    }
+  }
+
   const getUserMe = async (): Promise<UserMeGet> => {
     try {
       const response = await api.get(
@@ -114,6 +124,7 @@ export function useUser() {
     getEmptyUserUpdate,
     updateUserLocation,
     updateUserHasLicense,
-    getCurrentUserLocation
+    getCurrentUserLocation,
+    getCurrentUserId
   }
 }

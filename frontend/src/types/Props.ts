@@ -1,4 +1,5 @@
 import type { CarGet } from "./Car"
+import type { RideGet } from "./Ride"
 
 export interface PageTitleProps {
   goBack?: boolean
@@ -31,4 +32,10 @@ export interface CarSelectProps {
 export interface TabSwitcherProps {
   tabs: string[]
   modelValue: string
+}
+
+export interface RideCardProps {
+  ride: RideGet
+  type: 'own' | 'booked' | 'picture'
+  state: 'new request' | 'not accepted' | 'rejected' | 'accepted'
 }

@@ -22,7 +22,7 @@ export interface UserUpdate extends Record<string, string | boolean | LocationCr
   has_license?: boolean
 }
 
-export interface UserMeGet extends Record<string, string | boolean | LocationGet> {
+export interface UserMeGet extends Record<string, string | boolean | LocationGet | null> {
   id: string
   email: string
   is_active: boolean
@@ -31,5 +31,5 @@ export interface UserMeGet extends Record<string, string | boolean | LocationGet
   last_name: string
   user_name: string
   has_license: boolean
-  location: LocationGet
+  location: LocationGet | null
 }

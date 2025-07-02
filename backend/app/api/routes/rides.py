@@ -1,5 +1,6 @@
 import datetime
-from typing import Any
+from typing import Any, List
+import uuid
 
 import openrouteservice  # type: ignore
 from fastapi import APIRouter, HTTPException, status
@@ -93,3 +94,16 @@ def create_ride(
     ride_public = RidePublic.model_validate(db_ride)
 
     return ride_public
+
+
+@router.get("/{user_id}", response_model=List[RidePublic])
+def get_rides_for_user(
+    *,
+    session: SessionDep,
+    user_id: uuid.UUID,
+) -> Any:
+    """
+    Retrieve all rides for a given user by user_id.
+    """
+    rides = session.query(Ride).filter(Ride.driver_id == user_id).all()
+    return [RidePublic.model_validate(ride) for ride in rides]

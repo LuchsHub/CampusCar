@@ -30,6 +30,10 @@ const rideCreateEndLocation: LocationCreate = getEmptyLocationCreate();
 const userCars = ref<CarGet[]>([]);
 const selectedCar = ref<CarGet | null>(null);
 
+// set to true if no cars available after initial fetch 
+// -> prevents error to show up for a short duration when cars are not fetched yet 
+const showCarError = ref<boolean>(false);
+
 const errorsRideCreate = ref<Record<string, string[]>>({})
 const errorsStartLocation = ref<Record<string, string[]>>({})
 const errorsEndLocation = ref<Record<string, string[]>>({})
@@ -38,6 +42,10 @@ const errorsEndLocation = ref<Record<string, string[]>>({})
 onMounted(async () => {
   userCars.value = await getUserCarsData();
   handleCarSelect(userCars.value[0]) // set first car as selected car
+  
+  if(!selectedCar.value){
+    showCarError.value = true;
+  }
 
   const location = await getCurrentUserLocation();
   if (location) {
@@ -47,7 +55,6 @@ onMounted(async () => {
 
 // ensure responsitivity -> when selectedCar updates
 const getRideValidationSchema = () => ({
-  car_id: [required('Auto')],
   max_n_codrives: [
     required('Max. Mitfahrer'),
     largerThan(0, "Max. Mitfahrer muss größer als 0 sein."),
@@ -61,10 +68,12 @@ const getRideValidationSchema = () => ({
   arrival_time: [required('Ankunftszeit')],
 });
 
-const handleCarSelect = (car: CarGet) => {
-  selectedCar.value = car;
-  rideCreate.car_id = car.id;
-  rideCreate.max_n_codrives = Number(car.n_seats)-1 // take driver into account
+const handleCarSelect = (car: CarGet | undefined) => {
+  if (car) { // in case user has no car but inputs something into max_no_codrivers
+    selectedCar.value = car;
+    rideCreate.car_id = car.id;
+    rideCreate.max_n_codrives = Number(car.n_seats)-1 // take driver into account
+  }
 }
 
 const createRide = async (): Promise<void> => {
@@ -72,11 +81,18 @@ const createRide = async (): Promise<void> => {
   errorsStartLocation.value = validate(rideCreateStartLocation as Record<string, string>, getLocationCreateValidationSchema())
   errorsEndLocation.value = validate(rideCreateEndLocation as Record<string, string>, getLocationCreateValidationSchema())
   
+  // check form innput
   if (
     Object.keys(errorsRideCreate.value).length > 0 
-    && Object.keys(errorsEndLocation.value).length > 0 
-    && Object.keys(errorsRideCreate.value).length > 0) {
-    return
+    || Object.keys(errorsStartLocation.value).length > 0 
+    || Object.keys(errorsEndLocation.value).length > 0) {
+      return;
+    }
+    
+  // check if a car is selected
+  if (!selectedCar.value) {
+    showToast('error', 'Füge zuerst ein Auto hinzu.')
+    return;
   }
 
   try{
@@ -105,7 +121,7 @@ const hoverButtons: ButtonProps[] = [
   <div class="view-container padding-bottom-hb-1">
 
     <PageTitle :goBack="true">Fahrt anbieten</PageTitle>
-    <div v-if="userCars.length === 0" class="margin-botton-l error-message-container">
+    <div v-if="userCars.length === 0  && showCarError" class="margin-botton-l error-message-container">
       <p class="text-danger">Du hast noch kein Auto hinterlegt. Füge zunächst ein Auto zu deinem Profil hinzu bevor du eine Fahrt erstellst.</p>
     </div>
 

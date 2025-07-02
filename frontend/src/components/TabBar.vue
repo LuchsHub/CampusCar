@@ -24,7 +24,7 @@ const isActive = (path: string): boolean => route.path === path
         class="text-xs text-bold text-neutral-300"
         :class="{ 'text-neutral-900': isActive(item.to) }"
       >
-        <component :is="item.icon" class="icon-xl" />
+        <component :is="item.icon" class="icon-md" />
         {{ item.label }}
       </RouterLink>
     </div>

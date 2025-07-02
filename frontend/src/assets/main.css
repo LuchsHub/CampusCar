@@ -77,9 +77,9 @@
   --line-width-m: 2px;
 
   /* icons */
-  --icon-height-xl: 25px;
-  --icon-height-md: 20px;
-  --icon-height-s: 15px;
+  --icon-xl: 35px;
+  --icon-md: 30px;
+  --icon-s: 25px;
 
   /* misc */
   --checkbox-size: 25px;
@@ -222,6 +222,11 @@ a {
   font-weight: var(--font-weight-bold);
 }
 
+/* text decoration */
+.text-strikethrough {
+  text-decoration: line-through;
+}
+
 /* Text colors */
 .text-primary {
   color: var(--color-primary-500)
@@ -246,16 +251,22 @@ a {
 .text-danger {
   color: var(--color-support-danger-500)
 }
+.text-success {
+  color: var(--color-support-positive-500)
+}
 
 /* ICONS */
 .icon-xl {
-  height: var(--icon-height-xl);
+  height: var(--icon-xl);
+  width: var(--icon-xl);
 }
 .icon-l {
-  height: var(--icon-height-md);
+  height: var(--icon-md);
+  width: var(--icon-md);
 }
 .icon-s {
-  height: var(--icon-height-s);
+  height: var(--icon-s);
+  width: var(--icon-s);
 }
 
 /* PADDING (Feel free to add stuff as you go */

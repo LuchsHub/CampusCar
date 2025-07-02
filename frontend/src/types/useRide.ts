@@ -1,14 +1,15 @@
 import { reactive } from 'vue';
-import type { RideCreateBase } from './Ride';
+import type { RideCreateBase, RideGet } from './Ride';
 import type { RideCreateComplete } from './Ride';
 import api from '@/services/api';
 import axios from 'axios';
 import { useToaster } from '@/composables/useToaster';
 import type { LocationCreate } from './Location';
 
-const { showDefaultError, showToast } = useToaster()
 
 export function useRide() {
+  
+  const { showDefaultError, showToast } = useToaster()
 
   const getEmptyRideCreate = (): RideCreateBase => {
     return reactive<RideCreateBase>({
@@ -50,9 +51,26 @@ export function useRide() {
     }
   }
 
+  const getRidesForUser = async (user_id: string): Promise<RideGet[]> => {
+    try {
+      const result = await api.get(
+        `/rides/${user_id}`
+      );
+      return result.data;
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        showToast('error', 'Fehler beim Abrufen deiner Fahrten.');
+      } else {
+        showDefaultError();
+      }
+      throw error
+    }
+  }
+
 
   return {
     getEmptyRideCreate,
-    postRide
+    postRide,
+    getRidesForUser
   }
 }
