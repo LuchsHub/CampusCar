@@ -20,3 +20,12 @@ export interface UserUpdate extends Record<string, string | LocationCreate | und
   email?: string
   location?: LocationCreate 
 }
+
+export interface CurrentUser {
+  id: number
+  user_name: string
+  first_name: string
+  last_name: string
+  email: string
+  avatar_url?: string
+}

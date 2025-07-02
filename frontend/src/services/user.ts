@@ -1,16 +1,8 @@
 // services/user.ts
-import axios from 'axios'
-
-export interface CurrentUser {
-  id: number
-  user_name: string
-  first_name: string
-  last_name: string
-  email: string
-  avatar_url?: string
-}
+import api from './api'
+import type { CurrentUser } from '@/types/User'
 
 export const fetchCurrentUser = async (): Promise<CurrentUser> => {
-  const response = await axios.get('/api/v1/users/me')
+  const response = await api.get('users/me')
   return response.data
 }
