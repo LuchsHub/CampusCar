@@ -87,6 +87,7 @@ export function useUser() {
       const user: UserMeGet = await getUserMe();
       return user.location;
     } catch (error: unknown) {
+      console.log(error);
       return null
     }
   }

@@ -7,12 +7,10 @@ import { ref, reactive } from 'vue';
 import { required, validate } from '@/services/validation'
 import type { ValidationSchema } from '@/types/Validation';
 import router from "@/router";
-import { useToaster } from '@/composables/useToaster';
 import { useUser } from '@/composables/useUser';
 
 
 // composable functions
-const { showToast } = useToaster()
 const { updateUserHasLicense } = useUser()
 
 
