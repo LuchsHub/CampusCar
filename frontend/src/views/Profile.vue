@@ -8,7 +8,7 @@ import PageTitle from '@/components/PageTitle.vue'
 import { useToaster } from '@/composables/useToaster'
 
 // Lucide Icons
-import { Settings, Wallet, Lock, Shield, LogOut, Trash2 } from 'lucide-vue-next'
+import { Settings, Wallet, Lock, Shield, LogOut, Trash2, ChevronRight } from 'lucide-vue-next'
 
 const router = useRouter()
 const auth = useAuth()
@@ -97,7 +97,7 @@ onMounted(() => {
           <component v-if="action.isComponent" :is="action.icon" class="icon" />
           <span class="text">{{ action.text }}</span>
         </div>
-        <span class="arrow">›</span>
+        <ChevronRight class="arrow" />
       </div>
 
       <h2 class="danger-label">Danger Zone</h2>
@@ -112,7 +112,7 @@ onMounted(() => {
           <component v-if="danger.isComponent" :is="danger.icon" class="icon" />
           <span class="text">{{ danger.text }}</span>
         </div>
-        <span class="arrow">›</span>
+        <ChevronRight class="arrow" />
       </div>
     </div>
   </div>
@@ -143,7 +143,7 @@ onMounted(() => {
 }
 
 .user-name {
-  font-size: 1.2rem;
+  font-size: 1.25rem;
   font-weight: 600;
   color: var(--color-neutral-900);
 }
@@ -151,7 +151,6 @@ onMounted(() => {
 .action-list {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
   width: 100%;
 }
 
@@ -160,16 +159,20 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.75rem 1rem;
-  border-radius: var(--border-radius);
-  background-color: var(--color-neutral-200);
-  border: 1px solid var(--color-neutral-300);
+  padding: 0.75rem 0.5rem 0.75rem 1rem;
+  border-top: none;
+  border-bottom: 1px solid #d1d5db; /* Nur untere Linie */
+  background-color: transparent;
   cursor: pointer;
   transition: background-color 0.2s;
 }
 
+.profile-action:last-of-type {
+  border-bottom: 1px solid #d1d5db;
+}
+
 .profile-action:hover {
-  background-color: var(--color-neutral-300);
+  background-color: var(--color-neutral-100);
 }
 
 .action-left {
@@ -179,30 +182,34 @@ onMounted(() => {
 }
 
 .icon {
-  height: 20px;
-  width: 20px;
+  height: 24px;
+  width: 24px;
   color: var(--color-neutral-900);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .arrow {
-  font-size: 1.25rem;
-  color: var(--color-neutral-400);
+  height: 24px;
+  width: 24px;
+  color: var(--color-neutral-900);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .text {
-  color: var(--color-neutral-900);
-  font-weight: var(--font-weight-semibold);
-}
-
-.danger-label {
-  color: var(--color-support-danger-500);
+  font-size: 1rem;
   font-weight: 600;
-  margin-top: 1rem;
+  color: var(--color-neutral-900);
+  display: flex;
+  align-items: center;
 }
 
-.danger {
+.profile-action.danger:last-of-type .icon,
+.profile-action.danger:last-of-type .text,
+.profile-action.danger:last-of-type .arrow {
   color: var(--color-support-danger-500);
-  background-color: var(--color-support-danger-500-transparent);
-  border-color: var(--color-support-danger-500-transparent);
 }
 </style>
