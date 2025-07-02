@@ -10,8 +10,7 @@ import { useToaster } from '@/composables/useToaster'
 // Lucide Icons
 import {
   Settings, Wallet, Lock, Shield,
-  LogOut, Trash2, ChevronRight,
-  Star, StarHalf
+  LogOut, Trash2, ChevronRight, Star
 } from 'lucide-vue-next'
 
 const router = useRouter()
