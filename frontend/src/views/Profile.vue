@@ -8,7 +8,11 @@ import PageTitle from '@/components/PageTitle.vue'
 import { useToaster } from '@/composables/useToaster'
 
 // Lucide Icons
-import { Settings, Wallet, Lock, Shield, LogOut, Trash2, ChevronRight } from 'lucide-vue-next'
+import {
+  Settings, Wallet, Lock, Shield,
+  LogOut, Trash2, ChevronRight,
+  Star, StarHalf
+} from 'lucide-vue-next'
 
 const router = useRouter()
 const auth = useAuth()
@@ -18,6 +22,7 @@ const { showToast } = useToaster()
 const firstName = ref('')
 const lastName = ref('')
 const profileImage = ref('')
+const rating = ref(0)
 
 const loadUser = async () => {
   try {
@@ -25,9 +30,24 @@ const loadUser = async () => {
     firstName.value = user.first_name
     lastName.value = user.last_name
     profileImage.value = user.avatar_url || 'https://randomuser.me/api/portraits/lego/1.jpg'
+    rating.value = user.rating ?? 0
   } catch {
     showToast('error', 'Fehler beim Laden des Profils')
   }
+}
+
+const getStarIcons = (value: number) => {
+  const stars = []
+  for (let i = 1; i <= 5; i++) {
+    if (value >= i) {
+      stars.push({ type: 'full' })
+    } else if (value >= i - 0.5) {
+      stars.push({ type: 'half' })
+    } else {
+      stars.push({ type: 'empty' })
+    }
+  }
+  return stars
 }
 
 const actions = [
@@ -84,6 +104,28 @@ onMounted(() => {
     <div class="profile-header">
       <img :src="profileImage" alt="Profilbild" class="profile-image" />
       <h2 class="user-name">{{ firstName }} {{ lastName }}</h2>
+      <div class="rating-stars">
+        <component
+            v-for="(star, index) in getStarIcons(rating)"
+            :key="index"
+            :is="Star"
+            class="star-icon"
+            :style="{
+              fill: star.type === 'full' ? 'black' : star.type === 'half' ? 'url(#half)' : 'none',
+              stroke: 'black'
+            }"
+          />
+          
+          <!-- SVG Def für halben Füllbereich -->
+          <svg width="0" height="0">
+            <defs>
+              <linearGradient id="half" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="50%" stop-color="black" />
+                <stop offset="50%" stop-color="white" stop-opacity="1" />
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
     </div>
 
     <div class="action-list">
@@ -148,6 +190,18 @@ onMounted(() => {
   color: var(--color-neutral-900);
 }
 
+.rating-stars {
+  display: flex;
+  gap: 0.25rem;
+  margin-top: 0.25rem;
+}
+
+.star-icon {
+  height: 28px;
+  width: 28px;
+  stroke-width: 1.5;
+}
+
 .action-list {
   display: flex;
   flex-direction: column;
@@ -161,14 +215,10 @@ onMounted(() => {
   align-items: center;
   padding: 0.75rem 0.5rem 0.75rem 1rem;
   border-top: none;
-  border-bottom: 1px solid #d1d5db; /* Nur untere Linie */
+  border-bottom: 1px solid #d1d5db;
   background-color: transparent;
   cursor: pointer;
   transition: background-color 0.2s;
-}
-
-.profile-action:last-of-type {
-  border-bottom: 1px solid #d1d5db;
 }
 
 .profile-action:hover {
