@@ -3,7 +3,7 @@ import type { RideCardProps } from '@/types/Props';
 import { computed } from 'vue';
 
 const props = defineProps<RideCardProps>();
-import { Users } from 'lucide-vue-next';
+import { Users, Car } from 'lucide-vue-next';
 
 function formatDateTime(date: string, time: string): string {
   const [year, month, day] = date.split('-');
@@ -31,7 +31,12 @@ const stateInfo = computed(() => {
 
 <template>
 <div class="ride-card-container">
-  <component :is="Users" class="icon-xl" :class="stateInfo.standardTextClass" />
+
+  <!-- display either icon if type="own" | "booked" or image if type="other" -->
+  <img v-if="props.ride.type === 'other'" :src="props.ride.image" alt="Profilbild" class="profile-picture"/>
+  <component v-else-if="props.ride.type === 'own'" :is="Car" class="icon-xl" :class="stateInfo.standardTextClass" />
+  <component v-else :is="Users" class="icon-xl" :class="stateInfo.standardTextClass" />
+
   <div class="ride-card-content">
     <p class="text-s text-neutral-400">{{formatDateTime(props.ride.departure_date, props.ride.departure_time)}}</p>
     <div class="car-info-container">
@@ -41,7 +46,10 @@ const stateInfo = computed(() => {
     </div>
 
     <!-- Display point cost / reward -->
-    <p v-if="props.ride.type === 'own'" class="text-s text-bold">
+    <p v-if="props.ride.type === 'other'" class="text-s text-bold">
+      {{ props.ride.n_available_seats }} Plätze frei
+    </p>
+    <p v-else-if="props.ride.type === 'own'" class="text-s text-bold">
       + {{ props.ride.point_reward }} Punkte
     </p>
     <p v-else-if="props.ride.type === 'booked' && props.ride.state === 'accepted'" class="text-s text-bold">
@@ -83,6 +91,12 @@ const stateInfo = computed(() => {
     flex-direction: row;
   }
 
+  .profile-picture {
+    width: var(--profile-picture-s-dim); 
+    height: var(--profile-picture-s-dim); 
+    border-radius: 9999px;
+  }
+
   .selected {
     border-left: var(--line-width-m) solid var(--color-primary-500);
   }
@@ -94,6 +108,5 @@ const stateInfo = computed(() => {
     padding-right: var(--status-dot-size);
     border-radius: 50%;
     background: currentColor; /* inherits text color */
-
-}
+  }
 </style>

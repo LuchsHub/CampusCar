@@ -7,7 +7,7 @@ import { ref, onMounted, computed } from 'vue';
 import type { RideGetDto } from '@/types/Ride';
 import { useRide } from '@/composables/useRide';
 import { useAuthStore } from '@/stores/AuthStore';
-import RideCardArne from '@/components/RideCard.vue';
+import RideCard from '@/components/RideCard.vue';
 
 const { getRidesForUser } = useRide()
 const authStore = useAuthStore();
@@ -61,19 +61,19 @@ const pastRides = computed<RideGetDto[]>(() =>
       
     <div v-if="activeTab === 'Bevorstehend'" class="width-100">
         <template v-for="(ride, index) in upcomingRides" :key="ride.id">
-          <RideCardArne :ride="ride"/>
-          <hr v-if="index < userOwnRides.length - 1" />
+          <RideCard :ride="ride"/>
+          <hr v-if="index < upcomingRides.length - 1" />
         </template>
       </div>
     
       <div v-else class="width-100">
         <template v-for="(ride, index) in pastRides" :key="ride.id">
-          <RideCardArne
+          <RideCard
             :ride="ride"
             type="own"
             state="accepted"
           />
-          <hr v-if="index < userOwnRides.length - 1" />
+          <hr v-if="index < pastRides.length - 1" />
         </template>
       </div>
     <HoverButton :buttons="hoverButtons"/>

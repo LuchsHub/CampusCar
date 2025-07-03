@@ -81,6 +81,10 @@
   --icon-md: 30px;
   --icon-s: 25px;
 
+  --profile-picture-s-dim: 40px;
+  --profile-picture-md-dim: 75px;
+  --profile-picture-l-dim: 140px;
+
   /* misc */
   --checkbox-size: 25px;
   --status-dot-size: 10px;

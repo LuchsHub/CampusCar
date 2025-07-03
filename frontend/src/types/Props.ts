@@ -1,5 +1,5 @@
 import type { CarGet } from "./Car"
-import type { RideGet, RideGetDto } from "./Ride"
+import type { RideGetDto } from "./Ride"
 
 export interface PageTitleProps {
   goBack?: boolean

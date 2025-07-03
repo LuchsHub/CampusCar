@@ -5,14 +5,12 @@ import api from '@/services/api';
 import axios from 'axios';
 import { useToaster } from '@/composables/useToaster';
 import type { LocationCreateDto } from '../types/Location';
-import { useAuthStore } from '@/stores/AuthStore';
 import type { CodriveBase } from '@/types/Codrive';
 
 
 export function useRide() {
   
   const { showDefaultError, showToast } = useToaster()
-  const authStore = useAuthStore();
 
   const getEmptyRideCreate = (): RideCreateBase => {
     return reactive<RideCreateBase>({
@@ -71,9 +69,9 @@ export function useRide() {
         start_location: ride.start_location,
         end_location: ride.end_location,
         route_geometry: ride.route_geometry,
-        max_n_codrives: ride.max_n_codrives,
+        n_available_seats: ride.max_n_codrives - ride.n_codrives,
         state: ride.codrives.some((codrive: CodriveBase) => codrive.accepted === false) ? "new request" : "default",
-        point_reward: ride.codrives
+        point_reward: ride.requested_codrives
           .filter((codrive: CodriveBase) => codrive.accepted)
           .reduce((sum: number, codrive: CodriveBase) => sum + codrive.point_contribution, 0)
       } as RideGetDto));
@@ -88,9 +86,42 @@ export function useRide() {
     }
   }
 
+  const getAllRides = async (): Promise<RideGetDto[]> => {
+    try {
+      const result = await api.get(`/rides`);
+
+      if (result.data.data.length === 0) { // idk why it is result.data.data but otherwise it wont work
+        return []
+      }
+
+      const rideGetDtos: RideGetDto[] = result.data.data.map((ride: RideGet) => ({
+        id: ride.id,
+        type: "other",
+        departure_date: ride.departure_date,
+        departure_time: ride.departure_time,
+        arrival_time: ride.arrival_time,
+        start_location: ride.start_location,
+        end_location: ride.end_location,
+        route_geometry: ride.route_geometry,
+        n_available_seats: ride.max_n_codrives - ride.n_codrives,
+        state: "default",
+        image: `https://randomuser.me/api/portraits/women/${Math.floor(Math.random() * 99) + 1}.jpg`,
+      } as RideGetDto));
+      return rideGetDtos;
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        showToast('error', 'Fehler beim Abrufen der Fahrten.');
+      } else {
+        showDefaultError();
+      }
+      throw error
+    }
+  }
+
   return {
     getEmptyRideCreate,
     postRide,
-    getRidesForUser
+    getRidesForUser,
+    getAllRides
   }
 }
