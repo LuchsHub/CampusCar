@@ -54,23 +54,3 @@ export interface RideGetDto extends Record<string, string | number | number[][] 
   point_cost?: number // your cost for a booked ride (point_contribution for your codrive)
   image?: string // user profile picture
 }
-
-// export interface RideCardData {
-//   id: number
-//   to: string
-//   date: string
-//   time: string
-//   price: string
-//   image: string
-// }
-
-// export interface RideDto {
-//   id: number
-//   arrival_time: string
-//   price: number
-//   end_location: {
-//     street: string
-//     postal_code: string
-//     city: string
-//   }
-// }
