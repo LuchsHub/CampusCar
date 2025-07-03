@@ -26,7 +26,7 @@ const fetchRides = async () => {
     // const data: RideDto[] = await fetchRidesFromApi()
     const data: RideGet[] = await getRidesForUser(authStore.userId);
     rides.value = data.map((ride): RideCardData => ({
-      id: ride.id,
+      id: Number(ride.id),
       to: `${ride.end_location.street}, ${ride.end_location.postal_code} ${ride.end_location.city}`,
       date: new Date(ride.arrival_time).toLocaleDateString('de-DE', { day: '2-digit', month: 'short' }),
       time: new Date(ride.arrival_time).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }),

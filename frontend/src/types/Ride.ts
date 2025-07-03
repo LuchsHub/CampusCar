@@ -37,7 +37,7 @@ export interface RideGet extends Record<string, string | number | LocationGet | 
 }
 
 export interface RideCardData {
-  id: number | string
+  id: number
   to: string
   date: string
   time: string

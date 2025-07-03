@@ -45,7 +45,7 @@ const stateInfo = computed(() => {
       {{ stateInfo.message }}
     </p>
   </div>
-  <span v-if="stateInfo.message" class="dot" :class="stateInfo.infoTextClass"></span>
+  <span v-if="stateInfo.message" class="dot" :class="stateInfo.infoTextClass"/>
 </div>
 </template>
 
