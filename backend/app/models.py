@@ -245,6 +245,13 @@ class CodrivePassenger(SQLModel):
     point_contribution: int
 
 
+class CodriveRequestPublic(SQLModel):
+    id: uuid.UUID
+    user: UserPublic
+    location: LocationPublic
+    route_update: RouteUpdatePublic
+
+
 class Rating(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
 
@@ -322,6 +329,7 @@ class RidePublic(SQLModel):
     driver: UserPublic
     car: CarPublic
     codrives: list[CodrivePassenger]
+    requested_codrives: list[CodriveRequestPublic]
 
     departure_date: datetime.date
     departure_time: datetime.time
