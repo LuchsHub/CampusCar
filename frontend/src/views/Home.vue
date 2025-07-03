@@ -9,7 +9,7 @@ import { ref, computed, onMounted } from 'vue'
 // import { fetchRidesFromApi } from '../services/rides'
 import type { RideCardData } from '../types/Ride' // removed import for RideDto because of linting
 import { useToaster } from '@/composables/useToaster'
-import { useRide } from '@/types/useRide'
+import { useRide } from '@/composables/useRide'
 import { useAuthStore } from '@/stores/AuthStore'
 import type { RideGet } from '../types/Ride'
 

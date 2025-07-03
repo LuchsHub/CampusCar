@@ -1,5 +1,5 @@
 import type { UserRegister, UserLogin, UserUpdate, UserMeGet } from '@/types/User';
-import type { LocationCreate, LocationGet } from '@/types/Location';
+import type { LocationCreateDto, LocationGetDto } from '@/types/Location';
 import { reactive } from 'vue';
 import { useLocation } from './useLocation';
 import api from '@/services/api';
@@ -41,7 +41,7 @@ export function useUser() {
 
 
   // functions 
-  const updateUserLocation = async (location: LocationCreate) => {
+  const updateUserLocation = async (location: LocationCreateDto) => {
     // wrap location in a UserUpdate object
     const userUpdateWithLocation: UserUpdate = {
       location: location
@@ -82,7 +82,7 @@ export function useUser() {
     }
   }
 
-  const getCurrentUserLocation = async (): Promise<LocationGet | null> => {
+  const getCurrentUserLocation = async (): Promise<LocationGetDto | null> => {
     try {
       const user: UserMeGet = await getUserMe();
       return user.location;

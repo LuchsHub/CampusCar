@@ -1,4 +1,4 @@
-import type { LocationCreate } from '@/types/Location';
+import type { LocationCreateDto } from '@/types/Location';
 import { reactive } from 'vue';
 import { required, isValidPostalCode } from '@/services/validation';
 import type { ValidationSchema } from '@/types/Validation';
@@ -6,8 +6,8 @@ import type { ValidationSchema } from '@/types/Validation';
 
 export function useLocation() {
 
-  const getEmptyLocationCreate = (): LocationCreate => {
-    return reactive<LocationCreate>({
+  const getEmptyLocationCreate = (): LocationCreateDto => {
+    return reactive<LocationCreateDto>({
         country: "Deutschland",
         postal_code: "",
         city: "",

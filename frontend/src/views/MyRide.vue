@@ -4,7 +4,7 @@ import HoverButton from '@/components/HoverButton.vue';
 import type { ButtonProps } from '@/types/Props';
 import TabSwitcher from '@/components/TabSwitcher.vue';
 import { ref, onMounted, computed } from 'vue';
-import type { RideGetDto } from '@/types/Ride';
+import type { RideGet } from '@/types/Ride';
 import { useRide } from '@/composables/useRide';
 import { useAuthStore } from '@/stores/AuthStore';
 import RideCardArne from '@/components/RideCardArne.vue';
@@ -20,7 +20,7 @@ const hoverButtons: ButtonProps[] = [
 ]
 
 // Variables 
-const userRides = ref<RideGetDto[]>([]);
+const userRides = ref<RideGet[]>([]);
 
 // fetch data async from backend when component gets loaded
 onMounted(async () => {
@@ -56,7 +56,7 @@ const pastRides = computed<RideGet[]>(() =>
 
 <template>
   <div class="view-container">
-    <PageTitle>Meine Fahrten</PageTitle>
+    <PageTitle :goBack="true">Meine Fahrt</PageTitle>
 
     <TabSwitcher v-model="activeTab" :tabs="tabs" />
       

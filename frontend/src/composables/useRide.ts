@@ -1,15 +1,18 @@
 import { reactive } from 'vue';
-import type { RideCreateBase, RideGet } from './Ride';
-import type { RideCreateComplete } from './Ride';
+import type { RideCreateBase, RideGetDto } from '../types/Ride';
+import type { RideCreateComplete } from '../types/Ride';
 import api from '@/services/api';
 import axios from 'axios';
 import { useToaster } from '@/composables/useToaster';
-import type { LocationCreate } from './Location';
+import type { LocationCreateDto } from '../types/Location';
+import { useAuthStore } from '@/stores/AuthStore';
+import type { CodriveBase } from '@/types/Codrive';
 
 
 export function useRide() {
   
   const { showDefaultError, showToast } = useToaster()
+  const authStore = useAuthStore();
 
   const getEmptyRideCreate = (): RideCreateBase => {
     return reactive<RideCreateBase>({
@@ -21,7 +24,7 @@ export function useRide() {
     })
   }
 
-  const postRide = async (ride: RideCreateBase, startLocation: LocationCreate, endLocation: LocationCreate) => {
+  const postRide = async (ride: RideCreateBase, startLocation: LocationCreateDto, endLocation: LocationCreateDto) => {
     const rideComplete: RideCreateComplete = {
       "car_id": ride.car_id,
       "max_n_codrives": ride.max_n_codrives,
@@ -51,12 +54,25 @@ export function useRide() {
     }
   }
 
-  const getRidesForUser = async (user_id: string): Promise<RideGet[]> => {
+  const getRidesForUser = async (user_id: string): Promise<RideGetDto[]> => {
     try {
-      const result = await api.get(
-        `/rides/${user_id}`
-      );
-      return result.data;
+      const result = await api.get(`/rides/by_driver/${user_id}`);
+      const rideGetDtos: RideGetDto[] = result.data.map((ride: any) => ({
+        id: ride.id,
+        type: "own",
+        departure_date: ride.departure_date,
+        departure_time: ride.departure_time,
+        arrival_time: ride.arrival_time,
+        start_location: ride.start_location,
+        end_location: ride.end_location,
+        route_geometry: ride.route_geometry,
+        max_n_codrives: ride.max_n_codrives,
+        state: ride.codrives.some((codrive: CodriveBase) => codrive.accepted === false) ? "new request" : "default",
+        point_reward: ride.codrives
+          .filter((codrive: CodriveBase) => codrive.accepted)
+          .reduce((sum: number, codrive: CodriveBase) => sum + codrive.point_contribution, 0)
+      }));
+      return rideGetDtos;
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
         showToast('error', 'Fehler beim Abrufen deiner Fahrten.');
@@ -66,7 +82,6 @@ export function useRide() {
       throw error
     }
   }
-
 
   return {
     getEmptyRideCreate,

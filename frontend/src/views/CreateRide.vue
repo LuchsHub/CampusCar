@@ -6,12 +6,12 @@ import PageTitle from '@/components/PageTitle.vue';
 import type { ButtonProps } from '@/types/Props';
 import { ref, onMounted } from 'vue'
 import { validate, required, largerThan, smallerThan } from '@/services/validation'
-import { useRide } from '@/types/useRide';
+import { useRide } from '@/composables/useRide';
 import { useLocation } from '@/composables/useLocation';
 import { useUser } from '@/composables/useUser';
 import { useToaster } from '@/composables/useToaster';
 import type { RideCreateBase } from '@/types/Ride';
-import type { LocationCreate } from '@/types/Location';
+import type { LocationCreateDto } from '@/types/Location';
 import router from '@/router';
 import type { CarGet } from '@/types/Car';
 import { useCar } from '@/composables/useCar';
@@ -25,8 +25,8 @@ const { getUserCarsData } = useCar();
 
 // Variables 
 const rideCreate: RideCreateBase = getEmptyRideCreate(); 
-const rideCreateStartLocation: LocationCreate = getEmptyLocationCreate();
-const rideCreateEndLocation: LocationCreate = getEmptyLocationCreate();
+const rideCreateStartLocation: LocationCreateDto = getEmptyLocationCreate();
+const rideCreateEndLocation: LocationCreateDto = getEmptyLocationCreate();
 const userCars = ref<CarGet[]>([]);
 const selectedCar = ref<CarGet | null>(null);
 
