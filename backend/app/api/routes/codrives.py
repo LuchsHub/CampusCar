@@ -20,7 +20,7 @@ from app.models import (
     PassengerArrival,
     PassengerArrivalTime,
     Ride,
-    RideWithPassengersPublic,
+    RidePublic,
     RouteUpdate,
     RouteUpdatePublic,
     User,
@@ -260,7 +260,7 @@ def request_codrive(
     )
 
 
-@router.patch("/{codrive_id}/accept", response_model=RideWithPassengersPublic)
+@router.patch("/{codrive_id}/accept", response_model=RidePublic)
 def accept_codrive(
     *, session: SessionDep, current_user: CurrentUser, codrive_id: uuid.UUID
 ) -> Any:
@@ -269,10 +269,12 @@ def accept_codrive(
         codrive_id,
         options=[
             selectinload(Codrive.ride).options(  # type: ignore[arg-type]
+                selectinload(Ride.driver).options(selectinload(User.location)),  # type: ignore[arg-type]
+                selectinload(Ride.car),  # type: ignore[arg-type]
                 selectinload(Ride.start_location),  # type: ignore[arg-type]
                 selectinload(Ride.end_location),  # type: ignore[arg-type]
                 selectinload(Ride.codrives).options(  # type: ignore[arg-type]
-                    selectinload(Codrive.user),  # type: ignore[arg-type]
+                    selectinload(Codrive.user).options(selectinload(User.location)),  # type: ignore[arg-type]
                     selectinload(Codrive.location),  # type: ignore[arg-type]
                 ),
             )
@@ -305,6 +307,7 @@ def accept_codrive(
     ride.departure_date = update_data.updated_ride_departure_date
     ride.departure_time = update_data.updated_ride_departure_time
     ride.n_codrives += 1
+    ride.total_points += codrive_to_accept.point_contribution
 
     for codrive in ride.codrives:
         user_id_str = str(codrive.user_id)
@@ -319,9 +322,8 @@ def accept_codrive(
     session.add(ride)
 
     session.commit()
+    session.refresh(ride)
 
     accepted_codrives = [c for c in ride.codrives if c.accepted]
 
-    return RideWithPassengersPublic.model_validate(
-        ride, update={"codrives": accepted_codrives}
-    )
+    return RidePublic.model_validate(ride, update={"codrives": accepted_codrives})
