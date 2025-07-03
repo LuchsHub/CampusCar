@@ -7,7 +7,7 @@ import { ref, onMounted, computed } from 'vue';
 import type { RideGet } from '@/types/Ride';
 import { useRide } from '@/composables/useRide';
 import { useAuthStore } from '@/stores/AuthStore';
-import RideCardArne from '@/components/RideCardArne.vue';
+import RideCardArne from '@/components/RideCard.vue';
 
 const { getRidesForUser } = useRide()
 const authStore = useAuthStore();

@@ -1,5 +1,5 @@
 import { reactive } from 'vue';
-import type { RideCreateBase, RideGetDto } from '../types/Ride';
+import type { RideCreateBase, RideGet, RideGetDto } from '../types/Ride';
 import type { RideCreateComplete } from '../types/Ride';
 import api from '@/services/api';
 import axios from 'axios';
@@ -57,7 +57,12 @@ export function useRide() {
   const getRidesForUser = async (user_id: string): Promise<RideGetDto[]> => {
     try {
       const result = await api.get(`/rides/by_driver/${user_id}`);
-      const rideGetDtos: RideGetDto[] = result.data.map((ride: any) => ({
+
+      if (result.data.data.length === 0) { // idk why it is result.data.data but otherwise it wont work
+        return []
+      }
+
+      const rideGetDtos: RideGetDto[] = result.data.data.map((ride: RideGet) => ({
         id: ride.id,
         type: "own",
         departure_date: ride.departure_date,
@@ -71,7 +76,7 @@ export function useRide() {
         point_reward: ride.codrives
           .filter((codrive: CodriveBase) => codrive.accepted)
           .reduce((sum: number, codrive: CodriveBase) => sum + codrive.point_contribution, 0)
-      }));
+      } as RideGetDto));
       return rideGetDtos;
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {

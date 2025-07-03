@@ -12,17 +12,19 @@ function formatDateTime(date: string, time: string): string {
 }
 
 const stateInfo = computed(() => {
-  switch (props.state) {
+  switch (props.ride.state) {
     case 'new request':
       return { message: 'Neue Anfrage', infoTextClass: 'text-info', standardTextClass: 'text-neutral-900'}
-    case 'not accepted':
+    case 'not accepted yet':
       return { message: 'Noch nicht akzeptiert', infoTextClass: 'text-warning' , standardTextClass: 'text-neutral-400'}
-    case 'rejected':
-      return { message: 'Abgelehnt', infoTextClass: 'text-danger', standardTextClass: 'text-neutral-400 text-strikethrough'}
     case 'accepted':
       return { message: 'Angenommen', infoTextClass: 'text-success', standardTextClass: 'text-neutral-900'}
+    case 'rejected':
+      return { message: 'Abgelehnt', infoTextClass: 'text-danger', standardTextClass: 'text-neutral-400 text-strikethrough'}
+    case 'payment outstanding':
+      return { message: 'Zahlung ausstehend', infoTextClass: 'text-danger', standardTextClass: 'text-neutral-400'}
     default:
-      return { message: '', infoTextClass: '' }
+      return { message: '', infoTextClass: ''}
   }
 })
 </script>
@@ -37,13 +39,20 @@ const stateInfo = computed(() => {
           {{ props.ride.end_location.street }}, {{ props.ride.end_location.postal_code }} {{ props.ride.end_location.city }}
       </p>
     </div>
-    <p 
-      v-if="stateInfo.message" 
-      class="text-s text-bold"
-      :class="stateInfo.infoTextClass"
-    >
+
+    <!-- Display point cost / reward -->
+    <p v-if="props.ride.type === 'own'" class="text-s text-bold">
+      + {{ props.ride.point_reward }} Punkte
+    </p>
+    <p v-else-if="props.ride.type === 'booked' && props.ride.state === 'accepted'" class="text-s text-bold">
+      - {{ props.ride.point_cost }} Punkte
+    </p>
+
+    <!-- Display custom message depending on state of the ride -->
+    <p v-if="stateInfo.message" class="text-s text-bold" :class="stateInfo.infoTextClass">
       {{ stateInfo.message }}
     </p>
+
   </div>
   <span v-if="stateInfo.message" class="dot" :class="stateInfo.infoTextClass"/>
 </div>

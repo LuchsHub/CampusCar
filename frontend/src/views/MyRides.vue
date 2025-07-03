@@ -7,7 +7,7 @@ import { ref, onMounted, computed } from 'vue';
 import type { RideGetDto } from '@/types/Ride';
 import { useRide } from '@/composables/useRide';
 import { useAuthStore } from '@/stores/AuthStore';
-import RideCardArne from '@/components/RideCardArne.vue';
+import RideCardArne from '@/components/RideCard.vue';
 
 const { getRidesForUser } = useRide()
 const authStore = useAuthStore();
@@ -20,16 +20,15 @@ const hoverButtons: ButtonProps[] = [
 ]
 
 // Variables 
-const userRides = ref<RideGetDto[]>([]);
+const userOwnRides = ref<RideGetDto[]>([]);
 
 // fetch data async from backend when component gets loaded
 onMounted(async () => {
-  userRides.value = await getRidesForUser(authStore.userId);
-  console.log(userRides.value);
+  userOwnRides.value = await getRidesForUser(authStore.userId);
 })
 
 const sortedRides = computed(() => {
-  return [...userRides.value].sort((a, b) => {
+  return [...userOwnRides.value].sort((a, b) => {
     // Combine date and time for comparison
     const aDate = new Date(`${a.departure_date}T${a.departure_time}`);
     const bDate = new Date(`${b.departure_date}T${b.departure_time}`);
@@ -39,14 +38,14 @@ const sortedRides = computed(() => {
 
 const now = () => new Date();
 
-const upcomingRides = computed<RideGet[]>(() =>
+const upcomingRides = computed<RideGetDto[]>(() =>
   sortedRides.value.filter(ride => {
     const rideDate = new Date(`${ride.departure_date}T${ride.departure_time}`);
     return rideDate >= now();
   })
 );
 
-const pastRides = computed<RideGet[]>(() =>
+const pastRides = computed<RideGetDto[]>(() =>
   sortedRides.value.filter(ride => {
     const rideDate = new Date(`${ride.departure_date}T${ride.departure_time}`);
     return rideDate < now();
@@ -62,12 +61,8 @@ const pastRides = computed<RideGet[]>(() =>
       
     <div v-if="activeTab === 'Bevorstehend'" class="width-100">
         <template v-for="(ride, index) in upcomingRides" :key="ride.id">
-          <RideCardArne
-            :ride="ride"
-            type="own"
-            state="accepted"
-          />
-          <hr v-if="index < userRides.length - 1" />
+          <RideCardArne :ride="ride"/>
+          <hr v-if="index < userOwnRides.length - 1" />
         </template>
       </div>
     
@@ -78,7 +73,7 @@ const pastRides = computed<RideGet[]>(() =>
             type="own"
             state="accepted"
           />
-          <hr v-if="index < userRides.length - 1" />
+          <hr v-if="index < userOwnRides.length - 1" />
         </template>
       </div>
     <HoverButton :buttons="hoverButtons"/>

@@ -222,6 +222,10 @@ a {
   font-weight: var(--font-weight-bold);
 }
 
+.text-semibold {
+  font-weight: var(--font-weight-semibold);
+}
+
 /* text decoration */
 .text-strikethrough {
   text-decoration: line-through;
