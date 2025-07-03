@@ -4,11 +4,13 @@ import type { UserRegister, UserLogin, UserMeGet } from '@/types/User';
 import axios from 'axios';
 import { useToaster } from '@/composables/useToaster';
 import { useUser } from './useUser';
+import { useRouter } from 'vue-router'
 
 export function useAuth() {
   const authStore = useAuthStore(); // load AuthStore in the function, other wise you will receive a "no active pinia" error on application startup
   const { showToast, showDefaultError } = useToaster();
   const { getCurrentUserId } = useUser();
+  const router = useRouter()
 
   const loginUser = async (user: UserLogin) => {
     try {
@@ -97,6 +99,8 @@ export function useAuth() {
     authStore.removeAccessToken();
     authStore.removeUserId();
     showToast('success', "Logout erfolgreich.");
+    
+    router.replace({ path: '/login' })
   }
 
   return {
@@ -104,4 +108,4 @@ export function useAuth() {
     loginUser,
     logoutUser,
   }
-}
+} 

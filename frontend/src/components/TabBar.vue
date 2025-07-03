@@ -34,6 +34,7 @@ const isActive = (path: string): boolean => route.path === path
 <style scoped>
 nav {
   position: fixed;
+  z-index: 1000;
   margin: auto;
   display: flex;
   justify-content: center;

@@ -33,3 +33,13 @@ export interface UserMeGet extends Record<string, string | boolean | LocationGet
   has_license: boolean
   location: LocationGet | null
 }
+
+export interface CurrentUser {
+  id: number
+  user_name: string
+  first_name: string
+  last_name: string
+  email: string
+  avatar_url?: string
+  rating: number
+}
