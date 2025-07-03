@@ -74,6 +74,8 @@ class User(UserBase, table=True):
 
     points: int = Field(default=0)
 
+    cash: float = Field(default=0.0)
+
     profile_picture: bytes | None = None
     has_license: bool = Field(default=False)
 
