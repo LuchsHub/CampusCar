@@ -11,11 +11,11 @@ import Signup_3_DriversLicense from '@/views/Auth/Signup_3_DriversLicense.vue';
 import Home from '@/views/Home.vue';
 
 import MyRides from '@/views/MyRides.vue';
+import CreateRide from '@/views/CreateRide.vue';
 
 import Profile from '@/views/Profile.vue';
 import ProfileEdit from '@/views/ProfileEdit.vue';
 
-import Example from '@/views/Example.vue';
 import Styles from '@/views/Styles.vue';
 
 import NotFound from '@/views/Misc/NotFound.vue';
@@ -87,6 +87,12 @@ const routes: RouteRecordRaw[] = [
     component: MyRides,
     beforeEnter: requireAuthentication(),
   },
+  {
+    path: '/create_ride',
+    name: 'createRide',
+    component: CreateRide,
+    beforeEnter: requireAuthentication(),
+  },
 
   // Profil
   {
@@ -104,12 +110,6 @@ const routes: RouteRecordRaw[] = [
   },
 
   // Example and styles
-  {
-    path: '/example',
-    name: 'example',
-    component: Example,
-    beforeEnter: requireAuthentication(),
-  },
   {
     path: '/styles',
     name: 'styles',

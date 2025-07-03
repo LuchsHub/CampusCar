@@ -1,20 +1,30 @@
 import api from '@/services/api'
 import { useAuthStore } from '@/stores/AuthStore';
-import type { UserRegister, UserLogin } from '@/types/User';
+import type { UserRegister, UserLogin, UserMeGet } from '@/types/User';
 import axios from 'axios';
 import { useToaster } from '@/composables/useToaster';
+import { useUser } from './useUser';
 import { useRouter } from 'vue-router'
 
 export function useAuth() {
   const authStore = useAuthStore(); // load AuthStore in the function, other wise you will receive a "no active pinia" error on application startup
   const { showToast, showDefaultError } = useToaster();
+  const { getCurrentUserId } = useUser();
   const router = useRouter()
 
   const loginUser = async (user: UserLogin) => {
     try {
-      const data = await postLoginData(user)
-      authStore.setAccessToken(data.access_token);
+      const dataLogin = await postLoginData(user)
+      authStore.setAccessToken(dataLogin.access_token); // need to be authorized for next api call
+      const userId = await getCurrentUserId(); 
+      
+      if (!userId || !dataLogin.access_token) {
+        throw new Error()
+      }
+      
+      authStore.setUserId(userId);
     } catch (error: unknown) {
+      authStore.removeAccessToken();
       console.log(error);
     }
   }
@@ -50,7 +60,7 @@ export function useAuth() {
 
   const registerUser = async (user: UserRegister): Promise<void> => {
     try {
-      await postRegisterData(user);
+      const userData: UserMeGet = await postRegisterData(user);
 
       // turn UserRegister into UserLogin
       const userLogin: UserLogin = {
@@ -60,20 +70,21 @@ export function useAuth() {
 
       const data = await postLoginData(userLogin);
       authStore.setAccessToken(data.access_token);
+      authStore.setUserId(userData.id);
     } catch (error: unknown) {
       console.log(error);
       throw error;
     }
   }
 
-  const postRegisterData = async (user: UserRegister) => {
+  const postRegisterData = async (user: UserRegister): Promise<UserMeGet> => {
     try {
-      const response = await api.post(
+      const result = await api.post(
         '/users/signup',
         user
       )
       showToast('success', 'Registrierung erfolgreich.');
-      return response.data
+      return result.data
     } catch (error: unknown) {
         if (axios.isAxiosError(error)) {
           showToast('error', 'Fehler beim Registrierungsprozess. Versuche es später nochmal.');
@@ -86,6 +97,7 @@ export function useAuth() {
 
   const logoutUser = () => {
     authStore.removeAccessToken();
+    authStore.removeUserId();
     showToast('success', "Logout erfolgreich.");
     
     router.replace({ path: '/login' })

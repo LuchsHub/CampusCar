@@ -1,4 +1,4 @@
-import type { CarCreate } from '@/types/Car';
+import type { CarCreate, CarGet } from '@/types/Car';
 import { reactive } from 'vue';
 import api from '@/services/api';
 import axios from 'axios';
@@ -44,8 +44,25 @@ export function useCar() {
     }
   }
 
+  const getUserCarsData = async (): Promise<CarGet[]> => {
+    try {
+      const response = await api.get(
+        '/cars'
+      )
+      return response.data;
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        showToast('error', 'Fehler beim Abrufen deiner Autos.');
+      } else {
+        showDefaultError();
+      }
+      return [];
+    }
+  }
+
   return {
     getEmptyCarCreate,
-    createCar
+    createCar,
+    getUserCarsData
   }
 }

@@ -53,7 +53,7 @@ const handleInput = (event: Event) => {
     outline: none;
       
     width: 100%;
-    padding: var(--input-padding-top) var(--input-padding-horizontal) var(--input-padding-bottom);
+    padding: var(--input-padding-top) var(--container-padding-horizontal) var(--container-padding-vertical);
     border-radius: var(--border-radius);
     background-color: var(--color-neutral-200);
     
@@ -72,7 +72,7 @@ const handleInput = (event: Event) => {
     top: 50%;
     left: 0;
     margin: 0;
-    padding: 0 0 0 var(--input-padding-horizontal);
+    padding: 0 0 0 var(--container-padding-horizontal);
     
     color: #aaa;
     

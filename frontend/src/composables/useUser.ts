@@ -1,5 +1,5 @@
-import type { UserRegister, UserLogin, UserUpdate } from '@/types/User';
-import type { LocationCreate } from '@/types/Location';
+import type { UserRegister, UserLogin, UserUpdate, UserMeGet } from '@/types/User';
+import type { LocationCreate, LocationGet } from '@/types/Location';
 import { reactive } from 'vue';
 import { useLocation } from './useLocation';
 import api from '@/services/api';
@@ -43,11 +43,22 @@ export function useUser() {
   // functions 
   const updateUserLocation = async (location: LocationCreate) => {
     // wrap location in a UserUpdate object
-    const userUpdateWithLocation = {
+    const userUpdateWithLocation: UserUpdate = {
       location: location
     }
     try {
       await postUpdateUserData(userUpdateWithLocation)
+    } catch (error: unknown) {
+      console.log(error);
+    }
+  }
+
+  const updateUserHasLicense = async (has_license: boolean) => {
+    const userUpdateWithLicense: UserUpdate = {
+      has_license: has_license
+    }
+    try {
+      await postUpdateUserData(userUpdateWithLicense)
     } catch (error: unknown) {
       console.log(error);
     }
@@ -71,10 +82,49 @@ export function useUser() {
     }
   }
 
+  const getCurrentUserLocation = async (): Promise<LocationGet | null> => {
+    try {
+      const user: UserMeGet = await getUserMe();
+      return user.location;
+    } catch (error: unknown) {
+      console.log(error);
+      return null
+    }
+  }
+
+  const getCurrentUserId = async (): Promise<string | null> => {
+    try {
+      const user: UserMeGet = await getUserMe();
+      return user.id;
+    } catch (error: unknown) {
+      console.log(error);
+      return null
+    }
+  }
+
+  const getUserMe = async (): Promise<UserMeGet> => {
+    try {
+      const response = await api.get(
+        '/users/me'
+      )
+      return response.data
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        showToast('error', 'Fehler beim Abrufen des aktuellen Users.');
+      } else {
+        showDefaultError();
+      }
+      throw error
+    }
+  }
+
   return {
     getEmptyUserLogin,
     getEmptyUserRegister,
     getEmptyUserUpdate,
-    updateUserLocation
+    updateUserLocation,
+    updateUserHasLicense,
+    getCurrentUserLocation,
+    getCurrentUserId
   }
 }

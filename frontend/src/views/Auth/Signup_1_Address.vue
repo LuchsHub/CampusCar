@@ -4,7 +4,7 @@ import HoverButton from '@/components/HoverButton.vue';
 import PageTitle from '@/components/PageTitle.vue';
 import type { ButtonProps } from '@/types/Props';
 import { ref } from 'vue';
-import { required, validate, isValidPostalCode } from '@/services/validation'
+import { validate } from '@/services/validation'
 import type { ValidationSchema } from '@/types/Validation';
 import { useLocation } from '@/composables/useLocation';
 import router from "@/router";
@@ -12,19 +12,13 @@ import { useUser } from '@/composables/useUser';
 
 
 // composable functions
-const { getEmptyLocationCreate } = useLocation();
+const { getEmptyLocationCreate, getLocationCreateValidationSchema } = useLocation();
 const { updateUserLocation } = useUser();
 
 
 // variables
 const locationCreate = getEmptyLocationCreate()
-const locationCreateValidationSchema: ValidationSchema = {
-  country: [required('Land')],
-  postal_code: [required('PLZ'), isValidPostalCode()],
-  city: [required('Stadt')],
-  street: [required('Straße')],
-  house_number: [required('Hausnummer')],
-}
+const locationCreateValidationSchema: ValidationSchema = getLocationCreateValidationSchema();
 const errors = ref<Record<string, string[]>>({})
 
 
