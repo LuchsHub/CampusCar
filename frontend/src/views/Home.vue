@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import Map from '../components/Map.vue'
 import SearchBar from '../components/SearchBar.vue'
-import RideCard from '../components/RideCard.vue'
+import RideCardLaurin from '@/components/RideCardLaurin.vue'
 import HoverButton from '../components/HoverButton.vue'
 import BottomSheet from '../components/BottomSheet.vue'
 
@@ -51,7 +51,7 @@ onMounted(() => {
     <BottomSheet v-model="sheetY">
       <SearchBar v-model:query="searchQuery" />
       <div class="fahrten-list">
-        <RideCard v-for="ride in filteredRides" :key="ride.id" :ride="ride" />
+        <RideCardLaurin v-for="ride in filteredRides" :key="ride.id" :ride="ride" />
       </div>
       <HoverButton :buttons="[{ variant: 'primary', text: 'Logout', color: 'danger', onClick: () => console.log('logout') }]" />
     </BottomSheet>
