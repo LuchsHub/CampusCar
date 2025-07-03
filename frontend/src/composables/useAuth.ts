@@ -1,21 +1,32 @@
-import api from '../services/api'
-import { useAuthStore } from '../stores/AuthStore';
-import type { UserRegister, UserLogin } from '../types/User';
-import router from "../router";
+import api from '@/services/api'
+import { useAuthStore } from '@/stores/AuthStore';
+import type { UserRegister, UserLogin, UserMeGet } from '@/types/User';
 import axios from 'axios';
-import { useToaster } from './useToaster';
-
-const authStore = useAuthStore();
-const { showToast } = useToaster();
+import { useToaster } from '@/composables/useToaster';
+import { useUser } from './useUser';
+import { useRouter } from 'vue-router'
 
 export function useAuth() {
+  const authStore = useAuthStore(); // load AuthStore in the function, other wise you will receive a "no active pinia" error on application startup
+  const { showToast, showDefaultError } = useToaster();
+  const { getCurrentUserId } = useUser();
+  const router = useRouter()
 
   const loginUser = async (user: UserLogin) => {
-    const data = await postLoginData(user)
-    console.log(data);
-    authStore.setAccessToken(data.access_token);
-    showToast('success', "Anmeldung erfolgreich!")
-    router.push('/'); // Navigate to home page
+    try {
+      const dataLogin = await postLoginData(user)
+      authStore.setAccessToken(dataLogin.access_token); // need to be authorized for next api call
+      const userId = await getCurrentUserId(); 
+      
+      if (!userId || !dataLogin.access_token) {
+        throw new Error()
+      }
+      
+      authStore.setUserId(userId);
+    } catch (error: unknown) {
+      authStore.removeAccessToken();
+      console.log(error);
+    }
   }
 
   // NOTE: This method does not use the api service since it requires some weird input format, for everything else the api service should be fine
@@ -35,19 +46,21 @@ export function useAuth() {
           "Content-Type": "application/x-www-form-urlencoded",
         },
       })
+      showToast('success', 'Anmeldung erfolgreich.');
       return response.data
     } catch (error: unknown) {
         if (axios.isAxiosError(error)) {
-          console.error('Axios Error:', error.response?.data || error.message)
+          showToast('error', 'Ungültige Anmeldedaten.');
         } else {
-          console.error('Unbekannter Fehler:', error)
+          showDefaultError();
         }
         throw error
     }
   }
 
-  const registerUser = async (user: UserRegister) => {
-      await postRegisterData(user);
+  const registerUser = async (user: UserRegister): Promise<void> => {
+    try {
+      const userData: UserMeGet = await postRegisterData(user);
 
       // turn UserRegister into UserLogin
       const userLogin: UserLogin = {
@@ -57,22 +70,26 @@ export function useAuth() {
 
       const data = await postLoginData(userLogin);
       authStore.setAccessToken(data.access_token);
-      showToast('success', "Registrierung erfolgreich!")
-      router.push('/'); // Navigate to home page
+      authStore.setUserId(userData.id);
+    } catch (error: unknown) {
+      console.log(error);
+      throw error;
+    }
   }
 
-  const postRegisterData = async (user: UserRegister) => {
+  const postRegisterData = async (user: UserRegister): Promise<UserMeGet> => {
     try {
-      const response = await api.post(
+      const result = await api.post(
         '/users/signup',
         user
       )
-      return response.data
+      showToast('success', 'Registrierung erfolgreich.');
+      return result.data
     } catch (error: unknown) {
         if (axios.isAxiosError(error)) {
-          console.error('Axios Error:', error.response?.data || error.message)
+          showToast('error', 'Fehler beim Registrierungsprozess. Versuche es später nochmal.');
         } else {
-          console.error('Unbekannter Fehler:', error)
+          showDefaultError();
         }
         throw error
   }
@@ -80,8 +97,10 @@ export function useAuth() {
 
   const logoutUser = () => {
     authStore.removeAccessToken();
-    showToast('success', "Logout erfolgreich!")
-    router.push('/login');
+    authStore.removeUserId();
+    showToast('success', "Logout erfolgreich.");
+    
+    router.replace({ path: '/login' })
   }
 
   return {
@@ -89,4 +108,4 @@ export function useAuth() {
     loginUser,
     logoutUser,
   }
-}
+} 

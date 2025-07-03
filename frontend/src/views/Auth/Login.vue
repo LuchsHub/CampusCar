@@ -1,29 +1,27 @@
 <script setup lang="ts">
-import axios from 'axios';
-import Input from '../components/Input.vue';
-import HoverButton from '../components/HoverButton.vue';
-import PageTitle from '../components/PageTitle.vue';
-import type { ButtonProps } from '../types/Props';
+import Input from '@/components/Input.vue';
+import HoverButton from '@/components/HoverButton.vue';
+import PageTitle from '@/components/PageTitle.vue';
+import type { ButtonProps } from '@/types/Props';
 import { ref } from 'vue';
-import { isValidEmail, required, validate } from '../services/validation'
-import type { ValidationSchema } from '../types/Validation';
-import { useAuth } from '../composables/useAuth';
-import { useToaster } from '../composables/useToaster';
-import { useUser } from '../composables/useUser';
+import { isValidEmail, required, validate } from '@/services/validation'
+import type { ValidationSchema } from '@/types/Validation';
+import { useAuth } from '@/composables/useAuth';
+import { useUser } from '@/composables/useUser';
+import router from '@/router';
 
 
 // composable functions
 const { loginUser } = useAuth();
-const { showToast, showDefaultError } = useToaster();
-const { getEmptyLoginUser } = useUser();
+const { getEmptyUserLogin } = useUser();
 
 
 // variables
-const userLogin = getEmptyLoginUser();
+const userLogin = getEmptyUserLogin();
 
 const userLoginValidationSchema: ValidationSchema = {
-  email: [required('E-Mail ist erforderlich'), isValidEmail()],
-  password: [required('Passwort ist erforderlich')],
+  email: [required('E-Mail'), isValidEmail()],
+  password: [required('Passwort')],
 }
 const errors = ref<Record<string, string[]>>({});
 
@@ -36,18 +34,9 @@ const tryLoginUser = async (): Promise<void> => {
     console.log(errors.value)
     return
   }
-  
-  // try to post input data
-  try {
-    await loginUser(userLogin)
-  } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      showToast("error", "Ungültige Anmeldedaten.")
-    } else {
-      showDefaultError();
-    }
-    throw error
-  }
+
+  await loginUser(userLogin);
+  router.push('/home');
 }
 
 // Hoverbuttons
@@ -85,18 +74,5 @@ const hoverButtons: ButtonProps[] = [
 <style scoped>
 .view-container h2:first-of-type {
   margin-top: 0;
-}
-
-.form-container {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: var(--horizontal-gap)
-}
-
-.error {
-  color: var(--color-support-danger-500);
-  font-size: var(--font-size-xs);
-  margin-bottom: 0.5em;
 }
 </style>

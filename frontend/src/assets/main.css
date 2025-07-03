@@ -36,10 +36,7 @@
   --color-support-danger-500: #EC2723;
   --color-support-danger-500-transparent: #EC272340;
 
-  /* CONSTANTS */
-  --app-padding-vertical: 35px;
-  --app-padding-horizontal: 30px;
-  
+  /* CONSTANTS */  
   --nav-min-height: 85px; /* minimal height of the bottom tab navigation bar */
   --hover-button-nav-margin: 40px;
   --hover-button-width-percentage: 80;
@@ -60,21 +57,29 @@
   --h2-margin-top: 35px; /* Defaults for every h2, can be omitted if h2 is directly beneath h1 (e.g. "Fahrt anbieten" screen) */
   --h2-margin-bottom: 20px;
 
+  /* Padding */
+  --app-padding-vertical: 35px;
+  --app-padding-horizontal: 30px;
+
   --button-padding-vertical: 12px;
   --button-padding-horizontal: 35px;
+
+  --container-padding-vertical: 12px;
+  --container-padding-horizontal: 24px;
   
   --input-padding-top: 24px;
-  --input-padding-bottom: 8px;
-  --input-padding-horizontal: 25px;
+
+  --single-hover-button-view-container-padding: 60px;
+  --double-hover-button-view-container-padding: 135px;
   
   /* vertical lines (e.g. "Profil", "Fahrtverlauf" screens) */
   --line-width-s: 1px;
   --line-width-m: 2px;
 
   /* icons */
-  --icon-height-xl: 25px;
-  --icon-height-md: 20px;
-  --icon-height-s: 15px;
+  --icon-xl: 35px;
+  --icon-md: 30px;
+  --icon-s: 25px;
 
   /* misc */
   --checkbox-size: 25px;
@@ -130,6 +135,30 @@ body {
   justify-content: center;
   align-items: flex-start;
   width: 100%;
+}
+
+.form-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--horizontal-gap)
+}
+
+hr {
+  border: none;
+  border-top: var(--line-width-s) solid var(--color-neutral-300);
+  margin: var(--horizontal-gap) 0;
+  width: 100%;
+}
+
+.width-100 {
+  width: 100%;
+}
+
+.error-message-container {
+  padding: var(--container-padding-vertical) var(--container-padding-horizontal);
+  background-color: var(--color-support-danger-500-transparent);
+  border-radius: var(--border-radius);
 }
 
 .high-hover-button { /* show the hoverButton above the tab bar */
@@ -193,6 +222,11 @@ a {
   font-weight: var(--font-weight-bold);
 }
 
+/* text decoration */
+.text-strikethrough {
+  text-decoration: line-through;
+}
+
 /* Text colors */
 .text-primary {
   color: var(--color-primary-500)
@@ -217,19 +251,63 @@ a {
 .text-danger {
   color: var(--color-support-danger-500)
 }
+.text-success {
+  color: var(--color-support-positive-500)
+}
 
 /* ICONS */
 .icon-xl {
-  height: var(--icon-height-xl);
+  height: var(--icon-xl);
+  width: var(--icon-xl);
 }
 .icon-l {
-  height: var(--icon-height-md);
+  height: var(--icon-md);
+  width: var(--icon-md);
 }
 .icon-s {
-  height: var(--icon-height-s);
+  height: var(--icon-s);
+  width: var(--icon-s);
 }
 
-/* PADDING */
-.padding-top-small {
-  padding-top: 5px
+/* PADDING (Feel free to add stuff as you go */
+.padding-bottom-hb-1 { /* Add this to the view-container if a single hoverbutton hides some of the contents */
+  padding-bottom: var(--single-hover-button-view-container-padding);
+}
+
+.padding-bottom-hb-2 { /* Add this to the view-container if a double hoverbutton hides some of the contents */
+  padding-bottom: var(--double-hover-button-view-container-padding);
+}
+
+
+/* MARGIN (Feel free to add stuff as you go */
+
+/* TOP */
+.margin-top-s {
+  margin-top: 5px;
+}
+
+/* LEFT */
+.margin-left-s {
+  margin-left: 5px;
+}
+
+.margin-left-md {
+  margin-left: 10px;
+}
+
+.margin-left-l {
+  margin-left: 20px;
+}
+
+/* BOTTOM */
+.margin-botton-s {
+  margin-bottom: 5px;
+}
+
+.margin-botton-md {
+  margin-bottom: 10px;
+}
+
+.margin-botton-l {
+  margin-bottom: 20px;
 }

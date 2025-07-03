@@ -1,18 +1,27 @@
 <script setup lang="ts">
     import { ChevronLeft } from 'lucide-vue-next'
     import type { PageTitleProps } from '../types/Props'
+    import { useRouter } from 'vue-router'
 
     const props = defineProps<PageTitleProps>()
+    const router = useRouter()
+
+    const goBack = () => {
+        if (props.goBack) {
+            router.go(-1)
+        }
+    }
 </script>
 
 <template>
     <div class="page-title-container">
-        <router-link 
-            v-if="props.to"
-            :to="props.to"
+        <button 
+            v-if="props.goBack"
+            @click="goBack"
+            class="back-button"
         >
             <ChevronLeft class="icon-xl"/>
-        </router-link>
+        </button>
         <h1><slot/></h1>
     </div>
 </template>
@@ -25,5 +34,15 @@
     align-items: center;
     gap: var(--page-title-back-arrow-gap);
     margin-bottom: var(--page-title-margin-bottom)
+}
+
+.back-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 </style>

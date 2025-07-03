@@ -6,9 +6,9 @@ import type { TabItem } from '../types/TabItem'
 const route = useRoute()
 
 const items: TabItem[] = [
-  { label: 'Home', to: '/', icon: Home },
-  { label: 'Beispiel', to: '/example', icon: Car },
-  { label: 'Styles', to: '/styles', icon: User }
+  { label: 'Home', to: '/home', icon: Home },
+  { label: 'Fahrten', to: '/my_rides', icon: Car },
+  { label: 'Profil', to: '/profile', icon: User }
 ]
 
 const isActive = (path: string): boolean => route.path === path
@@ -24,7 +24,7 @@ const isActive = (path: string): boolean => route.path === path
         class="text-xs text-bold text-neutral-300"
         :class="{ 'text-neutral-900': isActive(item.to) }"
       >
-        <component :is="item.icon" class="icon-xl" />
+        <component :is="item.icon" class="icon-md" />
         {{ item.label }}
       </RouterLink>
     </div>
@@ -34,6 +34,7 @@ const isActive = (path: string): boolean => route.path === path
 <style scoped>
 nav {
   position: fixed;
+  z-index: 1000;
   margin: auto;
   display: flex;
   justify-content: center;
