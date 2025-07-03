@@ -281,8 +281,8 @@ def delete_user(
     return Message(message="User deleted successfully")
 
 
-@router.post("/{user_id}/charge", response_model=User)
-def post_charges(session: SessionDep, current_user: CurrentUser, charges: float) -> User:
+@router.post("/charge", response_model=UserPublic)
+def post_charges(session: SessionDep, current_user: CurrentUser, charges: float) -> UserPublic:
     """
     Post new user charges
     """
