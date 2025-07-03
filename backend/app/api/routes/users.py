@@ -271,3 +271,21 @@ def delete_user(
     session.delete(user)
     session.commit()
     return Message(message="User deleted successfully")
+
+
+@router.post("/{user_id}/charges", response_model=User)
+def post_charges(session: SessionDep, currentuser: CurrentUser, user_id: uuid.UUID, charges: int) -> User:
+    """
+    Post new user charges
+    """
+    user = session.get(User, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    user.points = user.points + charges
+
+    session.add(user)
+    session.commit()
+    session.refresh(user)
+
+    return user
