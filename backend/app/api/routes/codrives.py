@@ -14,7 +14,9 @@ from app.crud import get_or_create_location
 from app.models import (
     Codrive,
     CodriveCreate,
+    CodrivePassenger,
     CodrivePublic,
+    CodriveRequestPublic,
     Location,
     LocationPublic,
     PassengerArrival,
@@ -324,6 +326,53 @@ def accept_codrive(
     session.commit()
     session.refresh(ride)
 
-    accepted_codrives = [c for c in ride.codrives if c.accepted]
+    accepted_codrives_public = []
+    requested_codrives_public = []
 
-    return RidePublic.model_validate(ride, update={"codrives": accepted_codrives})
+    users_by_id = {str(ride.driver.id): UserPublic.model_validate(ride.driver)}
+    for c in ride.codrives:
+        users_by_id[str(c.user_id)] = UserPublic.model_validate(c.user)
+
+    for codrive in ride.codrives:
+        if codrive.accepted:
+            accepted_codrives_public.append(CodrivePassenger.model_validate(codrive))
+        elif codrive.route_update:
+            db_route_update = RouteUpdate.model_validate(codrive.route_update)
+            passenger_arrivals: list[PassengerArrivalTime] = []
+            for (
+                user_id_str,
+                arrival_details,
+            ) in db_route_update.codriver_arrival_times.items():
+                user_public_obj = users_by_id.get(user_id_str)
+                if user_public_obj:
+                    passenger_arrivals.append(
+                        PassengerArrivalTime(
+                            user=user_public_obj,
+                            arrival_date=arrival_details.date,
+                            arrival_time=arrival_details.time,
+                        )
+                    )
+            route_update_public = RouteUpdatePublic(
+                geometry=db_route_update.geometry,
+                distance_meters=db_route_update.distance_meters,
+                duration_seconds=db_route_update.duration_seconds,
+                updated_ride_departure_date=db_route_update.updated_ride_departure_date,
+                updated_ride_departure_time=db_route_update.updated_ride_departure_time,
+                codriver_arrival_times=passenger_arrivals,
+            )
+            requested_codrives_public.append(
+                CodriveRequestPublic(
+                    id=codrive.id,
+                    user=UserPublic.model_validate(codrive.user),
+                    location=LocationPublic.model_validate(codrive.location),
+                    route_update=route_update_public,
+                )
+            )
+
+    return RidePublic.model_validate(
+        ride,
+        update={
+            "codrives": accepted_codrives_public,
+            "requested_codrives": requested_codrives_public,
+        },
+    )
