@@ -3,11 +3,12 @@ import PageTitle from '@/components/PageTitle.vue';
 import HoverButton from '@/components/HoverButton.vue';
 import type { ButtonProps } from '@/types/Props';
 import TabSwitcher from '@/components/TabSwitcher.vue';
-import { ref, onMounted, computed } from 'vue';
-import type { RideGet } from '@/types/Ride';
-import { useRide } from '@/types/useRide';
+import { ref, onMounted, computed, type ComputedRef } from 'vue';
+import type { RideGetDto } from '@/types/Ride';
+import { useRide } from '@/composables/useRide';
 import { useAuthStore } from '@/stores/AuthStore';
-import RideCardArne from '@/components/RideCardArne.vue';
+import RideCard from '@/components/RideCard.vue';
+import { sortRidesByDateAsc } from '@/services/utils';
 
 const { getRidesForUser } = useRide()
 const authStore = useAuthStore();
@@ -20,33 +21,27 @@ const hoverButtons: ButtonProps[] = [
 ]
 
 // Variables 
-const userRides = ref<RideGet[]>([]);
+const userOwnRides = ref<RideGetDto[]>([]);
 
 // fetch data async from backend when component gets loaded
 onMounted(async () => {
-  userRides.value = await getRidesForUser(authStore.userId);
-  console.log(userRides.value);
+  userOwnRides.value = await getRidesForUser(authStore.userId);
 })
 
-const sortedRides = computed(() => {
-  return [...userRides.value].sort((a, b) => {
-    // Combine date and time for comparison
-    const aDate = new Date(`${a.departure_date}T${a.departure_time}`);
-    const bDate = new Date(`${b.departure_date}T${b.departure_time}`);
-    return aDate.getTime() - bDate.getTime();
-  });
+const sortedRides: ComputedRef<RideGetDto[]> = computed(() => {
+  return sortRidesByDateAsc(userOwnRides.value);
 });
 
 const now = () => new Date();
 
-const upcomingRides = computed<RideGet[]>(() =>
+const upcomingRides = computed<RideGetDto[]>(() =>
   sortedRides.value.filter(ride => {
     const rideDate = new Date(`${ride.departure_date}T${ride.departure_time}`);
     return rideDate >= now();
   })
 );
 
-const pastRides = computed<RideGet[]>(() =>
+const pastRides = computed<RideGetDto[]>(() =>
   sortedRides.value.filter(ride => {
     const rideDate = new Date(`${ride.departure_date}T${ride.departure_time}`);
     return rideDate < now();
@@ -55,30 +50,26 @@ const pastRides = computed<RideGet[]>(() =>
 </script>
 
 <template>
-  <div class="view-container">
+  <div class="view-container" :class="`padding-bottom-hb-${hoverButtons.length}`">
     <PageTitle>Meine Fahrten</PageTitle>
 
     <TabSwitcher v-model="activeTab" :tabs="tabs" />
       
     <div v-if="activeTab === 'Bevorstehend'" class="width-100">
         <template v-for="(ride, index) in upcomingRides" :key="ride.id">
-          <RideCardArne
-            :ride="ride"
-            type="own"
-            state="accepted"
-          />
-          <hr v-if="index < userRides.length - 1" />
+          <RideCard :ride="ride"/>
+          <hr v-if="index < upcomingRides.length - 1" />
         </template>
       </div>
     
       <div v-else class="width-100">
         <template v-for="(ride, index) in pastRides" :key="ride.id">
-          <RideCardArne
+          <RideCard
             :ride="ride"
             type="own"
             state="accepted"
           />
-          <hr v-if="index < userRides.length - 1" />
+          <hr v-if="index < pastRides.length - 1" />
         </template>
       </div>
     <HoverButton :buttons="hoverButtons"/>

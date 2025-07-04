@@ -1,8 +1,13 @@
 import datetime
+import math
+import uuid
 from typing import Any
 
 import openrouteservice  # type: ignore
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, Query, status
+from sqlalchemy.orm import selectinload
+from sqlmodel import func, or_, select
+from sqlmodel.sql.expression import SelectOfScalar
 
 from app.api.deps import (
     CurrentUser,
@@ -10,7 +15,23 @@ from app.api.deps import (
     SessionDep,
 )
 from app.crud import get_or_create_location
-from app.models import Car, Ride, RideCreate, RidePublic
+from app.models import (
+    Car,
+    Codrive,
+    CodrivePassenger,
+    CodriveRequestPublic,
+    Location,
+    LocationPublic,
+    PassengerArrivalTime,
+    Ride,
+    RideCreate,
+    RidePublic,
+    RidesPublic,
+    RouteUpdate,
+    RouteUpdatePublic,
+    User,
+    UserPublic,
+)
 
 router = APIRouter(prefix="/rides", tags=["rides"])
 
@@ -37,7 +58,6 @@ def create_ride(
             detail="Car not found or you are not the owner.",
         )
 
-    # Get or create the location objects
     start_location = get_or_create_location(ride_in.start_location, session, ors_client)
     end_location = get_or_create_location(ride_in.end_location, session, ors_client)
 
@@ -88,8 +108,321 @@ def create_ride(
 
     session.add(db_ride)
     session.commit()
+
     session.refresh(db_ride)
+    ride_from_db = session.get(
+        Ride,
+        db_ride.id,
+        options=[
+            selectinload(Ride.driver).options(selectinload(User.location)),  # type: ignore[arg-type]
+            selectinload(Ride.car),  # type: ignore[arg-type]
+            selectinload(Ride.start_location),  # type: ignore[arg-type]
+            selectinload(Ride.end_location),  # type: ignore[arg-type]
+        ],
+    )
+    if not ride_from_db:
+        raise HTTPException(status_code=500, detail="Could not retrieve created ride")
 
-    ride_public = RidePublic.model_validate(db_ride)
+    return RidePublic.model_validate(
+        ride_from_db, update={"codrives": [], "requested_codrives": []}
+    )
 
-    return ride_public
+
+def get_rides_statement() -> SelectOfScalar[Ride]:
+    """Returns a statement to select rides with all related data eagerly loaded."""
+    return select(Ride).options(
+        selectinload(Ride.driver).options(selectinload(User.location)),  # type: ignore[arg-type]
+        selectinload(Ride.car),  # type: ignore[arg-type]
+        selectinload(Ride.start_location),  # type: ignore[arg-type]
+        selectinload(Ride.end_location),  # type: ignore[arg-type]
+        selectinload(Ride.codrives).options(  # type: ignore[arg-type]
+            selectinload(Codrive.user).options(selectinload(User.location)),  # type: ignore[arg-type]
+            selectinload(Codrive.location),  # type: ignore[arg-type]
+        ),
+    )
+
+
+@router.get("/", response_model=RidesPublic)
+def read_rides(
+    session: SessionDep,
+    ors_client: ORS_Client,
+    offset: int = 0,
+    limit: int = Query(default=100, le=200),
+    earliest_arrival_date: datetime.date | None = Query(
+        default=None, description="Filter for rides arriving on or after this date."
+    ),
+    latest_arrival_date: datetime.date | None = Query(
+        default=None, description="Filter for rides arriving on or before this date."
+    ),
+    latest_arrival_time: datetime.time | None = Query(
+        default=None,
+        description="Filter for rides arriving on latest_arrival_date at or before this time. Requires latest_arrival_date to be set.",
+    ),
+    location_address: str | None = Query(
+        default=None,
+        description="An address to search for rides starting or ending nearby.",
+    ),
+    max_distance_km: float = Query(
+        default=10.0,
+        description="The maximum distance in km from the location_address to search for rides.",
+    ),
+) -> Any:
+    """
+    Get all rides, with optional filters for arrival time and location.
+    """
+    if latest_arrival_time and not latest_arrival_date:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="latest_arrival_time requires latest_arrival_date to be set.",
+        )
+
+    stmt = get_rides_statement()
+
+    if earliest_arrival_date:
+        stmt = stmt.where(Ride.arrival_date >= earliest_arrival_date)
+
+    if latest_arrival_date:
+        if latest_arrival_time:
+            stmt = stmt.where(
+                or_(
+                    Ride.arrival_date < latest_arrival_date,
+                    (Ride.arrival_date == latest_arrival_date)
+                    & (Ride.arrival_time <= latest_arrival_time),
+                )
+            )
+        else:
+            stmt = stmt.where(Ride.arrival_date <= latest_arrival_date)
+
+    if location_address:
+        try:
+            geocode = ors_client.pelias_search(text=location_address, size=1)
+            lon, lat = geocode["features"][0]["geometry"]["coordinates"]
+        except (openrouteservice.exceptions.ApiError, IndexError):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Could not find coordinates for address: {location_address}",
+            )
+
+        lat_delta = max_distance_km / 111.0
+        lon_delta = max_distance_km / (111.0 * math.cos(math.radians(lat)))
+
+        nearby_loc_subquery = (
+            select(Location.id)
+            .where(Location.latitude.between(lat - lat_delta, lat + lat_delta))  # type: ignore[attr-defined]
+            .where(Location.longitude.between(lon - lon_delta, lon + lon_delta))  # type: ignore[attr-defined]
+        ).scalar_subquery()
+
+        stmt = stmt.where(
+            or_(
+                Ride.start_location_id.in_(nearby_loc_subquery),  # type: ignore[attr-defined]
+                Ride.end_location_id.in_(nearby_loc_subquery),  # type: ignore[attr-defined]
+            )
+        )
+
+    count_stmt = select(func.count()).select_from(stmt.subquery())
+    count = session.exec(count_stmt).one()
+
+    rides_stmt = stmt.offset(offset).limit(limit)
+    rides = session.exec(rides_stmt).all()
+
+    public_rides = []
+    for ride in rides:
+        accepted_codrives_public = []
+        requested_codrives_public = []
+
+        users_by_id = {str(ride.driver.id): UserPublic.model_validate(ride.driver)}
+        for c in ride.codrives:
+            users_by_id[str(c.user_id)] = UserPublic.model_validate(c.user)
+
+        for codrive in ride.codrives:
+            if codrive.accepted:
+                accepted_codrives_public.append(
+                    CodrivePassenger.model_validate(codrive)
+                )
+            elif codrive.route_update:
+                db_route_update = RouteUpdate.model_validate(codrive.route_update)
+                passenger_arrivals: list[PassengerArrivalTime] = []
+                for (
+                    user_id_str,
+                    arrival_details,
+                ) in db_route_update.codriver_arrival_times.items():
+                    user_public_obj = users_by_id.get(user_id_str)
+                    if user_public_obj:
+                        passenger_arrivals.append(
+                            PassengerArrivalTime(
+                                user=user_public_obj,
+                                arrival_date=arrival_details.date,
+                                arrival_time=arrival_details.time,
+                            )
+                        )
+                route_update_public = RouteUpdatePublic(
+                    geometry=db_route_update.geometry,
+                    distance_meters=db_route_update.distance_meters,
+                    duration_seconds=db_route_update.duration_seconds,
+                    updated_ride_departure_date=db_route_update.updated_ride_departure_date,
+                    updated_ride_departure_time=db_route_update.updated_ride_departure_time,
+                    codriver_arrival_times=passenger_arrivals,
+                )
+                requested_codrives_public.append(
+                    CodriveRequestPublic(
+                        id=codrive.id,
+                        user=UserPublic.model_validate(codrive.user),
+                        location=LocationPublic.model_validate(codrive.location),
+                        route_update=route_update_public,
+                    )
+                )
+
+        public_rides.append(
+            RidePublic.model_validate(
+                ride,
+                update={
+                    "codrives": accepted_codrives_public,
+                    "requested_codrives": requested_codrives_public,
+                },
+            )
+        )
+
+    return RidesPublic(data=public_rides, count=count)
+
+
+@router.get("/by_driver/{user_id}", response_model=RidesPublic)
+def read_rides_by_driver(
+    user_id: uuid.UUID,
+    session: SessionDep,
+    offset: int = 0,
+    limit: int = Query(default=100, le=200),
+) -> Any:
+    """
+    Get all rides for a specific driver.
+    """
+    stmt = get_rides_statement().where(Ride.driver_id == user_id)
+
+    count_stmt = select(func.count()).select_from(stmt.subquery())
+    count = session.exec(count_stmt).one()
+
+    rides_stmt = stmt.offset(offset).limit(limit)
+    rides = session.exec(rides_stmt).all()
+
+    public_rides = []
+    for ride in rides:
+        accepted_codrives_public = []
+        requested_codrives_public = []
+
+        users_by_id = {str(ride.driver.id): UserPublic.model_validate(ride.driver)}
+        for c in ride.codrives:
+            users_by_id[str(c.user_id)] = UserPublic.model_validate(c.user)
+
+        for codrive in ride.codrives:
+            if codrive.accepted:
+                accepted_codrives_public.append(
+                    CodrivePassenger.model_validate(codrive)
+                )
+            elif codrive.route_update:
+                db_route_update = RouteUpdate.model_validate(codrive.route_update)
+                passenger_arrivals: list[PassengerArrivalTime] = []
+                for (
+                    user_id_str,
+                    arrival_details,
+                ) in db_route_update.codriver_arrival_times.items():
+                    user_public_obj = users_by_id.get(user_id_str)
+                    if user_public_obj:
+                        passenger_arrivals.append(
+                            PassengerArrivalTime(
+                                user=user_public_obj,
+                                arrival_date=arrival_details.date,
+                                arrival_time=arrival_details.time,
+                            )
+                        )
+                route_update_public = RouteUpdatePublic(
+                    geometry=db_route_update.geometry,
+                    distance_meters=db_route_update.distance_meters,
+                    duration_seconds=db_route_update.duration_seconds,
+                    updated_ride_departure_date=db_route_update.updated_ride_departure_date,
+                    updated_ride_departure_time=db_route_update.updated_ride_departure_time,
+                    codriver_arrival_times=passenger_arrivals,
+                )
+                requested_codrives_public.append(
+                    CodriveRequestPublic(
+                        id=codrive.id,
+                        user=UserPublic.model_validate(codrive.user),
+                        location=LocationPublic.model_validate(codrive.location),
+                        route_update=route_update_public,
+                    )
+                )
+
+        public_rides.append(
+            RidePublic.model_validate(
+                ride,
+                update={
+                    "codrives": accepted_codrives_public,
+                    "requested_codrives": requested_codrives_public,
+                },
+            )
+        )
+
+    return RidesPublic(data=public_rides, count=count)
+
+
+@router.get("/{ride_id}", response_model=RidePublic)
+def read_ride_by_id(ride_id: uuid.UUID, session: SessionDep) -> Any:
+    """
+    Get a specific ride by its ID.
+    """
+    stmt = get_rides_statement().where(Ride.id == ride_id)
+    ride = session.exec(stmt).first()
+
+    if not ride:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Ride not found"
+        )
+
+    accepted_codrives_public = []
+    requested_codrives_public = []
+
+    users_by_id = {str(ride.driver.id): UserPublic.model_validate(ride.driver)}
+    for c in ride.codrives:
+        users_by_id[str(c.user_id)] = UserPublic.model_validate(c.user)
+
+    for codrive in ride.codrives:
+        if codrive.accepted:
+            accepted_codrives_public.append(CodrivePassenger.model_validate(codrive))
+        elif codrive.route_update:
+            db_route_update = RouteUpdate.model_validate(codrive.route_update)
+            passenger_arrivals: list[PassengerArrivalTime] = []
+            for (
+                user_id_str,
+                arrival_details,
+            ) in db_route_update.codriver_arrival_times.items():
+                user_public_obj = users_by_id.get(user_id_str)
+                if user_public_obj:
+                    passenger_arrivals.append(
+                        PassengerArrivalTime(
+                            user=user_public_obj,
+                            arrival_date=arrival_details.date,
+                            arrival_time=arrival_details.time,
+                        )
+                    )
+            route_update_public = RouteUpdatePublic(
+                geometry=db_route_update.geometry,
+                distance_meters=db_route_update.distance_meters,
+                duration_seconds=db_route_update.duration_seconds,
+                updated_ride_departure_date=db_route_update.updated_ride_departure_date,
+                updated_ride_departure_time=db_route_update.updated_ride_departure_time,
+                codriver_arrival_times=passenger_arrivals,
+            )
+            requested_codrives_public.append(
+                CodriveRequestPublic(
+                    id=codrive.id,
+                    user=UserPublic.model_validate(codrive.user),
+                    location=LocationPublic.model_validate(codrive.location),
+                    route_update=route_update_public,
+                )
+            )
+
+    return RidePublic.model_validate(
+        ride,
+        update={
+            "codrives": accepted_codrives_public,
+            "requested_codrives": requested_codrives_public,
+        },
+    )

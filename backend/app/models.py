@@ -121,6 +121,14 @@ class CarUpdate(SQLModel):
     license_plate: str | None = Field(default=None, max_length=255)
 
 
+class CarPublic(SQLModel):
+    id: uuid.UUID
+    n_seats: int
+    model: str | None
+    brand: str | None
+    color: str | None
+
+
 class Location(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
 
@@ -234,6 +242,14 @@ class CodrivePassenger(SQLModel):
     location: LocationPublic
     arrival_date: datetime.date
     arrival_time: datetime.time
+    point_contribution: int
+
+
+class CodriveRequestPublic(SQLModel):
+    id: uuid.UUID
+    user: UserPublic
+    location: LocationPublic
+    route_update: RouteUpdatePublic
 
 
 class Rating(SQLModel, table=True):
@@ -265,6 +281,7 @@ class Ride(SQLModel, table=True):
 
     codrives: list["Codrive"] = Relationship(back_populates="ride")
     n_codrives: int = Field(default=0)
+    total_points: int = Field(default=0)
 
     start_location_id: uuid.UUID = Field(foreign_key="location.id")
     end_location_id: uuid.UUID = Field(foreign_key="location.id")
@@ -306,17 +323,22 @@ class RideCreate(SQLModel):
 
 
 class RidePublic(SQLModel):
-    """Properties to return via API for a single ride."""
+    """Properties to return via API for a single ride, including related data."""
 
     id: uuid.UUID
-    driver_id: uuid.UUID
-    car_id: uuid.UUID
+    driver: UserPublic
+    car: CarPublic
+    codrives: list[CodrivePassenger]
+    requested_codrives: list[CodriveRequestPublic]
+
     departure_date: datetime.date
     departure_time: datetime.time
     arrival_date: datetime.date
     arrival_time: datetime.time
+
     max_n_codrives: int
     n_codrives: int
+    total_points: int
 
     start_location: LocationPublic
     end_location: LocationPublic
@@ -324,11 +346,12 @@ class RidePublic(SQLModel):
     route_geometry: list[list[float]]
     max_request_distance: float | None
     estimated_duration_seconds: int
-    estimated_distance_meters: float
+    estimated_distance_meters: int
 
 
-class RideWithPassengersPublic(RidePublic):
-    codrives: list[CodrivePassenger]
+class RidesPublic(SQLModel):
+    data: list[RidePublic]
+    count: int
 
 
 # Generic message

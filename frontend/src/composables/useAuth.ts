@@ -1,6 +1,6 @@
 import api from '@/services/api'
 import { useAuthStore } from '@/stores/AuthStore';
-import type { UserRegister, UserLogin, UserMeGet } from '@/types/User';
+import type { UserRegister, UserLogin, UserGet } from '@/types/User';
 import axios from 'axios';
 import { useToaster } from '@/composables/useToaster';
 import { useUser } from './useUser';
@@ -60,7 +60,7 @@ export function useAuth() {
 
   const registerUser = async (user: UserRegister): Promise<void> => {
     try {
-      const userData: UserMeGet = await postRegisterData(user);
+      const userData: UserGet = await postRegisterData(user);
 
       // turn UserRegister into UserLogin
       const userLogin: UserLogin = {
@@ -77,7 +77,7 @@ export function useAuth() {
     }
   }
 
-  const postRegisterData = async (user: UserRegister): Promise<UserMeGet> => {
+  const postRegisterData = async (user: UserRegister): Promise<UserGet> => {
     try {
       const result = await api.post(
         '/users/signup',
