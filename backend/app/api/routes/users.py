@@ -284,7 +284,7 @@ def delete_user(
 @router.post("/charge", response_model=UserPublic)
 def post_charges(session: SessionDep, current_user: CurrentUser, charges: float) -> UserPublic:
     """
-    Post new user charges
+    Post new user charges.
     """
     if not current_user:
         raise HTTPException(status_code=404, detail="User not found")
