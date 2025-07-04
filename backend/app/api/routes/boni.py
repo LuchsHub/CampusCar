@@ -50,18 +50,20 @@ def get_boni_by_user(
     current_user: CurrentUser,
 ) -> Sequence[Bonus]:
     """Assigns bonus for current user."""
+    bonus: Bonus = session.get(Bonus, bonus_id)
     if not current_user:
         raise HTTPException(status_code=404, detail="User not found")
-    bonus = session.get(Bonus, bonus_id)
-    if not boni:
+    elif not bonus:
         raise HTTPException(status_code=404, detail="Bonus not found")
+    elif current_user.points<bonus.cost:
+        raise HTTPException(status_code=401, detail="User has too little money")
+    else:
+        current_user.points = current_user.points - bonus.cost
+        current_user.boni.append(bonus)
 
-    current_user.points = current_user.points - bonus.cost
-    current_user.boni.append(bonus)
-
-    session.add(current_user)
-    session.commit()
-    session.refresh(current_user)
+        session.add(current_user)
+        session.commit()
+        session.refresh(current_user)
     return current_user.boni
 
 
