@@ -144,7 +144,6 @@ class Bonus(SQLModel, table=True):
 
 
 class BonusCreate(SQLModel):
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     name: str = Field(default=None, max_length=255)
     cost: int = Field(default=None)
 

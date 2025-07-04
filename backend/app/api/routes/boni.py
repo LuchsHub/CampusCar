@@ -10,6 +10,16 @@ from app.models import Bonus, BonusCreate, BonusUpdate, BonusPublic, Message, Us
 router = APIRouter(prefix="/boni", tags=["boni"])
 
 
+@router.get("/", response_model=list[Bonus])
+def get_boni_by_user(
+    session: SessionDep,
+    current_user: CurrentUser,
+) -> Sequence[Bonus]:
+    """Get boni for current user."""
+    boni = session.exec(select(Bonus).where(Bonus.assigned_user.contains(current_user))).all()
+    return boni
+
+
 @router.get("/all/", response_model=list[BonusPublic])
 def get_boni(
     session: SessionDep,
@@ -19,30 +29,21 @@ def get_boni(
     return boni
 
 
-@router.post("/boni/", response_model=BonusPublic, status_code=status.HTTP_201_CREATED)
+@router.post("/new-boni/", response_model=BonusPublic, status_code=status.HTTP_201_CREATED)
 def create_boni(
     bonus_in: BonusCreate,
     session: SessionDep,
 ) -> BonusPublic:
     """Create a new boni."""
     bonus = Bonus.model_validate(bonus_in)
+    
     session.add(bonus)
     session.commit()
     session.refresh(bonus)
     return bonus
 
 
-@router.get("/", response_model=list[Bonus])
-def get_boni_by_user(
-    session: SessionDep,
-    current_user: CurrentUser,
-) -> Sequence[Bonus]:
-    """Get boni for current user."""
-    boni = session.exec(select(Bonus).where(Bonus.assigned_user == current_user)).all()
-    return boni
-
-
-@router.get("/assign", response_model=list[Bonus])
+@router.post("/assign/{bonus_id}", response_model=list[Bonus])
 def get_boni_by_user(
     bonus_id: uuid.UUID,
     session: SessionDep,
