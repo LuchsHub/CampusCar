@@ -5,7 +5,7 @@ from fastapi import APIRouter, HTTPException, status
 from sqlmodel import select
 
 from app.api.deps import CurrentUser, SessionDep
-from app.models import Bonus, BonusCreate, BonusUpdate, BonusPublic, Message
+from app.models import Bonus, BonusCreate, BonusUpdate, BonusPublic, Message, User
 
 router = APIRouter(prefix="/boni", tags=["boni"])
 
@@ -44,24 +44,35 @@ def get_boni_by_user(
 
 @router.get("/assign", response_model=list[Bonus])
 def get_boni_by_user(
+    bonus_id: uuid.UUID,
     session: SessionDep,
     current_user: CurrentUser,
 ) -> Sequence[Bonus]:
     """Assigns bonus for current user."""
-    boni = session.exec(select(Bonus).where(Bonus.assigned_user == current_user)).all()
-    return boni
+    if not current_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    boni = session.get(Bonus, bonus_id)
+    if not boni:
+        raise HTTPException(status_code=404, detail="Bonus not found")
+
+    current_user.boni.append(boni)
+
+    session.add(current_user)
+    session.commit()
+    session.refresh(current_user)
+    return current_user.boni
 
 
 @router.delete("/{bonus_id}", response_model=Message)
-def delete_car(
+def delete_bonus(
     bonus_id: uuid.UUID,
     session: SessionDep,
 ) -> Message:
     """Delete a bonus."""
     bonus = session.get(Bonus, bonus_id)
     if not bonus:
-        raise HTTPException(status_code=404, detail="Car not found")
+        raise HTTPException(status_code=404, detail="Bonus not found")
     
     session.delete(bonus)
     session.commit()
-    return Message(message="Car deleted")
+    return Message(message="Bonus deleted")
