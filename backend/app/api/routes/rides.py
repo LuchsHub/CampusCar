@@ -269,6 +269,8 @@ def read_rides(
                         user=UserPublic.model_validate(codrive.user),
                         location=LocationPublic.model_validate(codrive.location),
                         route_update=route_update_public,
+                        point_contribution=codrive.point_contribution,
+                        message=codrive.message,
                     )
                 )
 
@@ -347,6 +349,8 @@ def read_rides_by_driver(
                         user=UserPublic.model_validate(codrive.user),
                         location=LocationPublic.model_validate(codrive.location),
                         route_update=route_update_public,
+                        point_contribution=codrive.point_contribution,
+                        message=codrive.message,
                     )
                 )
 
@@ -416,6 +420,8 @@ def read_ride_by_id(ride_id: uuid.UUID, session: SessionDep) -> Any:
                     user=UserPublic.model_validate(codrive.user),
                     location=LocationPublic.model_validate(codrive.location),
                     route_update=route_update_public,
+                    point_contribution=codrive.point_contribution,
+                    message=codrive.message,
                 )
             )
 

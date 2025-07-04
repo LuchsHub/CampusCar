@@ -216,6 +216,7 @@ class Codrive(SQLModel, table=True):
     arrival_date: datetime.date = Field()
     arrival_time: datetime.time = Field()
     point_contribution: int = Field(default=0)
+    message: str | None = Field(default=None)
     route_update: RouteUpdate | None = Field(default=None, sa_column=Column(JSON))
     accepted: bool = Field(default=False)
     paid: bool = Field(default=False)
@@ -223,6 +224,7 @@ class Codrive(SQLModel, table=True):
 
 class CodriveCreate(SQLModel):
     location: LocationCreate
+    message: str | None = Field(default=None)
 
 
 class CodrivePublic(SQLModel):
@@ -250,6 +252,8 @@ class CodriveRequestPublic(SQLModel):
     user: UserPublic
     location: LocationPublic
     route_update: RouteUpdatePublic
+    point_contribution: int
+    message: str | None = Field(default=None)
 
 
 class Rating(SQLModel, table=True):

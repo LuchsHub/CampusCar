@@ -213,6 +213,7 @@ def request_codrive(
         arrival_date=current_user_arrival.date,
         arrival_time=current_user_arrival.time,
         point_contribution=round(added_distance / 100),
+        message=codrive_in.message,
         route_update=route_update_obj.model_dump(mode="json"),
     )
     session.add(codrive_db)
@@ -264,7 +265,11 @@ def request_codrive(
 
 @router.patch("/{codrive_id}/accept", response_model=RidePublic)
 def accept_codrive(
-    *, session: SessionDep, current_user: CurrentUser, codrive_id: uuid.UUID
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    ors_client: ORS_Client,
+    codrive_id: uuid.UUID,
 ) -> Any:
     codrive_to_accept = session.get(
         Codrive,
@@ -311,7 +316,11 @@ def accept_codrive(
     ride.n_codrives += 1
     ride.total_points += codrive_to_accept.point_contribution
 
+    codrive_to_accept.accepted = True
+
     for codrive in ride.codrives:
+        if not codrive.accepted:
+            continue
         user_id_str = str(codrive.user_id)
         if user_id_str in update_data.codriver_arrival_times:
             arrival_details = update_data.codriver_arrival_times[user_id_str]
@@ -319,9 +328,89 @@ def accept_codrive(
             codrive.arrival_time = arrival_details.time
             session.add(codrive)
 
-    codrive_to_accept.accepted = True
     session.add(codrive_to_accept)
     session.add(ride)
+
+    # Update other pending requests
+    pending_requests = [c for c in ride.codrives if not c.accepted]
+    if pending_requests:
+        accepted_codrives = [c for c in ride.codrives if c.accepted]
+        accepted_codrive_locations = [c.location for c in accepted_codrives]
+        for pending_codrive in pending_requests:
+            all_passengers_by_loc_id = {
+                c.location_id: c.user_id for c in accepted_codrives
+            }
+            all_pickup_locations = (
+                [ride.start_location]
+                + accepted_codrive_locations
+                + [pending_codrive.location]
+            )
+            projections: list[Projection] = [
+                {
+                    "location": loc,
+                    "proj_dist": get_projection_distance(
+                        (loc.longitude, loc.latitude), ride.route_geometry
+                    ),
+                }
+                for loc in all_pickup_locations
+            ]
+            projections.sort(key=lambda x: x["proj_dist"])
+            ordered_pickup_locations = [p["location"] for p in projections]
+            final_route_locations = ordered_pickup_locations + [ride.end_location]
+            final_route_coords = [
+                (loc.longitude, loc.latitude) for loc in final_route_locations
+            ]
+            try:
+                final_route_data = ors_client.directions(
+                    coordinates=final_route_coords,
+                    format="geojson",
+                    profile="driving-car",
+                )
+            except openrouteservice.exceptions.ApiError:
+                continue
+
+            summary = final_route_data["features"][0]["properties"]["summary"]
+            added_distance = summary["distance"] - ride.estimated_distance_meters
+            new_duration = datetime.timedelta(seconds=summary["duration"])
+            arrival_datetime = datetime.datetime.combine(
+                ride.arrival_date, ride.arrival_time
+            )
+            new_departure_datetime = arrival_datetime - new_duration
+            segments = final_route_data["features"][0]["properties"]["segments"]
+            updated_codriver_arrival_times: dict[str, PassengerArrival] = {}
+            duration_to_stop = 0.0
+            for i, loc in enumerate(ordered_pickup_locations):
+                if i == 0:
+                    continue
+                duration_to_stop += segments[i - 1]["duration"]
+                passenger_arrival_datetime = (
+                    new_departure_datetime
+                    + datetime.timedelta(seconds=duration_to_stop)
+                )
+                user_id = (
+                    pending_codrive.user_id
+                    if loc.id == pending_codrive.location_id
+                    else all_passengers_by_loc_id.get(loc.id)
+                )
+                if user_id:
+                    updated_codriver_arrival_times[str(user_id)] = PassengerArrival(
+                        date=passenger_arrival_datetime.date(),
+                        time=passenger_arrival_datetime.time(),
+                    )
+            route_update_obj = RouteUpdate(
+                geometry=final_route_data["features"][0]["geometry"]["coordinates"],
+                distance_meters=round(summary["distance"]),
+                duration_seconds=round(summary["duration"]),
+                codriver_arrival_times=updated_codriver_arrival_times,
+                updated_ride_departure_date=new_departure_datetime.date(),
+                updated_ride_departure_time=new_departure_datetime.time(),
+            )
+            pending_codrive.route_update = route_update_obj.model_dump(mode="json")
+            pending_codrive.point_contribution = round(added_distance / 100)
+            user_arrival = updated_codriver_arrival_times[str(pending_codrive.user_id)]
+            pending_codrive.arrival_date = user_arrival.date
+            pending_codrive.arrival_time = user_arrival.time
+            session.add(pending_codrive)
 
     session.commit()
     session.refresh(ride)
@@ -366,6 +455,8 @@ def accept_codrive(
                     user=UserPublic.model_validate(codrive.user),
                     location=LocationPublic.model_validate(codrive.location),
                     route_update=route_update_public,
+                    point_contribution=codrive.point_contribution,
+                    message=codrive.message,
                 )
             )
 
