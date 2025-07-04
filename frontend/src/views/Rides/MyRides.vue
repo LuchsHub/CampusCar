@@ -3,11 +3,12 @@ import PageTitle from '@/components/PageTitle.vue';
 import HoverButton from '@/components/HoverButton.vue';
 import type { ButtonProps } from '@/types/Props';
 import TabSwitcher from '@/components/TabSwitcher.vue';
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, type ComputedRef } from 'vue';
 import type { RideGetDto } from '@/types/Ride';
 import { useRide } from '@/composables/useRide';
 import { useAuthStore } from '@/stores/AuthStore';
 import RideCard from '@/components/RideCard.vue';
+import { sortRidesByDateAsc } from '@/services/utils';
 
 const { getRidesForUser } = useRide()
 const authStore = useAuthStore();
@@ -27,13 +28,8 @@ onMounted(async () => {
   userOwnRides.value = await getRidesForUser(authStore.userId);
 })
 
-const sortedRides = computed(() => {
-  return [...userOwnRides.value].sort((a, b) => {
-    // Combine date and time for comparison
-    const aDate = new Date(`${a.departure_date}T${a.departure_time}`);
-    const bDate = new Date(`${b.departure_date}T${b.departure_time}`);
-    return aDate.getTime() - bDate.getTime();
-  });
+const sortedRides: ComputedRef<RideGetDto[]> = computed(() => {
+  return sortRidesByDateAsc(userOwnRides.value);
 });
 
 const now = () => new Date();

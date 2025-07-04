@@ -1,4 +1,4 @@
-import type { UserRegister, UserLogin, UserUpdate, UserMeGet } from '@/types/User';
+import type { UserRegister, UserLogin, UserUpdate, UserGet } from '@/types/User';
 import type { LocationCreateDto, LocationGetDto } from '@/types/Location';
 import { reactive } from 'vue';
 import { useLocation } from './useLocation';
@@ -84,7 +84,7 @@ export function useUser() {
 
   const getCurrentUserLocation = async (): Promise<LocationGetDto | null> => {
     try {
-      const user: UserMeGet = await getUserMe();
+      const user: UserGet = await getUserMe();
       return user.location;
     } catch (error: unknown) {
       console.log(error);
@@ -94,7 +94,7 @@ export function useUser() {
 
   const getCurrentUserId = async (): Promise<string | null> => {
     try {
-      const user: UserMeGet = await getUserMe();
+      const user: UserGet = await getUserMe();
       return user.id;
     } catch (error: unknown) {
       console.log(error);
@@ -102,7 +102,7 @@ export function useUser() {
     }
   }
 
-  const getUserMe = async (): Promise<UserMeGet> => {
+  const getUserMe = async (): Promise<UserGet> => {
     try {
       const response = await api.get(
         '/users/me'

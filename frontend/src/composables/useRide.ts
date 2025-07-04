@@ -5,7 +5,7 @@ import api from '@/services/api';
 import axios from 'axios';
 import { useToaster } from '@/composables/useToaster';
 import type { LocationCreateDto } from '../types/Location';
-import type { CodriveBase } from '@/types/Codrive';
+import type { CodriveGet } from '@/types/Codrive';
 
 
 export function useRide() {
@@ -63,17 +63,20 @@ export function useRide() {
       const rideGetDtos: RideGetDto[] = result.data.data.map((ride: RideGet) => ({
         id: ride.id,
         type: "own",
-        departure_date: ride.departure_date,
         departure_time: ride.departure_time,
+        departure_date: ride.departure_date,
         arrival_time: ride.arrival_time,
+        arrival_date: ride.arrival_date,
         start_location: ride.start_location,
         end_location: ride.end_location,
         route_geometry: ride.route_geometry,
         n_available_seats: ride.max_n_codrives - ride.n_codrives,
-        state: ride.codrives.some((codrive: CodriveBase) => codrive.accepted === false) ? "new request" : "default",
+        codrives: ride.codrives,
+        requested_codrives: ride.requested_codrives,
+        state: ride.codrives.some((codrive: CodriveGet) => codrive.accepted === false) ? "new request" : "default",
         point_reward: ride.requested_codrives
-          .filter((codrive: CodriveBase) => codrive.accepted)
-          .reduce((sum: number, codrive: CodriveBase) => sum + codrive.point_contribution, 0)
+          .filter((codrive: CodriveGet) => codrive.accepted)
+          .reduce((sum: number, codrive: CodriveGet) => sum + codrive.point_contribution, 0)
       } as RideGetDto));
       return rideGetDtos;
     } catch (error: unknown) {
@@ -97,13 +100,16 @@ export function useRide() {
       const rideGetDtos: RideGetDto[] = result.data.data.map((ride: RideGet) => ({
         id: ride.id,
         type: "other",
-        departure_date: ride.departure_date,
         departure_time: ride.departure_time,
+        departure_date: ride.departure_date,
         arrival_time: ride.arrival_time,
+        arrival_date: ride.arrival_date,
         start_location: ride.start_location,
         end_location: ride.end_location,
         route_geometry: ride.route_geometry,
         n_available_seats: ride.max_n_codrives - ride.n_codrives,
+        codrives: ride.codrives,
+        requested_codrives: ride.requested_codrives,
         state: "default",
         image: `https://randomuser.me/api/portraits/women/${Math.floor(Math.random() * 99) + 1}.jpg`,
       } as RideGetDto));

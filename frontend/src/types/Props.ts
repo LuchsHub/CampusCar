@@ -1,4 +1,5 @@
 import type { CarGet } from "./Car"
+import type { LocationGetDto } from "./Location"
 import type { RideGetDto } from "./Ride"
 
 export interface PageTitleProps {
@@ -36,4 +37,14 @@ export interface TabSwitcherProps {
 
 export interface RideCardProps {
   ride: RideGetDto
+}
+
+export interface LocationItemProps {
+  location: LocationGetDto
+  arrival_time: string
+  arrival_date?: string
+  user?: {
+    first_name: string
+    last_name: string
+  }
 }
