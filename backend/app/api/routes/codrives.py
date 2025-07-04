@@ -5,9 +5,9 @@ from collections.abc import Sequence
 from typing import Any, TypedDict
 
 import openrouteservice  # type: ignore
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, Query, status
 from sqlalchemy.orm import selectinload
-from sqlmodel import select
+from sqlmodel import func, select
 
 from app.api.deps import CurrentUser, ORS_Client, SessionDep
 from app.crud import get_or_create_location
@@ -17,6 +17,7 @@ from app.models import (
     CodrivePassenger,
     CodrivePublic,
     CodriveRequestPublic,
+    CodriveStatus,
     Location,
     LocationPublic,
     Message,
@@ -26,7 +27,10 @@ from app.models import (
     RidePublic,
     RouteUpdate,
     RouteUpdatePublic,
+    TimeFrame,
     User,
+    UserCodrivePublic,
+    UserCodrivesPublic,
     UserPublic,
 )
 
@@ -88,9 +92,9 @@ def request_codrive(
         Ride,
         ride_id,
         options=[
-            selectinload(Ride.start_location),
-            selectinload(Ride.end_location),
-            selectinload(Ride.codrives).options(selectinload(Codrive.location)),
+            selectinload(Ride.start_location),  # type: ignore[arg-type]
+            selectinload(Ride.end_location),  # type: ignore[arg-type]
+            selectinload(Ride.codrives).options(selectinload(Codrive.location)),  # type: ignore[arg-type]
         ],
     )
     if not ride:
@@ -269,6 +273,119 @@ def request_codrive(
     )
 
 
+@router.get("/me", response_model=UserCodrivesPublic)
+def read_own_codrives(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    offset: int = 0,
+    limit: int = Query(default=100, le=200),
+    status: CodriveStatus | None = Query(default=None),
+    time_frame: TimeFrame | None = Query(default=None),
+) -> Any:
+    """
+    Get all of the current user's codrives, with flexible filtering.
+    """
+    stmt = (
+        select(Codrive)
+        .where(Codrive.user_id == current_user.id)
+        .options(
+            selectinload(Codrive.ride).options(  # type: ignore[arg-type]
+                selectinload(Ride.driver).options(selectinload(User.location)),  # type: ignore[arg-type]
+                selectinload(Ride.car),  # type: ignore[arg-type]
+                selectinload(Ride.start_location),  # type: ignore[arg-type]
+                selectinload(Ride.end_location),  # type: ignore[arg-type]
+                selectinload(Ride.codrives).options(  # type: ignore[arg-type]
+                    selectinload(Codrive.user).options(selectinload(User.location)),  # type: ignore[arg-type]
+                    selectinload(Codrive.location),  # type: ignore[arg-type]
+                ),
+            )
+        )
+    )
+
+    if status:
+        stmt = stmt.where(Codrive.accepted == (status == CodriveStatus.ACCEPTED))
+
+    if time_frame:
+        stmt = stmt.join(Ride)
+        today = datetime.date.today()
+        if time_frame == TimeFrame.PAST:
+            stmt = stmt.where(Ride.departure_date < today)
+        elif time_frame == TimeFrame.FUTURE:
+            stmt = stmt.where(Ride.departure_date >= today)
+
+    count_stmt = select(func.count()).select_from(stmt.subquery())
+    count = session.exec(count_stmt).one()
+
+    codrives_stmt = stmt.offset(offset).limit(limit)
+    codrives = session.exec(codrives_stmt).all()
+
+    response_data = []
+    for codrive in codrives:
+        # Build RidePublic object
+        ride = codrive.ride
+        accepted_codrives_public = []
+        requested_codrives_public = []
+        users_by_id = {str(ride.driver.id): UserPublic.model_validate(ride.driver)}
+        for c in ride.codrives:
+            users_by_id[str(c.user_id)] = UserPublic.model_validate(c.user)
+        locations_by_user_id = {str(c.user_id): c.location for c in ride.codrives}
+
+        for c_in_ride in ride.codrives:
+            if c_in_ride.accepted:
+                accepted_codrives_public.append(
+                    CodrivePassenger.model_validate(c_in_ride)
+                )
+            elif c_in_ride.route_update:
+                db_route_update = RouteUpdate.model_validate(c_in_ride.route_update)
+                passenger_arrivals = [
+                    PassengerArrivalTime(
+                        user=users_by_id[user_id_str],
+                        location=LocationPublic.model_validate(
+                            locations_by_user_id[user_id_str]
+                        ),
+                        arrival_date=arr_details.date,
+                        arrival_time=arr_details.time,
+                    )
+                    for user_id_str, arr_details in db_route_update.codriver_arrival_times.items()
+                    if user_id_str in users_by_id
+                    and user_id_str in locations_by_user_id
+                ]
+                route_update_public = RouteUpdatePublic.model_validate(
+                    db_route_update,
+                    update={"codriver_arrival_times": passenger_arrivals},
+                )
+                requested_codrives_public.append(
+                    CodriveRequestPublic.model_validate(
+                        c_in_ride, update={"route_update": route_update_public}
+                    )
+                )
+
+        ride_public = RidePublic.model_validate(
+            ride,
+            update={
+                "codrives": accepted_codrives_public,
+                "requested_codrives": requested_codrives_public,
+            },
+        )
+
+        # Build UserCodrivePublic object
+        user_codrive_public = UserCodrivePublic(
+            id=codrive.id,
+            accepted=codrive.accepted,
+            paid=codrive.paid,
+            message=codrive.message,
+            point_contribution=codrive.point_contribution,
+            route_update=requested_codrives_public[0].route_update
+            if not codrive.accepted and requested_codrives_public
+            else None,
+            ride=ride_public,
+        )
+        response_data.append(user_codrive_public)
+
+    return UserCodrivesPublic(data=response_data, count=count)
+
+
 @router.get("/{codrive_id}", response_model=CodrivePublic)
 def read_codrive(
     *, session: SessionDep, current_user: CurrentUser, codrive_id: uuid.UUID
@@ -280,12 +397,13 @@ def read_codrive(
         Codrive,
         codrive_id,
         options=[
-            selectinload(Codrive.user).options(selectinload(User.location)),
-            selectinload(Codrive.location),
-            selectinload(Codrive.ride).options(
-                selectinload(Ride.driver),
-                selectinload(Ride.codrives).options(
-                    selectinload(Codrive.user), selectinload(Codrive.location)
+            selectinload(Codrive.user).options(selectinload(User.location)),  # type: ignore[arg-type]
+            selectinload(Codrive.location),  # type: ignore[arg-type]
+            selectinload(Codrive.ride).options(  # type: ignore[arg-type]
+                selectinload(Ride.driver),  # type: ignore[arg-type]
+                selectinload(Ride.codrives).options(  # type: ignore[arg-type]
+                    selectinload(Codrive.user),  # type: ignore[arg-type]
+                    selectinload(Codrive.location),  # type: ignore[arg-type]
                 ),
             ),
         ],
@@ -486,7 +604,7 @@ def accept_codrive(
                 updated_ride_departure_date=new_departure_datetime.date(),
                 updated_ride_departure_time=new_departure_datetime.time(),
             )
-            pending_codrive.route_update = route_update_obj.model_dump(mode="json")
+            pending_codrive.route_update = route_update_obj
             pending_codrive.point_contribution = round(added_distance / 100)
             user_arrival = updated_codriver_arrival_times[str(pending_codrive.user_id)]
             pending_codrive.arrival_date = user_arrival.date
@@ -553,6 +671,7 @@ def accept_codrive(
         },
     )
 
+
 @router.delete("/{codrive_id}/own", response_model=Any)
 def delete_own_codrive(
     *,
@@ -570,14 +689,14 @@ def delete_own_codrive(
         Codrive,
         codrive_id,
         options=[
-            selectinload(Codrive.ride).options(
-                selectinload(Ride.driver).options(selectinload(User.location)),
-                selectinload(Ride.car),
-                selectinload(Ride.start_location),
-                selectinload(Ride.end_location),
-                selectinload(Ride.codrives).options(
-                    selectinload(Codrive.user).options(selectinload(User.location)),
-                    selectinload(Codrive.location),
+            selectinload(Codrive.ride).options(  # type: ignore[arg-type]
+                selectinload(Ride.driver).options(selectinload(User.location)),  # type: ignore[arg-type]
+                selectinload(Ride.car),  # type: ignore[arg-type]
+                selectinload(Ride.start_location),  # type: ignore[arg-type]
+                selectinload(Ride.end_location),  # type: ignore[arg-type]
+                selectinload(Ride.codrives).options(  # type: ignore[arg-type]
+                    selectinload(Codrive.user).options(selectinload(User.location)),  # type: ignore[arg-type]
+                    selectinload(Codrive.location),  # type: ignore[arg-type]
                 ),
             )
         ],
@@ -643,11 +762,7 @@ def delete_own_codrive(
     if accepted_codrives:
         segments = new_route_data["features"][0]["properties"]["segments"]
         duration_to_stop = 0.0
-        # The new route has n-1 segments for n accepted locations.
-        # The loop should go over the remaining accepted codrives.
-        # `all_accepted_locations` starts with the driver, so we have to align.
         for i, codrive in enumerate(accepted_codrives):
-            # The duration to the first passenger is in segments[0].
             duration_to_stop += segments[i]["duration"]
             passenger_arrival_dt = new_departure_datetime + datetime.timedelta(
                 seconds=duration_to_stop
@@ -681,20 +796,20 @@ def delete_own_codrive(
             ] + [(ride.end_location.longitude, ride.end_location.latitude)]
 
             try:
-                # FIX: Added format="geojson" and profile="driving-car"
                 proposal_route_data = ors_client.directions(
                     coordinates=proposal_route_coords,
                     format="geojson",
                     profile="driving-car",
                 )
             except openrouteservice.exceptions.ApiError:
-                # If a route can't be found for this pending request, we can't create a valid proposal
                 continue
 
             proposal_summary = proposal_route_data["features"][0]["properties"][
                 "summary"
             ]
-            added_distance = proposal_summary["distance"] - ride.estimated_distance_meters
+            added_distance = (
+                proposal_summary["distance"] - ride.estimated_distance_meters
+            )
             proposal_duration = datetime.timedelta(seconds=proposal_summary["duration"])
             proposal_departure_datetime = arrival_datetime - proposal_duration
 
@@ -729,7 +844,7 @@ def delete_own_codrive(
                 updated_ride_departure_time=proposal_departure_datetime.time(),
             )
 
-            pending_codrive.route_update = route_update_obj.model_dump(mode="json")
+            pending_codrive.route_update = route_update_obj
             pending_codrive.point_contribution = round(added_distance / 100)
             user_arrival = updated_codriver_arrival_times[str(pending_codrive.user_id)]
             pending_codrive.arrival_date = user_arrival.date
@@ -745,13 +860,13 @@ def delete_own_codrive(
         Ride,
         ride.id,
         options=[
-            selectinload(Ride.driver).options(selectinload(User.location)),
-            selectinload(Ride.car),
-            selectinload(Ride.start_location),
-            selectinload(Ride.end_location),
-            selectinload(Ride.codrives).options(
-                selectinload(Codrive.user).options(selectinload(User.location)),
-                selectinload(Codrive.location),
+            selectinload(Ride.driver).options(selectinload(User.location)),  # type: ignore[arg-type]
+            selectinload(Ride.car),  # type: ignore[arg-type]
+            selectinload(Ride.start_location),  # type: ignore[arg-type]
+            selectinload(Ride.end_location),  # type: ignore[arg-type]
+            selectinload(Ride.codrives).options(  # type: ignore[arg-type]
+                selectinload(Codrive.user).options(selectinload(User.location)),  # type: ignore[arg-type]
+                selectinload(Codrive.location),  # type: ignore[arg-type]
             ),
         ],
     )
@@ -826,7 +941,7 @@ def refuse_codrive_request(
     """
     Refuse a passenger's request to join your ride.
     """
-    codrive = session.get(Codrive, codrive_id, options=[selectinload(Codrive.ride)])
+    codrive = session.get(Codrive, codrive_id, options=[selectinload(Codrive.ride)])  # type: ignore[arg-type]
     if not codrive:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Codrive request not found."

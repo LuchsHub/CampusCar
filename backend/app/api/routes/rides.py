@@ -4,7 +4,7 @@ import uuid
 from typing import Any
 
 import openrouteservice  # type: ignore
-from fastapi import APIRouter, HTTPException, Query, status
+from fastapi import APIRouter, Body, HTTPException, Query, status
 from sqlalchemy.orm import selectinload
 from sqlmodel import func, or_, select
 from sqlmodel.sql.expression import SelectOfScalar
@@ -28,6 +28,7 @@ from app.models import (
     RideCreate,
     RidePublic,
     RidesPublic,
+    RideUpdate,
     RouteUpdate,
     RouteUpdatePublic,
     User,
@@ -445,6 +446,56 @@ def read_ride_by_id(ride_id: uuid.UUID, session: SessionDep) -> Any:
             "requested_codrives": requested_codrives_public,
         },
     )
+
+
+@router.patch("/{ride_id}", response_model=RidePublic)
+def update_ride(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    ride_id: uuid.UUID,
+    ride_in: RideUpdate = Body(...),
+) -> Any:
+    """
+    Update a ride's details. Only the driver can perform this action.
+    """
+    ride = session.get(Ride, ride_id)
+    if not ride:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Ride not found"
+        )
+    if ride.driver_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You are not the driver of this ride.",
+        )
+
+    ride_data = ride_in.model_dump(exclude_unset=True)
+
+    if "max_n_codrives" in ride_data and ride_data["max_n_codrives"] < ride.n_codrives:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"max_n_codrives cannot be less than the current number of accepted passengers ({ride.n_codrives}).",
+        )
+
+    if "car_id" in ride_data:
+        car = session.get(Car, ride_data["car_id"])
+        if not car or car.owner_id != current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Car not found or you are not the owner.",
+            )
+
+    ride.sqlmodel_update(ride_data)
+    session.add(ride)
+    session.commit()
+    session.refresh(ride)
+
+    # Re-fetch with all relations to return the full public object
+    updated_ride = session.exec(get_rides_statement().where(Ride.id == ride.id)).one()
+
+    # Re-use the transformation logic from the read_ride_by_id endpoint
+    return read_ride_by_id(ride_id=updated_ride.id, session=session)
 
 
 @router.delete("/{ride_id}", response_model=Message)
