@@ -234,6 +234,8 @@ def read_rides(
         for c in ride.codrives:
             users_by_id[str(c.user_id)] = UserPublic.model_validate(c.user)
 
+        locations_by_user_id = {str(c.user_id): c.location for c in ride.codrives}
+
         for codrive in ride.codrives:
             if codrive.accepted:
                 accepted_codrives_public.append(
@@ -247,10 +249,12 @@ def read_rides(
                     arrival_details,
                 ) in db_route_update.codriver_arrival_times.items():
                     user_public_obj = users_by_id.get(user_id_str)
-                    if user_public_obj:
+                    location_obj = locations_by_user_id.get(user_id_str)
+                    if user_public_obj and location_obj:
                         passenger_arrivals.append(
                             PassengerArrivalTime(
                                 user=user_public_obj,
+                                location=LocationPublic.model_validate(location_obj),
                                 arrival_date=arrival_details.date,
                                 arrival_time=arrival_details.time,
                             )
@@ -314,6 +318,8 @@ def read_rides_by_driver(
         for c in ride.codrives:
             users_by_id[str(c.user_id)] = UserPublic.model_validate(c.user)
 
+        locations_by_user_id = {str(c.user_id): c.location for c in ride.codrives}
+
         for codrive in ride.codrives:
             if codrive.accepted:
                 accepted_codrives_public.append(
@@ -327,10 +333,12 @@ def read_rides_by_driver(
                     arrival_details,
                 ) in db_route_update.codriver_arrival_times.items():
                     user_public_obj = users_by_id.get(user_id_str)
-                    if user_public_obj:
+                    location_obj = locations_by_user_id.get(user_id_str)
+                    if user_public_obj and location_obj:
                         passenger_arrivals.append(
                             PassengerArrivalTime(
                                 user=user_public_obj,
+                                location=LocationPublic.model_validate(location_obj),
                                 arrival_date=arrival_details.date,
                                 arrival_time=arrival_details.time,
                             )
@@ -387,6 +395,8 @@ def read_ride_by_id(ride_id: uuid.UUID, session: SessionDep) -> Any:
     for c in ride.codrives:
         users_by_id[str(c.user_id)] = UserPublic.model_validate(c.user)
 
+    locations_by_user_id = {str(c.user_id): c.location for c in ride.codrives}
+
     for codrive in ride.codrives:
         if codrive.accepted:
             accepted_codrives_public.append(CodrivePassenger.model_validate(codrive))
@@ -398,10 +408,12 @@ def read_ride_by_id(ride_id: uuid.UUID, session: SessionDep) -> Any:
                 arrival_details,
             ) in db_route_update.codriver_arrival_times.items():
                 user_public_obj = users_by_id.get(user_id_str)
-                if user_public_obj:
+                location_obj = locations_by_user_id.get(user_id_str)
+                if user_public_obj and location_obj:
                     passenger_arrivals.append(
                         PassengerArrivalTime(
                             user=user_public_obj,
+                            location=LocationPublic.model_validate(location_obj),
                             arrival_date=arrival_details.date,
                             arrival_time=arrival_details.time,
                         )

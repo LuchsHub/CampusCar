@@ -227,16 +227,21 @@ def request_codrive(
     users = session.exec(select(User).where(User.id.in_(user_ids_to_fetch))).all()  # type: ignore[attr-defined]
     users_by_id = {str(user.id): user for user in users}
 
+    locations_by_user_id = {str(c.user_id): c.location for c in accepted_codrives}
+    locations_by_user_id[str(current_user.id)] = new_pickup_location
+
     passenger_arrivals: list[PassengerArrivalTime] = []
     for (
         user_id_str,
         arrival_details,
     ) in db_route_update.codriver_arrival_times.items():
         user_obj = users_by_id.get(user_id_str)
-        if user_obj:
+        location_obj = locations_by_user_id.get(user_id_str)
+        if user_obj and location_obj:
             passenger_arrivals.append(
                 PassengerArrivalTime(
                     user=UserPublic.model_validate(user_obj),
+                    location=LocationPublic.model_validate(location_obj),
                     arrival_date=arrival_details.date,
                     arrival_time=arrival_details.time,
                 )
@@ -422,6 +427,8 @@ def accept_codrive(
     for c in ride.codrives:
         users_by_id[str(c.user_id)] = UserPublic.model_validate(c.user)
 
+    locations_by_user_id = {str(c.user_id): c.location for c in ride.codrives}
+
     for codrive in ride.codrives:
         if codrive.accepted:
             accepted_codrives_public.append(CodrivePassenger.model_validate(codrive))
@@ -433,10 +440,12 @@ def accept_codrive(
                 arrival_details,
             ) in db_route_update.codriver_arrival_times.items():
                 user_public_obj = users_by_id.get(user_id_str)
-                if user_public_obj:
+                location_obj = locations_by_user_id.get(user_id_str)
+                if user_public_obj and location_obj:
                     passenger_arrivals.append(
                         PassengerArrivalTime(
                             user=user_public_obj,
+                            location=LocationPublic.model_validate(location_obj),
                             arrival_date=arrival_details.date,
                             arrival_time=arrival_details.time,
                         )

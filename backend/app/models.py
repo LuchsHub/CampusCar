@@ -192,6 +192,7 @@ class RouteUpdate(SQLModel):
 
 class PassengerArrivalTime(SQLModel):
     user: UserPublic
+    location: LocationPublic
     arrival_date: datetime.date
     arrival_time: datetime.time
 
