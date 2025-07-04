@@ -4,7 +4,6 @@ import { formatTime, formatDate } from '@/services/utils';
 import { User } from 'lucide-vue-next';
 
 const props = defineProps<LocationItemProps>();
-console.log(props);
 </script>
 
 <template>

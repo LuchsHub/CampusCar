@@ -5,7 +5,7 @@ import api from '@/services/api';
 import axios from 'axios';
 import { useToaster } from '@/composables/useToaster';
 import type { LocationCreateDto } from '../types/Location';
-import type { CodriveGet } from '@/types/Codrive';
+import type { CodriveGetDto } from '@/types/Codrive';
 
 
 export function useRide() {
@@ -73,10 +73,10 @@ export function useRide() {
         n_available_seats: ride.max_n_codrives - ride.n_codrives,
         codrives: ride.codrives,
         requested_codrives: ride.requested_codrives,
-        state: ride.codrives.some((codrive: CodriveGet) => codrive.accepted === false) ? "new request" : "default",
+        state: ride.codrives.some((codrive: CodriveGetDto) => codrive.accepted === false) ? "new request" : "default",
         point_reward: ride.requested_codrives
-          .filter((codrive: CodriveGet) => codrive.accepted)
-          .reduce((sum: number, codrive: CodriveGet) => sum + codrive.point_contribution, 0)
+          .filter((codrive: CodriveGetDto) => codrive.accepted)
+          .reduce((sum: number, codrive: CodriveGetDto) => sum + codrive.point_contribution, 0)
       } as RideGetDto));
       return rideGetDtos;
     } catch (error: unknown) {

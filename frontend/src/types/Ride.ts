@@ -1,4 +1,4 @@
-import type { CodriveGet } from "./Codrive"
+import type { CodriveGetDto } from "./Codrive"
 import type { LocationCreateDto, LocationGetDto } from "./Location"
 
 export interface RideCreateBase extends Record<string, string | number>{
@@ -20,7 +20,7 @@ export interface RideCreateComplete extends Record<string, string | number | Loc
 }
 
 // backend representation which is returned via api
-export interface RideGet extends Record<string, string | number | LocationGetDto | number[][] | CodriveGet[]>{
+export interface RideGet extends Record<string, string | number | LocationGetDto | number[][] | CodriveGetDto[]>{
   id: string
   driver_id: string
   car_id: string
@@ -34,13 +34,13 @@ export interface RideGet extends Record<string, string | number | LocationGetDto
   start_location: LocationGetDto
   end_location: LocationGetDto
   route_geometry: number[][]
-  codrives: CodriveGet[]
-  requested_codrives: CodriveGet[]
+  codrives: CodriveGetDto[]
+  requested_codrives: CodriveGetDto[]
   estimated_duration_seconds: number,
   estimated_distance_meters: number
 }
 
-export interface RideGetDto extends Record<string, string | number | number[][] | LocationGetDto | CodriveGet[] | boolean | undefined> {
+export interface RideGetDto extends Record<string, string | number | number[][] | LocationGetDto | CodriveGetDto[] | boolean | undefined> {
   type: "own" | "booked" | "other" // other = another user posted the ride
   departure_time: string
   departure_date: string
@@ -50,8 +50,8 @@ export interface RideGetDto extends Record<string, string | number | number[][] 
   end_location: LocationGetDto
   route_geometry: number[][]
   n_available_seats: number
-  codrives: CodriveGet[]
-  requested_codrives: CodriveGet[]
+  codrives: CodriveGetDto[]
+  requested_codrives: CodriveGetDto[]
   state: "default" | "new request" | "accepted" | "not accepted yet" | "rejected" | "payment outstanding"
   point_reward?: number // reward you get when its your own ride (sum of point_contribution for every accepted codrive)
   point_cost?: number // your cost for a booked ride (point_contribution for your codrive)

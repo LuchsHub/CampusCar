@@ -33,17 +33,13 @@ const rideLocationItems = computed<LocationItemProps[]>(() => {
       'arrival_date': ride.value.arrival_date
     }
   ];
-  console.log(items);
-  items = sortLocationItemPropsByTimeAsc(items);
-  console.log(items);
-  return items
+  return sortLocationItemPropsByTimeAsc(items);
 }); 
 
 if (!rideStore.ride) {
   router.push({ name: 'myRides' }) // in case there is no ride saved in the store
 } else {
   ride.value = rideStore.ride;
-  console.log(rideLocationItems.value);
 }
 
 const hoverButtons: ButtonProps[] = [
@@ -55,16 +51,19 @@ const hoverButtons: ButtonProps[] = [
 <template>
   <div class="view-container">
     <PageTitle :goBack="true">Meine Fahrt</PageTitle>
+    
     <h2>Fahrtverlauf</h2>
     <div class="location-item-list">
       <LocationItem
-        v-for="item in rideLocationItems"
-        :location="item.location"
-        :arrival_time="item.arrival_time"
-        :arrival_date="item.arrival_date"
-        :user="item.user"
+      v-for="item in rideLocationItems"
+      :location="item.location"
+      :arrival_time="item.arrival_time"
+      :arrival_date="item.arrival_date"
+      :user="item.user"
       />
     </div>
+    
+    <h2>Mitfahrer</h2>
     <HoverButton :buttons="hoverButtons"/>
   </div>
 </template>
