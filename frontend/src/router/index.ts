@@ -10,8 +10,9 @@ import Signup_3_DriversLicense from '@/views/Auth/Signup_3_DriversLicense.vue';
 
 import Home from '@/views/Home.vue';
 
-import MyRides from '@/views/MyRides.vue';
-import CreateRide from '@/views/CreateRide.vue';
+import MyRides from '@/views/Rides/MyRides.vue';
+import MyRideDetails from '@/views/Rides/MyRideDetails.vue';
+import CreateRide from '@/views/Rides/CreateRide.vue';
 
 import Profile from '@/views/Profile.vue';
 import ProfileEdit from '@/views/ProfileEdit.vue';
@@ -85,6 +86,12 @@ const routes: RouteRecordRaw[] = [
     path: '/my_rides',
     name: 'myRides',
     component: MyRides,
+    beforeEnter: requireAuthentication(),
+  },
+  {
+    path: '/my_ride/details',
+    name: 'myRideDetails',
+    component: MyRideDetails,
     beforeEnter: requireAuthentication(),
   },
   {

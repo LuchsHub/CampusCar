@@ -1,9 +1,13 @@
 <script setup lang="ts">
 import type { RideCardProps } from '@/types/Props';
 import { computed } from 'vue';
+import { useRouter } from 'vue-router';
+import { Users, Car } from 'lucide-vue-next';
+import { useRideStore } from '@/stores/RideStore';
 
 const props = defineProps<RideCardProps>();
-import { Users, Car } from 'lucide-vue-next';
+const router = useRouter();
+const rideStore = useRideStore();
 
 function formatDateTime(date: string, time: string): string {
   const [year, month, day] = date.split('-');
@@ -27,10 +31,18 @@ const stateInfo = computed(() => {
       return { message: '', infoTextClass: ''}
   }
 })
+
+const goToRideDetailsScreen = () => {
+  rideStore.setRide(props.ride);
+  router.push({ name: 'myRideDetails' });
+}
 </script>
 
 <template>
-<div class="ride-card-container">
+<div 
+  class="ride-card-container"
+  @click="goToRideDetailsScreen"
+>
 
   <!-- display either icon if type="own" | "booked" or image if type="other" -->
   <img v-if="props.ride.type === 'other'" :src="props.ride.image" alt="Profilbild" class="profile-picture"/>
