@@ -1,4 +1,4 @@
-import type { LocationItemProps } from "@/types/Props";
+import type { CodriveCardProps, LocationItemProps } from "@/types/Props";
 import type { RideGetDto } from "@/types/Ride";
 
 export const formatDate = (date: string) => {
@@ -26,6 +26,15 @@ export const sortLocationItemPropsByTimeAsc = (items: LocationItemProps[]): Loca
         // Combine date and time for comparison
         const aDate = new Date(`${today}T${a.arrival_time}`);
         const bDate = new Date(`${today}T${b.arrival_time}`);
+        return aDate.getTime() - bDate.getTime();
+      });
+}
+
+export const sortCodriveCardPropsByTimeAsc = (items: CodriveCardProps[]): CodriveCardProps[] => { 
+    return [...items].sort((a, b) => {
+        // Combine date and time for comparison
+        const aDate = new Date(`${a.codrive.arrival_date}T${a.codrive.arrival_time}`);
+        const bDate = new Date(`${b.codrive.arrival_date}T${b.codrive.arrival_time}`);
         return aDate.getTime() - bDate.getTime();
       });
 }

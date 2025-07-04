@@ -289,6 +289,10 @@ a {
   width: var(--icon-xs);
 }
 
+.icon-info {
+  color: var(--color-support-info-500)
+}
+
 /* PADDING (Feel free to add stuff as you go */
 .padding-bottom-hb-1 { /* Add this to the view-container if a single hoverbutton hides some of the contents */
   padding-bottom: var(--single-hover-button-view-container-padding);

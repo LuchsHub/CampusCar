@@ -1,52 +1,45 @@
 <script setup lang="ts">
-import type { InputProps } from '../types/Props'
+import type { CodriveCardProps } from '../types/Props'
+import { ChevronRight } from 'lucide-vue-next';
 
-const props = withDefaults(defineProps<InputProps & { error?: string }>(), {
-  placeholder: '-',
-  error: ''
-})
-
-const emit = defineEmits(['update:modelValue', 'update:error'])
-
-const handleInput = (event: Event) => {
-  const target = event.target as HTMLInputElement
-  let value = target.value
-  
-  // Apply maxLength limit if specified
-  if (props.maxLength && value.length > props.maxLength) {
-    value = value.slice(0, props.maxLength)
-    // Update the input element's value to reflect the truncation
-    target.value = value
-  }
-  
-  emit('update:modelValue', value)
-}
+const props = defineProps<CodriveCardProps>();
 </script>
 
 <template>
-  <div>
-    <div class="input-container">
-      <input
-        :type="props.type"
-        :placeholder="props.placeholder"
-        :value="props.modelValue"
-        :maxlength="props.maxLength"
-        @input="handleInput"
-        :class="{ 'input-error': !!props.error }"
-      />
-      <label>{{ props.label }}</label>
+<div class="codrive-card-container" :class="{'new-request-container': !props.codrive_accepted}">
+    <div class="codrive-card-content">
+        <p class="text-neutral-400" :class="{'text-info': !props.codrive_accepted}">Platz {{ props.seat_no }}</p>
+        <p v-if="props.codrive_accepted" class="text-md">{{ props.codrive.user.first_name }} {{ props.codrive.user.last_name }}</p>
+        <p v-else class="text-md">Anfrage ausstehend </p>
     </div>
-    <p v-if="props.error" class="text-s text-danger margin-top-s margin-left-md">{{ props.error }}</p>
-  </div>
+    <component v-if="!props.codrive_accepted" :is="ChevronRight" class="icon-md icon-info"/>
+</div>
 </template>
 
   
 <style scoped>
-  .input-container {
+  .codrive-card-container {
     width: 100%;
-    padding: var(--input-padding-top) var(--container-padding-horizontal) var(--container-padding-vertical);
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--container-padding-vertical) var(--container-padding-horizontal);
     border-radius: var(--border-radius);
     background-color: var(--color-neutral-200);
+  }
+
+  .codrive-card-content {
+    width: 100%;
+    gap: 8px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+  }
+
+  .new-request-container{
+    border: var(--line-width-m) solid var(--color-support-info-500);
   }
 </style>
   

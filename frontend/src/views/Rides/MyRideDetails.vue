@@ -1,14 +1,16 @@
 <script setup lang="ts">
 import PageTitle from '@/components/PageTitle.vue';
 import HoverButton from '@/components/HoverButton.vue';
-import type { ButtonProps } from '@/types/Props';
+import type { ButtonProps, CodriveCardProps } from '@/types/Props';
 import { ref, computed } from 'vue';
 import type { RideGetDto } from '@/types/Ride';
 import { useRideStore } from '@/stores/RideStore';
 import { useRouter } from 'vue-router';
 import type { LocationItemProps } from '@/types/Props';
 import LocationItem from '@/components/LocationItem.vue';
-import { sortLocationItemPropsByTimeAsc } from '@/services/utils';
+import { sortLocationItemPropsByTimeAsc, sortCodriveCardPropsByTimeAsc } from '@/services/utils';
+import CodriveCard from '@/components/CodriveCard.vue';
+import type { CodriveGetDto } from '@/types/Codrive';
 
 // Variables 
 const router = useRouter();
@@ -36,6 +38,20 @@ const rideLocationItems = computed<LocationItemProps[]>(() => {
   return sortLocationItemPropsByTimeAsc(items);
 }); 
 
+const codriveCardItems = computed<CodriveCardProps[]>(() => {
+  if (!ride.value) { return []; }
+  let accepted: CodriveCardProps[] = ride.value.codrives.map((codrive: CodriveGetDto) => ({
+    codrive: codrive,
+    codrive_accepted: true
+  } as CodriveCardProps));
+  accepted = sortCodriveCardPropsByTimeAsc(accepted); 
+  const notAccepted: CodriveCardProps[] = ride.value.requested_codrives.map((codrive: CodriveGetDto) => ({
+    codrive: codrive,
+    codrive_accepted: false
+  } as CodriveCardProps));
+  return [...accepted, ...notAccepted];
+});
+
 if (!rideStore.ride) {
   router.push({ name: 'myRides' }) // in case there is no ride saved in the store
 } else {
@@ -53,18 +69,26 @@ const hoverButtons: ButtonProps[] = [
     <PageTitle :goBack="true">Meine Fahrt</PageTitle>
     
     <h2>Fahrtverlauf</h2>
-    <div class="location-item-list">
+    <div class="component-list">
       <LocationItem
-      v-for="item in rideLocationItems"
-      :location="item.location"
-      :arrival_time="item.arrival_time"
-      :arrival_date="item.arrival_date"
-      :user="item.user"
+        v-for="item in rideLocationItems"
+        :location="item.location"
+        :arrival_time="item.arrival_time"
+        :arrival_date="item.arrival_date"
+        :user="item.user"
       />
     </div>
     
     <h2>Mitfahrer</h2>
     <HoverButton :buttons="hoverButtons"/>
+    <div class="component-list">
+      <CodriveCard
+        v-for="(item, idx) in codriveCardItems"
+        :codrive_accepted="item.codrive_accepted"
+        :codrive="item.codrive"
+        :seat_no="idx+1"
+      />
+    </div>
   </div>
 </template>
 
@@ -73,7 +97,7 @@ const hoverButtons: ButtonProps[] = [
   margin-top: 0;
 }
 
-.location-item-list {
+.component-list {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
