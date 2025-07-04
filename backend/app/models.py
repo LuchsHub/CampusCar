@@ -236,7 +236,7 @@ class CodrivePublic(SQLModel):
     accepted: bool
     paid: bool
     point_contribution: int
-    route_update: RouteUpdatePublic
+    route_update: RouteUpdatePublic | None
 
 
 class CodrivePassenger(SQLModel):
@@ -284,7 +284,9 @@ class Ride(SQLModel, table=True):
     car_id: uuid.UUID = Field(foreign_key="car.id")
     car: "Car" = Relationship(back_populates="rides")
 
-    codrives: list["Codrive"] = Relationship(back_populates="ride")
+    codrives: list["Codrive"] = Relationship(
+        back_populates="ride", sa_relationship_kwargs={"cascade": "all, delete"}
+    )
     n_codrives: int = Field(default=0)
     total_points: int = Field(default=0)
 

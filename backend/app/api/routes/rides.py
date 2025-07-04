@@ -22,6 +22,7 @@ from app.models import (
     CodriveRequestPublic,
     Location,
     LocationPublic,
+    Message,
     PassengerArrivalTime,
     Ride,
     RideCreate,
@@ -444,3 +445,26 @@ def read_ride_by_id(ride_id: uuid.UUID, session: SessionDep) -> Any:
             "requested_codrives": requested_codrives_public,
         },
     )
+
+
+@router.delete("/{ride_id}", response_model=Message)
+def delete_ride(
+    *, session: SessionDep, current_user: CurrentUser, ride_id: uuid.UUID
+) -> Message:
+    """
+    Delete a ride. This will also delete all associated codrive requests.
+    """
+    ride = session.get(Ride, ride_id)
+    if not ride:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Ride not found"
+        )
+    if ride.driver_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You are not the driver of this ride.",
+        )
+
+    session.delete(ride)
+    session.commit()
+    return Message(message="Ride and all associated requests deleted successfully.")
