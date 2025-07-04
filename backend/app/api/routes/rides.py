@@ -4,7 +4,7 @@ import uuid
 from typing import Any
 
 import openrouteservice  # type: ignore
-from fastapi import APIRouter, HTTPException, Query, status
+from fastapi import APIRouter, Body, HTTPException, Query, status
 from sqlalchemy.orm import selectinload
 from sqlmodel import func, or_, select
 from sqlmodel.sql.expression import SelectOfScalar
@@ -22,11 +22,13 @@ from app.models import (
     CodriveRequestPublic,
     Location,
     LocationPublic,
+    Message,
     PassengerArrivalTime,
     Ride,
     RideCreate,
     RidePublic,
     RidesPublic,
+    RideUpdate,
     RouteUpdate,
     RouteUpdatePublic,
     User,
@@ -234,6 +236,8 @@ def read_rides(
         for c in ride.codrives:
             users_by_id[str(c.user_id)] = UserPublic.model_validate(c.user)
 
+        locations_by_user_id = {str(c.user_id): c.location for c in ride.codrives}
+
         for codrive in ride.codrives:
             if codrive.accepted:
                 accepted_codrives_public.append(
@@ -247,10 +251,12 @@ def read_rides(
                     arrival_details,
                 ) in db_route_update.codriver_arrival_times.items():
                     user_public_obj = users_by_id.get(user_id_str)
-                    if user_public_obj:
+                    location_obj = locations_by_user_id.get(user_id_str)
+                    if user_public_obj and location_obj:
                         passenger_arrivals.append(
                             PassengerArrivalTime(
                                 user=user_public_obj,
+                                location=LocationPublic.model_validate(location_obj),
                                 arrival_date=arrival_details.date,
                                 arrival_time=arrival_details.time,
                             )
@@ -269,6 +275,8 @@ def read_rides(
                         user=UserPublic.model_validate(codrive.user),
                         location=LocationPublic.model_validate(codrive.location),
                         route_update=route_update_public,
+                        point_contribution=codrive.point_contribution,
+                        message=codrive.message,
                     )
                 )
 
@@ -312,6 +320,8 @@ def read_rides_by_driver(
         for c in ride.codrives:
             users_by_id[str(c.user_id)] = UserPublic.model_validate(c.user)
 
+        locations_by_user_id = {str(c.user_id): c.location for c in ride.codrives}
+
         for codrive in ride.codrives:
             if codrive.accepted:
                 accepted_codrives_public.append(
@@ -325,10 +335,12 @@ def read_rides_by_driver(
                     arrival_details,
                 ) in db_route_update.codriver_arrival_times.items():
                     user_public_obj = users_by_id.get(user_id_str)
-                    if user_public_obj:
+                    location_obj = locations_by_user_id.get(user_id_str)
+                    if user_public_obj and location_obj:
                         passenger_arrivals.append(
                             PassengerArrivalTime(
                                 user=user_public_obj,
+                                location=LocationPublic.model_validate(location_obj),
                                 arrival_date=arrival_details.date,
                                 arrival_time=arrival_details.time,
                             )
@@ -347,6 +359,8 @@ def read_rides_by_driver(
                         user=UserPublic.model_validate(codrive.user),
                         location=LocationPublic.model_validate(codrive.location),
                         route_update=route_update_public,
+                        point_contribution=codrive.point_contribution,
+                        message=codrive.message,
                     )
                 )
 
@@ -383,6 +397,8 @@ def read_ride_by_id(ride_id: uuid.UUID, session: SessionDep) -> Any:
     for c in ride.codrives:
         users_by_id[str(c.user_id)] = UserPublic.model_validate(c.user)
 
+    locations_by_user_id = {str(c.user_id): c.location for c in ride.codrives}
+
     for codrive in ride.codrives:
         if codrive.accepted:
             accepted_codrives_public.append(CodrivePassenger.model_validate(codrive))
@@ -394,10 +410,12 @@ def read_ride_by_id(ride_id: uuid.UUID, session: SessionDep) -> Any:
                 arrival_details,
             ) in db_route_update.codriver_arrival_times.items():
                 user_public_obj = users_by_id.get(user_id_str)
-                if user_public_obj:
+                location_obj = locations_by_user_id.get(user_id_str)
+                if user_public_obj and location_obj:
                     passenger_arrivals.append(
                         PassengerArrivalTime(
                             user=user_public_obj,
+                            location=LocationPublic.model_validate(location_obj),
                             arrival_date=arrival_details.date,
                             arrival_time=arrival_details.time,
                         )
@@ -416,6 +434,8 @@ def read_ride_by_id(ride_id: uuid.UUID, session: SessionDep) -> Any:
                     user=UserPublic.model_validate(codrive.user),
                     location=LocationPublic.model_validate(codrive.location),
                     route_update=route_update_public,
+                    point_contribution=codrive.point_contribution,
+                    message=codrive.message,
                 )
             )
 
@@ -426,3 +446,76 @@ def read_ride_by_id(ride_id: uuid.UUID, session: SessionDep) -> Any:
             "requested_codrives": requested_codrives_public,
         },
     )
+
+
+@router.patch("/{ride_id}", response_model=RidePublic)
+def update_ride(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    ride_id: uuid.UUID,
+    ride_in: RideUpdate = Body(...),
+) -> Any:
+    """
+    Update a ride's details. Only the driver can perform this action.
+    """
+    ride = session.get(Ride, ride_id)
+    if not ride:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Ride not found"
+        )
+    if ride.driver_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You are not the driver of this ride.",
+        )
+
+    ride_data = ride_in.model_dump(exclude_unset=True)
+
+    if "max_n_codrives" in ride_data and ride_data["max_n_codrives"] < ride.n_codrives:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"max_n_codrives cannot be less than the current number of accepted passengers ({ride.n_codrives}).",
+        )
+
+    if "car_id" in ride_data:
+        car = session.get(Car, ride_data["car_id"])
+        if not car or car.owner_id != current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Car not found or you are not the owner.",
+            )
+
+    ride.sqlmodel_update(ride_data)
+    session.add(ride)
+    session.commit()
+    session.refresh(ride)
+
+    # Re-fetch with all relations to return the full public object
+    updated_ride = session.exec(get_rides_statement().where(Ride.id == ride.id)).one()
+
+    # Re-use the transformation logic from the read_ride_by_id endpoint
+    return read_ride_by_id(ride_id=updated_ride.id, session=session)
+
+
+@router.delete("/{ride_id}", response_model=Message)
+def delete_ride(
+    *, session: SessionDep, current_user: CurrentUser, ride_id: uuid.UUID
+) -> Message:
+    """
+    Delete a ride. This will also delete all associated codrive requests.
+    """
+    ride = session.get(Ride, ride_id)
+    if not ride:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Ride not found"
+        )
+    if ride.driver_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You are not the driver of this ride.",
+        )
+
+    session.delete(ride)
+    session.commit()
+    return Message(message="Ride and all associated requests deleted successfully.")
