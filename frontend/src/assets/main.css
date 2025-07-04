@@ -42,10 +42,13 @@
   --hover-button-width-percentage: 80;
 
   /* Font */
+  --text-line-height: 0.85;
+
   --font-weight-normal: 400;
   --font-weight-semibold: 500;
   --font-weight-bold: 600;
 
+  --font-size-l: 20px;
   --font-size-md: 18px;
   --font-size-s: 16px;
   --font-size-xs: 14px;
@@ -80,13 +83,18 @@
   --icon-xl: 35px;
   --icon-md: 30px;
   --icon-s: 25px;
+  --icon-xs: 20px;
+
+  --profile-picture-s-dim: 40px;
+  --profile-picture-md-dim: 75px;
+  --profile-picture-l-dim: 140px;
 
   /* misc */
   --checkbox-size: 25px;
   --status-dot-size: 10px;
   --border-radius: 10px;
   --drop-shadow-blur: 10px; 
-  --horizontal-gap: 15px; /* default margin between elements like input fields when theyre right below each other and not separeted by headings for example */
+  --horizontal-gap: 20px; /* default margin between elements like input fields when theyre right below each other and not separeted by headings for example */
 
   /* responsive */
   --tablet-content-max-width: 700px;
@@ -198,6 +206,7 @@ p {
   color: var(--color-neutral-900);
   margin: 0;
   font-weight: var(--font-weight-normal);
+  line-height: var(--text-line-height);
 }
 
 a {
@@ -207,6 +216,9 @@ a {
 }
 
 /* Text font sizes */
+.text-l {
+  font-size: var(--font-size-l)
+}
 .text-md {
   font-size: var(--font-size-md);
 }
@@ -220,6 +232,10 @@ a {
 /* Text font weights */
 .text-bold {
   font-weight: var(--font-weight-bold);
+}
+
+.text-semibold {
+  font-weight: var(--font-weight-semibold);
 }
 
 /* text decoration */
@@ -267,6 +283,14 @@ a {
 .icon-s {
   height: var(--icon-s);
   width: var(--icon-s);
+}
+.icon-xs {
+  height: var(--icon-xs);
+  width: var(--icon-xs);
+}
+
+.icon-info {
+  color: var(--color-support-info-500)
 }
 
 /* PADDING (Feel free to add stuff as you go */

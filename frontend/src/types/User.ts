@@ -1,4 +1,4 @@
-import type { LocationCreate, LocationGet } from "./Location"
+import type { LocationCreateDto, LocationGetDto } from "./Location"
 
 export interface UserLogin extends Record<string, string>  {
   email: string
@@ -13,16 +13,16 @@ export interface UserRegister extends Record<string, string>  {
   password: string
 }
 
-export interface UserUpdate extends Record<string, string | boolean | LocationCreate | undefined>  {
+export interface UserUpdate extends Record<string, string | boolean | LocationCreateDto | undefined>  {
   user_name?: string
   first_name?: string
   last_name?: string
   email?: string
-  location?: LocationCreate 
+  location?: LocationCreateDto 
   has_license?: boolean
 }
 
-export interface UserMeGet extends Record<string, string | boolean | LocationGet | null> {
+export interface UserGet extends Record<string, string | boolean | LocationGetDto | null> {
   id: string
   email: string
   is_active: boolean
@@ -31,7 +31,7 @@ export interface UserMeGet extends Record<string, string | boolean | LocationGet
   last_name: string
   user_name: string
   has_license: boolean
-  location: LocationGet | null
+  location: LocationGetDto | null
 }
 
 export interface CurrentUser {

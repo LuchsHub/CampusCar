@@ -1,5 +1,7 @@
 import type { CarGet } from "./Car"
-import type { RideGet } from "./Ride"
+import type { CodriveGetDto } from "./Codrive"
+import type { LocationGetDto } from "./Location"
+import type { RideGetDto } from "./Ride"
 
 export interface PageTitleProps {
   goBack?: boolean
@@ -35,7 +37,22 @@ export interface TabSwitcherProps {
 }
 
 export interface RideCardProps {
-  ride: RideGet
-  type: 'own' | 'booked' | 'picture'
-  state: 'new request' | 'not accepted' | 'rejected' | 'accepted'
+  ride: RideGetDto
+}
+
+export interface LocationItemProps {
+  location: LocationGetDto
+  arrival_time: string
+  arrival_date?: string
+  user?: {
+    first_name: string
+    last_name: string
+  }
+}
+
+// TODO: maybe you can make the attributes a bit more fine-grained. I dont think we need every attribute of Codrive
+export interface CodriveCardProps { 
+  codrive_accepted: boolean
+  codrive: CodriveGetDto
+  seat_no?: number
 }
