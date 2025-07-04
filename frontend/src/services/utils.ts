@@ -13,7 +13,6 @@ export const formatTime = (time: string) => {
 
 export const sortRidesByDateAsc = (rides: RideGetDto[]): RideGetDto[] => {
     return [...rides].sort((a, b) => {
-        // Combine date and time for comparison
         const aDate = new Date(`${a.departure_date}T${a.departure_time}`);
         const bDate = new Date(`${b.departure_date}T${b.departure_time}`);
         return aDate.getTime() - bDate.getTime();
@@ -23,7 +22,6 @@ export const sortRidesByDateAsc = (rides: RideGetDto[]): RideGetDto[] => {
 export const sortLocationItemPropsByTimeAsc = (items: LocationItemProps[]): LocationItemProps[] => {
     const today = new Date().toISOString().slice(0, 10); 
     return [...items].sort((a, b) => {
-        // Combine date and time for comparison
         const aDate = new Date(`${today}T${a.arrival_time}`);
         const bDate = new Date(`${today}T${b.arrival_time}`);
         return aDate.getTime() - bDate.getTime();
@@ -32,7 +30,6 @@ export const sortLocationItemPropsByTimeAsc = (items: LocationItemProps[]): Loca
 
 export const sortCodriveCardPropsByTimeAsc = (items: CodriveCardProps[]): CodriveCardProps[] => { 
     return [...items].sort((a, b) => {
-        // Combine date and time for comparison
         const aDate = new Date(`${a.codrive.arrival_date}T${a.codrive.arrival_time}`);
         const bDate = new Date(`${b.codrive.arrival_date}T${b.codrive.arrival_time}`);
         return aDate.getTime() - bDate.getTime();
