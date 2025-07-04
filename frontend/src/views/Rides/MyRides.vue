@@ -50,7 +50,7 @@ const pastRides = computed<RideGetDto[]>(() =>
 </script>
 
 <template>
-  <div class="view-container">
+  <div class="view-container" :class="`padding-bottom-hb-${hoverButtons.length}`">
     <PageTitle>Meine Fahrten</PageTitle>
 
     <TabSwitcher v-model="activeTab" :tabs="tabs" />

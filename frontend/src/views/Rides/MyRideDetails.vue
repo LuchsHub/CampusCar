@@ -65,7 +65,7 @@ const hoverButtons: ButtonProps[] = [
 </script>
 
 <template>
-  <div class="view-container padding-bottom-hb-2">
+  <div class="view-container" :class="`padding-bottom-hb-${hoverButtons.length}`">
     <PageTitle :goBack="true">Meine Fahrt</PageTitle>
     
     <h2>Fahrtverlauf</h2>

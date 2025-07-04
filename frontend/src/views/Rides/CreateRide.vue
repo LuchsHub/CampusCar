@@ -118,7 +118,7 @@ const hoverButtons: ButtonProps[] = [
 </script>
 
 <template>
-  <div class="view-container padding-bottom-hb-1">
+  <div class="view-container" :class="`padding-bottom-hb-${hoverButtons.length}`">
 
     <PageTitle :goBack="true">Fahrt anbieten</PageTitle>
     <div v-if="userCars.length === 0  && showCarError" class="margin-botton-l error-message-container">
