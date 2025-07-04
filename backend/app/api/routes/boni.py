@@ -52,11 +52,12 @@ def get_boni_by_user(
     """Assigns bonus for current user."""
     if not current_user:
         raise HTTPException(status_code=404, detail="User not found")
-    boni = session.get(Bonus, bonus_id)
+    bonus = session.get(Bonus, bonus_id)
     if not boni:
         raise HTTPException(status_code=404, detail="Bonus not found")
 
-    current_user.boni.append(boni)
+    current_user.points = current_user.points - bonus.cost
+    current_user.boni.append(bonus)
 
     session.add(current_user)
     session.commit()
