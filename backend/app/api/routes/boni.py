@@ -18,8 +18,8 @@ def get_boni_by_user(
 ) -> Sequence[Any]:
     """Get boni for current user."""
     boni = session.exec(
-        select(Bonus).where(Bonus.assigned_user.contains(current_user))
-    ).all()  # type: ignore[attr-defined]
+        select(Bonus).where(Bonus.assigned_user.contains(current_user))  # type: ignore[attr-defined]
+    ).all()
     return boni
 
 
