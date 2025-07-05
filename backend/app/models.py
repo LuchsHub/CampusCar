@@ -90,6 +90,7 @@ class UserPublic(UserBase):
     id: uuid.UUID
     location: Optional["LocationPublic"]
     has_license: bool
+    points: int
 
 
 class UsersPublic(SQLModel):
