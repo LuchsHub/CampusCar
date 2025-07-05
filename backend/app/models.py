@@ -7,8 +7,12 @@ from sqlmodel import JSON, Column, Field, Relationship, SQLModel
 
 
 class UserBonusLink(SQLModel, table=True):
-    team_id: uuid.UUID | None = Field(default=None, foreign_key="user.id", primary_key=True)
-    hero_id: uuid.UUID | None = Field(default=None, foreign_key="bonus.id", primary_key=True)
+    team_id: uuid.UUID | None = Field(
+        default=None, foreign_key="user.id", primary_key=True
+    )
+    hero_id: uuid.UUID | None = Field(
+        default=None, foreign_key="bonus.id", primary_key=True
+    )
 
 
 # Shared properties
@@ -79,7 +83,9 @@ class User(UserBase, table=True):
 
     points: int = Field(default=0)
     cash: float = Field(default=0.0)
-    boni: list["Bonus"] = Relationship(back_populates="assigned_user", link_model=UserBonusLink)
+    boni: list["Bonus"] = Relationship(
+        back_populates="assigned_user", link_model=UserBonusLink
+    )
 
     profile_picture: bytes | None = None
     has_license: bool = Field(default=False)
@@ -141,7 +147,9 @@ class Bonus(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     name: str = Field(default=None, max_length=255)
     cost: int = Field(default=None)
-    assigned_user: list["User"] = Relationship(back_populates="boni", link_model=UserBonusLink)
+    assigned_user: list["User"] = Relationship(
+        back_populates="boni", link_model=UserBonusLink
+    )
 
 
 class BonusCreate(SQLModel):

@@ -17,7 +17,9 @@ def get_boni_by_user(
     current_user: CurrentUser,
 ) -> Sequence[Any]:
     """Get boni for current user."""
-    boni = session.exec(select(Bonus).where(Bonus.assigned_user.contains(current_user))).all() # type: ignore[attr-defined]
+    boni = session.exec(
+        select(Bonus).where(Bonus.assigned_user.contains(current_user))
+    ).all()  # type: ignore[attr-defined]
     return boni
 
 
@@ -30,7 +32,9 @@ def get_boni(
     return boni
 
 
-@router.post("/add-new-boni/", response_model=BonusPublic, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/add-new-boni/", response_model=BonusPublic, status_code=status.HTTP_201_CREATED
+)
 def create_boni(
     bonus_in: BonusCreate,
     session: SessionDep,
@@ -56,7 +60,7 @@ def add_boni_to_current_user(
         raise HTTPException(status_code=404, detail="User not found")
     elif not bonus:
         raise HTTPException(status_code=404, detail="Bonus not found")
-    elif current_user.points<bonus.cost:
+    elif current_user.points < bonus.cost:
         raise HTTPException(status_code=401, detail="User has too little money")
     else:
         current_user.points = current_user.points - bonus.cost

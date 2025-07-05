@@ -289,7 +289,7 @@ def post_charges(session: SessionDep, current_user: CurrentUser, charges: float)
     if not current_user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    if charges<0:
+    if charges < 0:
         raise HTTPException(status_code=400, detail="Negative charges")
 
     current_user.cash = current_user.cash + charges
