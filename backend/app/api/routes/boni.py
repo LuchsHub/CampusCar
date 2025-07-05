@@ -6,7 +6,7 @@ from fastapi import APIRouter, HTTPException, status
 from sqlmodel import select
 
 from app.api.deps import CurrentUser, SessionDep
-from app.models import Bonus, BonusCreate, BonusPublic, Message, User
+from app.models import Bonus, BonusCreate, BonusPublic, Message
 
 router = APIRouter(prefix="/boni", tags=["boni"])
 
