@@ -17,7 +17,7 @@ def get_boni_by_user(
     current_user: CurrentUser,
 ) -> Sequence[Any]:
     """Get boni for current user."""
-    boni = session.exec(select(Bonus).where(Bonus.assigned_user.any(User.id == current_user.id))).all()
+    boni = session.exec(select(Bonus).where(Bonus.assigned_user.contains(current_user))).all() # type: ignore[attr-defined]
     return boni
 
 
@@ -51,7 +51,7 @@ def add_boni_to_current_user(
     current_user: CurrentUser,
 ) -> Sequence[Any]:
     """Assigns bonus for current user."""
-    bonus: Bonus = session.get(Bonus, bonus_id)
+    bonus: Bonus | None = session.get(Bonus, bonus_id)
     if not current_user:
         raise HTTPException(status_code=404, detail="User not found")
     elif not bonus:
