@@ -7,6 +7,15 @@ from pydantic import EmailStr
 from sqlmodel import JSON, Column, Field, Relationship, SQLModel
 
 
+class UserBonusLink(SQLModel, table=True):
+    team_id: uuid.UUID | None = Field(
+        default=None, foreign_key="user.id", primary_key=True
+    )
+    hero_id: uuid.UUID | None = Field(
+        default=None, foreign_key="bonus.id", primary_key=True
+    )
+
+
 # Shared properties
 class UserBase(SQLModel):
     email: EmailStr = Field(unique=True, index=True, max_length=255)
@@ -74,6 +83,10 @@ class User(UserBase, table=True):
     rides: list["Ride"] = Relationship(back_populates="driver")
 
     points: int = Field(default=0)
+    cash: float = Field(default=0.0)
+    boni: list["Bonus"] = Relationship(
+        back_populates="assigned_user", link_model=UserBonusLink
+    )
 
     profile_picture: bytes | None = None
     has_license: bool = Field(default=False)
@@ -84,6 +97,7 @@ class UserPublic(UserBase):
     id: uuid.UUID
     location: Optional["LocationPublic"]
     has_license: bool
+    points: int
 
 
 class UsersPublic(SQLModel):
@@ -128,6 +142,32 @@ class CarPublic(SQLModel):
     model: str | None
     brand: str | None
     color: str | None
+
+
+class Bonus(SQLModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    name: str = Field(default=None, max_length=255)
+    cost: int = Field(default=None)
+    assigned_user: list["User"] = Relationship(
+        back_populates="boni", link_model=UserBonusLink
+    )
+
+
+class BonusCreate(SQLModel):
+    name: str = Field(default=None, max_length=255)
+    cost: int = Field(default=None)
+
+
+class BonusUpdate(SQLModel):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    name: str = Field(default=None, max_length=255)
+    cost: int = Field(default=None)
+
+
+class BonusPublic(SQLModel):
+    id: uuid.UUID
+    name: str | None
+    cost: int | None
 
 
 class Location(SQLModel, table=True):
