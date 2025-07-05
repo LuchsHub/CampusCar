@@ -1,29 +1,30 @@
 import uuid
 from collections.abc import Sequence
+from typing import Any
 
 from fastapi import APIRouter, HTTPException, status
 from sqlmodel import select
 
 from app.api.deps import CurrentUser, SessionDep
-from app.models import Bonus, BonusCreate, BonusPublic, Message
+from app.models import Bonus, BonusCreate, BonusPublic, Message, User
 
 router = APIRouter(prefix="/boni", tags=["boni"])
 
 
-@router.get("/get-my-boni", response_model=list[Bonus])
+@router.get("/get-my-boni", response_model=list[BonusPublic])
 def get_boni_by_user(
     session: SessionDep,
     current_user: CurrentUser,
-) -> Sequence[Bonus]:
+) -> Sequence[Any]:
     """Get boni for current user."""
-    boni = session.exec(select(Bonus).where(Bonus.assigned_user.contains(current_user))).all()
+    boni = session.exec(select(Bonus).where(Bonus.assigned_user.any(User.id == current_user.id))).all()
     return boni
 
 
 @router.get("/get-all-boni", response_model=list[BonusPublic])
 def get_boni(
     session: SessionDep,
-) -> Sequence[BonusPublic]:
+) -> Sequence[Any]:
     """Get all boni."""
     boni = session.exec(select(Bonus)).all()
     return boni
@@ -33,7 +34,7 @@ def get_boni(
 def create_boni(
     bonus_in: BonusCreate,
     session: SessionDep,
-) -> BonusPublic:
+) -> Any:
     """Create a new boni."""
     bonus = Bonus.model_validate(bonus_in)
 
@@ -43,12 +44,12 @@ def create_boni(
     return bonus
 
 
-@router.post("/redeem/{bonus_id}", response_model=list[Bonus])
+@router.post("/redeem/{bonus_id}", response_model=list[BonusPublic])
 def add_boni_to_current_user(
     bonus_id: uuid.UUID,
     session: SessionDep,
     current_user: CurrentUser,
-) -> Sequence[Bonus]:
+) -> Sequence[Any]:
     """Assigns bonus for current user."""
     bonus: Bonus = session.get(Bonus, bonus_id)
     if not current_user:

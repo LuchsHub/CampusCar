@@ -282,7 +282,7 @@ def delete_user(
 
 
 @router.post("/charge", response_model=UserPublic)
-def post_charges(session: SessionDep, current_user: CurrentUser, charges: float) -> UserPublic:
+def post_charges(session: SessionDep, current_user: CurrentUser, charges: float) -> Any:
     """
     Post new user charges.
     """
