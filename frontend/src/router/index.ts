@@ -16,6 +16,7 @@ import CreateRide from '@/views/Rides/CreateRide.vue';
 
 import Profile from '@/views/Profile.vue';
 import ProfileEdit from '@/views/ProfileEdit.vue';
+import AddCar from '@/views/AddCar.vue';
 
 import Styles from '@/views/Styles.vue';
 
@@ -113,6 +114,13 @@ const routes: RouteRecordRaw[] = [
     path: '/profile/edit',
     name: 'ProfileEdit',
     component: ProfileEdit,
+    beforeEnter: requireAuthentication(),
+  },
+  //Add Car
+  {
+    path: '/profile/add-car',
+    name: 'AddCar',
+    component: AddCar,
     beforeEnter: requireAuthentication(),
   },
 

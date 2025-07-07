@@ -125,6 +125,8 @@ export function useUser() {
     updateUserLocation,
     updateUserHasLicense,
     getCurrentUserLocation,
-    getCurrentUserId
+    getCurrentUserId,
+    getUserMe,
+    postUpdateUserData
   }
 }
