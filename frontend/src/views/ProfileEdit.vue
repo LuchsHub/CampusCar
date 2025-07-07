@@ -11,20 +11,21 @@ import Button from '@/components/Button.vue'
 import HoverButton from '@/components/HoverButton.vue'
 import CarSelect from '@/components/CarSelect.vue'
 
-import type { UserUpdate } from '@/types/User';
+import type { UserUpdate } from '@/types/User'
 import type { CarGet } from '@/types/Car'
 
 const router = useRouter()
-const { getUserMe, getCurrentUserLocation, postUpdateUserData } = useUser()
+const { getUserMe, getCurrentUserLocation, postUpdateUserData, uploadProfileImage, getProfileImageUrl } = useUser()
 const { getUserCarsData } = useCar()
 const { showToast } = useToaster()
 
 const fileInputRef = ref<HTMLInputElement | null>(null)
 const licenseFile = ref<File | null>(null)
 const licenseUploaded = ref(false)
+const profileImageFile = ref<File | null>(null)
 
 // Profile
-const profileImage = ref('https://randomuser.me/api/portraits/lego/1.jpg')
+const profileImage = ref()
 const firstName = ref('')
 const lastName = ref('')
 const email = ref('')
@@ -57,6 +58,7 @@ const triggerFileInput = () => {
 const handleProfileImageChange = (event: Event) => {
   const file = (event.target as HTMLInputElement).files?.[0]
   if (file) {
+    profileImageFile.value = file
     const reader = new FileReader()
     reader.onload = () => {
       profileImage.value = reader.result as string
@@ -91,6 +93,9 @@ const loadUserData = async () => {
       country.value = location.country
     }
 
+    const imgUrl = await getProfileImageUrl()
+    profileImage.value = imgUrl ?? ""
+
     userCars.value = await getUserCarsData()
     selectedCar.value = userCars.value[0] || null
   } catch {
@@ -112,11 +117,20 @@ const saveProfile = async () => {
     first_name: firstName.value,
     last_name: lastName.value,
     email: email.value,
-    location: location,
+    location,
     has_license: licenseUploaded.value ? true : hasLicense.value
   }
 
   await postUpdateUserData(userUpdate)
+
+  if (profileImageFile.value) {
+    try {
+      await uploadProfileImage(profileImageFile.value)
+    } catch (error) {
+      showToast('error', 'Profilbild konnte nicht hochgeladen werden')
+    }
+  }
+
   router.push('/profile')
 }
 
@@ -125,12 +139,16 @@ onMounted(() => {
 })
 </script>
 
+
 <template>
   <div class="view-container">
     <PageTitle :goBack="true">Profil bearbeiten</PageTitle>
 
     <div class="profile-picture-section">
-      <img :src="profileImage" alt="Profilbild" class="profile-picture" />
+      <img
+        :src="profileImage"
+        class="profile-picture"
+      />
       <input
         type="file"
         accept="image/*"
@@ -221,10 +239,6 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-}
-
-.form-section :deep(.input-container) {
-  width: 100%;
 }
 
 .text-info {
