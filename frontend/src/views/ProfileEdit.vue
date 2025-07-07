@@ -43,7 +43,7 @@ const userCars = ref<CarGet[]>([])
 const selectedCar = ref<CarGet | null>(null)
 
 const handleCarSelect = (car: CarGet) => {
-  selectedCar.value = car
+  router.push(`/profile/edit-car/${car.id}`)
 }
 
 const addCar = () => {
