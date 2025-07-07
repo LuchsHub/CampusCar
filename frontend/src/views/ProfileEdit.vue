@@ -93,7 +93,7 @@ const loadUserData = async () => {
 
     userCars.value = await getUserCarsData()
     selectedCar.value = userCars.value[0] || null
-  } catch (error) {
+  } catch {
     showToast('error', 'Fehler beim Laden des Profils')
   }
 }
