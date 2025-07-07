@@ -59,7 +59,7 @@ def read_users(session: SessionDep, skip: int = 0, limit: int = 100) -> Any:
     "/{user_id}/img",
 )
 def get_profile_picture(
-    user_id: int,
+    user_id: uuid.UUID,
     session: SessionDep,
 ) -> Any:
     user = session.exec(select(User).where(User.id == user_id)).first()
