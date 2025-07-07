@@ -66,7 +66,8 @@ def get_profile_picture(
     if not user or not user.profile_picture:
         raise HTTPException(status_code=404, detail="Profile picture not found")
 
-    return Response(content=user.profile_picture, media_type="image/png")
+    media_type = user.profile_picture_content_type or "image/png"
+    return Response(content=user.profile_picture, media_type=media_type)
 
 
 @router.post(
@@ -134,11 +135,14 @@ async def update_my_profile_picture(
     session: SessionDep,
     current_user: CurrentUser,
 ) -> Any:
-    if profile_picture.content_type not in ["image/png"]:
-        raise HTTPException(status_code=400, detail="Only PNG files are allowed.")
+    if profile_picture.content_type not in ["image/png", "image/jpeg", "image/jpg"]:
+        raise HTTPException(
+            status_code=400, detail="Only PNG, JPG, and JPEG files are allowed."
+        )
 
     image_bytes = await profile_picture.read()
     current_user.profile_picture = image_bytes
+    current_user.profile_picture_content_type = profile_picture.content_type
 
     session.add(current_user)
     session.commit()

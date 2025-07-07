@@ -76,6 +76,7 @@ class User(UserBase, table=True):
     points: int = Field(default=0)
 
     profile_picture: bytes | None = None
+    profile_picture_content_type: str | None = Field(default=None)
     has_license: bool = Field(default=False)
 
 
