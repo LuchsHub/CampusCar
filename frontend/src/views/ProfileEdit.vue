@@ -117,10 +117,8 @@ const saveProfile = async () => {
   }
 
   await postUpdateUserData(userUpdate)
-
   router.push('/profile')
 }
-
 
 onMounted(() => {
   loadUserData()
@@ -133,8 +131,6 @@ onMounted(() => {
 
     <div class="profile-picture-section">
       <img :src="profileImage" alt="Profilbild" class="profile-picture" />
-
-      <!-- Verstecktes Datei-Input -->
       <input
         type="file"
         accept="image/*"
@@ -142,8 +138,6 @@ onMounted(() => {
         style="display: none"
         @change="handleProfileImageChange"
       />
-
-      <!-- Klickbarer Link -->
       <a class="change-link text-info" @click.prevent="triggerFileInput">Profilbild ändern</a>
     </div>
 
@@ -156,16 +150,17 @@ onMounted(() => {
 
     <div class="form-container">
       <h2>Abholdaten</h2>
+      <Input type="text" label="Land" v-model="country" />
       <Input type="text" label="Straße" v-model="street" />
       <Input type="text" label="Hausnummer" v-model="houseNumber" />
-      <Input type="text" label="PLZ" v-model="postalCode" />
       <Input type="text" label="Stadt" v-model="city" />
+      <Input type="text" label="PLZ" v-model="postalCode" />
     </div>
 
     <div class="form-container">
       <h2>Auto</h2>
       <CarSelect
-        v-for="(car) in userCars"
+        v-for="car in userCars"
         :key="car.id"
         :car="car"
         :selected="car.id === selectedCar?.id"
@@ -174,7 +169,6 @@ onMounted(() => {
       <Button variant="secondary" @click="addCar">Auto hinzufügen</Button>
     </div>
 
-    <!-- Nur ausblenden, wenn schon in der Datenbank vorhanden -->
     <div class="form-container" v-if="!hasLicense">
       <h2>Führerschein</h2>
       <Input
@@ -203,9 +197,9 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center; /* NEU */
+  justify-content: center;
   gap: 0.5rem;
-  margin: 0 auto; /* zentriert horizontal */
+  margin: 0 auto;
 }
 
 .profile-picture {
