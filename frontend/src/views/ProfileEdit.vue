@@ -126,7 +126,7 @@ const saveProfile = async () => {
   if (profileImageFile.value) {
     try {
       await uploadProfileImage(profileImageFile.value)
-    } catch (error) {
+    } catch {
       showToast('error', 'Profilbild konnte nicht hochgeladen werden')
     }
   }
