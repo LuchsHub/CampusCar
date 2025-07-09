@@ -13,6 +13,8 @@ import CarSelect from '@/components/CarSelect.vue'
 
 import type { UserUpdate } from '@/types/User'
 import type { CarGet } from '@/types/Car'
+import { validate, required, isValidEmail, isTHBEmail, isValidPostalCode } from '@/services/validation'
+import type { ValidationSchema } from "@/types/Validation"
 
 const router = useRouter()
 const { getUserMe, getCurrentUserLocation, postUpdateUserData, uploadProfileImage, getProfileImageUrl } = useUser()
@@ -42,6 +44,20 @@ const country = ref('Deutschland')
 // Cars
 const userCars = ref<CarGet[]>([])
 const selectedCar = ref<CarGet | null>(null)
+
+// Validaton Schema
+const profileSchema: ValidationSchema = {
+  firstName: [required('Vorname')],
+  lastName: [required('Nachname')],
+  email: [required('E-Mail'), isValidEmail(), isTHBEmail()],
+  country: [required('Land')],
+  street: [required('Straße')],
+  houseNumber: [required('Hausnummer')],
+  city: [required('Stadt')],
+  postalCode: [required('PLZ'), isValidPostalCode()],
+}
+
+const errors = ref<Record<string, string[]>>({})
 
 const handleCarSelect = (car: CarGet) => {
   router.push(`/profile/edit-car/${car.id}`)
@@ -104,6 +120,25 @@ const loadUserData = async () => {
 }
 
 const saveProfile = async () => {
+  const values = {
+    firstName: firstName.value,
+    lastName: lastName.value,
+    email: email.value,
+    country: country.value,
+    street: street.value,
+    houseNumber: houseNumber.value,
+    city: city.value,
+    postalCode: postalCode.value,
+  }
+
+  const result = validate(values, profileSchema)
+
+  if (Object.keys(result).length > 0) {
+    errors.value = result
+    showToast('error', 'Bitte überprüfe deine Eingaben.')
+    return
+  }
+
   const location = {
     street: street.value,
     house_number: houseNumber.value,
@@ -161,18 +196,18 @@ onMounted(() => {
 
     <div class="form-container">
       <h2>Allgemein</h2>
-      <Input type="text" label="Vorname" v-model="firstName" />
-      <Input type="text" label="Nachname" v-model="lastName" />
-      <Input type="text" label="E-Mail" v-model="email" disabled />
+      <Input type="text" label="Vorname" v-model="firstName" :error="errors.firstName?.[0]" />
+      <Input type="text" label="Nachname" v-model="lastName" :error="errors.lastName?.[0]" />
+      <Input type="text" label="E-Mail" v-model="email" :error="errors.email?.[0]" />
     </div>
 
     <div class="form-container">
       <h2>Abholdaten</h2>
-      <Input type="text" label="Land" v-model="country" />
-      <Input type="text" label="Straße" v-model="street" />
-      <Input type="text" label="Hausnummer" v-model="houseNumber" />
-      <Input type="text" label="Stadt" v-model="city" />
-      <Input type="text" label="PLZ" v-model="postalCode" />
+      <Input type="text" label="Land" v-model="country" :error="errors.country?.[0]" />
+      <Input type="text" label="Straße" v-model="street" :error="errors.street?.[0]" />
+      <Input type="text" label="Hausnummer" v-model="houseNumber" :error="errors.houseNumber?.[0]" />
+      <Input type="text" label="Stadt" v-model="city" :error="errors.city?.[0]" />
+      <Input type="number" label="PLZ" v-model="postalCode" :error="errors.postalCode?.[0]" :maxLength="5"/>
     </div>
 
     <div class="form-container">
@@ -187,14 +222,19 @@ onMounted(() => {
       <Button variant="secondary" @click="addCar">Auto hinzufügen</Button>
     </div>
 
-    <div class="form-container" v-if="!hasLicense">
+    <div class="form-container">
       <h2>Führerschein</h2>
-      <Input
-        type="file"
-        label="Führerschein hochladen"
-        :modelValue="''"
-        @change="handleLicenseUpload"
-      />
+      <div v-if="!hasLicense">
+        <Input
+          type="file"
+          label="Führerschein hochladen"
+          :modelValue="''"
+          @change="handleLicenseUpload"
+        />
+      </div>
+      <div v-else class="license-info">
+        ✅ Führerschein hinterlegt
+      </div>
     </div>
 
     <div class="form-container">
@@ -243,5 +283,9 @@ onMounted(() => {
 
 .text-info {
   color: var(--color-support-info-500);
+}
+
+.license-info {
+  font-weight: bold;
 }
 </style>
