@@ -9,7 +9,6 @@ import PageTitle from '@/components/PageTitle.vue'
 import Input from '@/components/Input.vue'
 import Button from '@/components/Button.vue'
 import HoverButton from '@/components/HoverButton.vue'
-import CarSelect from '@/components/CarSelect.vue'
 
 import type { UserUpdate } from '@/types/User'
 import type { CarGet } from '@/types/Car'
@@ -212,13 +211,15 @@ onMounted(() => {
 
     <div class="form-container">
       <h2>Auto</h2>
-      <CarSelect
+      <div
         v-for="car in userCars"
         :key="car.id"
-        :car="car"
-        :selected="car.id === selectedCar?.id"
-        @select="handleCarSelect"
-      />
+        class="car-entry"
+        @click="() => handleCarSelect(car)"
+      >
+        <p class="car-license">{{ car.license_plate }}</p>
+        <p class="car-model">{{ car.brand }} {{ car.model }} | {{ car.n_seats }} Sitzplätze</p>
+      </div>
       <Button variant="secondary" @click="addCar">Auto hinzufügen</Button>
     </div>
 
