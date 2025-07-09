@@ -13,7 +13,7 @@ const goBack = () => {
 
 <template>
   <div class="view-container">
-    <PageTitle :goBack="true">Auto hinzufügen</PageTitle>
+    <PageTitle :goBack="true">Auto bearbeiten </PageTitle>
 
     <div class="under-construction-container">
       <p class="under-construction-text">Diese Seite befindet sich noch im Aufbau 🚧</p>
