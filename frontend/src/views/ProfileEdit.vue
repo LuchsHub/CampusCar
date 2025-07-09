@@ -73,15 +73,23 @@ const triggerFileInput = () => {
 
 const handleProfileImageChange = (event: Event) => {
   const file = (event.target as HTMLInputElement).files?.[0]
-  if (file) {
-    profileImageFile.value = file
-    const reader = new FileReader()
-    reader.onload = () => {
-      profileImage.value = reader.result as string
-    }
-    reader.readAsDataURL(file)
+  if (!file) return
+
+  const validTypes = ['image/jpeg', 'image/png']
+  if (!validTypes.includes(file.type)) {
+    showToast('error', 'Nur .jpg, .jpeg oder .png Dateien sind erlaubt.')
+    return
   }
+
+  profileImageFile.value = file
+
+  const reader = new FileReader()
+  reader.onload = () => {
+    profileImage.value = reader.result as string
+  }
+  reader.readAsDataURL(file)
 }
+
 
 const handleLicenseUpload = (event: Event) => {
   const file = (event.target as HTMLInputElement).files?.[0]
@@ -186,7 +194,7 @@ onMounted(() => {
       />
       <input
         type="file"
-        accept="image/*"
+        accept=".jpg,.jpeg,.png"
         ref="fileInputRef"
         style="display: none"
         @change="handleProfileImageChange"
