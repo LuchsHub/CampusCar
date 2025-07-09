@@ -60,9 +60,37 @@ export function useCar() {
     }
   }
 
+  const updateCar = async (id: string, car: Partial<CarCreate>): Promise<void> => {
+    try {
+      await api.patch(`/cars/${id}`, car)
+      showToast('success', 'Auto erfolgreich aktualisiert.')
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        showToast('error', 'Fehler beim Aktualisieren des Autos.')
+      } else {
+        showDefaultError()
+      }
+    }
+  }
+
+  const deleteCar = async (id: string): Promise<void> => {
+    try {
+      await api.delete(`/cars/${id}`)
+      showToast('success', 'Auto wurde gelöscht.')
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        showToast('error', 'Fehler beim Löschen des Autos.')
+      } else {
+        showDefaultError()
+      }
+    }
+  }
+
   return {
     getEmptyCarCreate,
     createCar,
-    getUserCarsData
+    getUserCarsData,
+    updateCar,
+    deleteCar
   }
 }
