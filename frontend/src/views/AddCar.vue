@@ -1,24 +1,99 @@
 <script setup lang="ts">
+import Input from '@/components/Input.vue'
+import HoverButton from '@/components/HoverButton.vue'
 import PageTitle from '@/components/PageTitle.vue'
-import Button from '@/components/Button.vue'
+import type { ButtonProps } from '@/types/Props'
+import { ref } from 'vue'
+import { useCar } from '@/composables/useCar'
+import router from '@/router'
 
-// Falls du später zur vorherigen Seite zurück möchtest
-import { useRouter } from 'vue-router'
-const router = useRouter()
+import {
+  required,
+  validate,
+  smallerThan,
+  largerThan,
+  isValidLicensePlate
+} from '@/services/validation'
+import type { ValidationSchema } from '@/types/Validation'
 
-const goBack = () => {
-  router.back()
+// Car logic
+const { getEmptyCarCreate, createCar } = useCar()
+const carCreate = getEmptyCarCreate()
+
+// Validation
+const carCreateValidationSchema: ValidationSchema = {
+  license_plate: [required('Kennzeichen'), isValidLicensePlate()],
+  brand: [required('Hersteller')],
+  model: [required('Modell')],
+  n_seats: [
+    required('Anzahl Sitzplätze'),
+    largerThan(1, 'Mögliche Anzahl Sitze: 2–20'),
+    smallerThan(21, 'Mögliche Anzahl Sitze: 2–20')
+  ],
+  color: [required('Farbe')],
 }
+const errors = ref<Record<string, string[]>>({})
+
+// Actions
+const tryCreateCar = async (): Promise<void> => {
+  errors.value = validate(carCreate as Record<string, string>, carCreateValidationSchema)
+  if (Object.keys(errors.value).length > 0) return
+
+  await createCar(carCreate)
+  router.push('/profile/edit') // Ziel nach dem Anlegen
+}
+
+// Buttons
+const buttons: ButtonProps[] = [
+  { variant: 'primary', text: 'Speichern', onClick: tryCreateCar }
+]
 </script>
 
 <template>
   <div class="view-container">
     <PageTitle :goBack="true">Auto hinzufügen</PageTitle>
 
-    <div class="under-construction-container">
-      <p class="under-construction-text">Diese Seite befindet sich noch im Aufbau 🚧</p>
-      <Button variant="primary" @click="goBack">Zurück</Button>
+    <div class="form-container">
+      <div>
+        <Input
+          type="text"
+          label="Kennzeichen"
+          v-model="carCreate.license_plate"
+          :error="errors.license_plate?.[0]"
+        />
+        <p class="text-xs margin-top-s margin-left-md text-neutral-400">
+          Eingabe mit Bindestrichen getrennt. Beispiel: BRB-TH-123
+        </p>
+      </div>
+      <Input
+        type="text"
+        label="Hersteller"
+        v-model="carCreate.brand"
+        :error="errors.brand?.[0]"
+      />
+      <Input
+        type="text"
+        label="Modell"
+        v-model="carCreate.model"
+        :error="errors.model?.[0]"
+      />
+      <Input
+        type="number"
+        label="Anzahl Sitzplätze"
+        v-model="carCreate.n_seats"
+        :min="2"
+        :max="20"
+        :error="errors.n_seats?.[0]"
+      />
+      <Input
+        type="text"
+        label="Farbe"
+        v-model="carCreate.color"
+        :error="errors.color?.[0]"
+      />
     </div>
+
+    <HoverButton :buttons="buttons" />
   </div>
 </template>
 
@@ -26,26 +101,21 @@ const goBack = () => {
 .view-container {
   display: flex;
   flex-direction: column;
+  gap: 2rem;
   padding: 0 1rem 4rem;
-  align-items: center;
 }
 
-.under-construction-container {
-  margin-top: 4rem;
+.form-container {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 1.5rem;
+  gap: 1.25rem;
 }
 
-.under-construction-image {
-  max-width: 300px;
-  height: auto;
+.text-bold {
+  font-weight: bold;
 }
 
-.under-construction-text {
-  font-size: 1.25rem;
-  color: var(--color-support-info-500);
-  text-align: center;
+.margin-botton-l {
+  margin-bottom: 1.5rem;
 }
 </style>
