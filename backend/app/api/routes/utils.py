@@ -1,5 +1,6 @@
-from email.mime.text import MIMEText
 import smtplib
+from email.mime.text import MIMEText
+
 from fastapi import APIRouter, Depends
 from pydantic.networks import EmailStr
 
@@ -8,18 +9,20 @@ from app.models import Message
 
 router = APIRouter(prefix="/utils", tags=["utils"])
 
-def send_email(subject, body, to_email):
+
+def send_email(subject: str, body: str, to_email: str) -> None:
     from_email = "mux.campuscar@gmail.com"
     password = "igep netf tgzv kien"
 
     msg = MIMEText(body)
-    msg['Subject'] = subject
-    msg['From'] = from_email
-    msg['To'] = to_email
+    msg["Subject"] = subject
+    msg["From"] = from_email
+    msg["To"] = to_email
 
     with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
         server.login(from_email, password)
         server.send_message(msg)
+
 
 @router.post(
     "/test-email/",
@@ -32,7 +35,6 @@ def test_email(email_to: EmailStr) -> Message:
     """
     send_email("Test Alert", "This is a test message from your app", email_to)
     return Message(message="Test email sent")
-
 
 
 @router.get("/health-check/")
