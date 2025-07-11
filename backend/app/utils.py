@@ -1,6 +1,8 @@
 import logging
+import smtplib
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
+from email.mime.text import MIMEText
 from pathlib import Path
 from typing import Any
 
@@ -14,6 +16,20 @@ from app.core.config import settings
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+
+def send_mail(subject: str, body: str, to_email: str) -> None:
+    from_email = "mux.campuscar@gmail.com"
+    password = "igep netf tgzv kien"
+
+    msg = MIMEText(body)
+    msg["Subject"] = subject
+    msg["From"] = from_email
+    msg["To"] = to_email
+
+    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+        server.login(from_email, password)
+        server.send_message(msg)
 
 
 @dataclass
