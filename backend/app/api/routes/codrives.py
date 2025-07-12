@@ -3,6 +3,7 @@ import math
 import uuid
 from collections.abc import Sequence
 from typing import Any, TypedDict
+from zoneinfo import ZoneInfo
 
 import openrouteservice  # type: ignore
 from fastapi import APIRouter, HTTPException, Query, status
@@ -109,10 +110,14 @@ def request_codrive(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Cannot join own ride."
         )
+
+    german_tz = ZoneInfo("Europe/Berlin")
+    now_in_germany = datetime.datetime.now(german_tz)
+
     departure_datetime = datetime.datetime.combine(
-        ride.departure_date, ride.departure_time
+        ride.departure_date, ride.departure_time, tzinfo=german_tz
     )
-    if departure_datetime <= datetime.datetime.utcnow():
+    if departure_datetime <= now_in_germany:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Ride is in the past."
         )
@@ -178,8 +183,16 @@ def request_codrive(
         )
 
     new_duration = datetime.timedelta(seconds=summary["duration"])
-    arrival_datetime = datetime.datetime.combine(ride.arrival_date, ride.arrival_time)
+    arrival_datetime = datetime.datetime.combine(
+        ride.arrival_date, ride.arrival_time, tzinfo=german_tz
+    )
     new_departure_datetime = arrival_datetime - new_duration
+
+    if new_departure_datetime <= now_in_germany:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="The updated departure time for this codrive request would be in the past.",
+        )
 
     segments = final_route_data["features"][0]["properties"]["segments"]
     updated_codriver_arrival_times: dict[str, PassengerArrival] = {}
@@ -502,6 +515,19 @@ def accept_codrive(
 
     update_data = RouteUpdate.model_validate(codrive_to_accept.route_update)
 
+    german_tz = ZoneInfo("Europe/Berlin")
+    now_in_germany = datetime.datetime.now(german_tz)
+    updated_departure_datetime = datetime.datetime.combine(
+        update_data.updated_ride_departure_date,
+        update_data.updated_ride_departure_time,
+        tzinfo=german_tz,
+    )
+    if updated_departure_datetime <= now_in_germany:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot accept this request as the updated departure time would be in the past.",
+        )
+
     ride.route_geometry = update_data.geometry
     ride.estimated_distance_meters = update_data.distance_meters
     ride.estimated_duration_seconds = update_data.duration_seconds
@@ -572,7 +598,7 @@ def accept_codrive(
             added_distance = summary["distance"] - ride.estimated_distance_meters
             new_duration = datetime.timedelta(seconds=summary["duration"])
             arrival_datetime = datetime.datetime.combine(
-                ride.arrival_date, ride.arrival_time
+                ride.arrival_date, ride.arrival_time, tzinfo=german_tz
             )
             new_departure_datetime = arrival_datetime - new_duration
             segments = final_route_data["features"][0]["properties"]["segments"]
@@ -720,6 +746,7 @@ def delete_own_codrive(
         return Message(message="Your codrive request has been withdrawn.")
 
     # --- User is leaving an accepted ride, recalculations are needed ---
+    german_tz = ZoneInfo("Europe/Berlin")
 
     ride.n_codrives -= 1
     ride.total_points -= codrive_to_delete.point_contribution
@@ -749,7 +776,9 @@ def delete_own_codrive(
 
     summary = new_route_data["features"][0]["properties"]["summary"]
     new_duration = datetime.timedelta(seconds=summary["duration"])
-    arrival_datetime = datetime.datetime.combine(ride.arrival_date, ride.arrival_time)
+    arrival_datetime = datetime.datetime.combine(
+        ride.arrival_date, ride.arrival_time, tzinfo=german_tz
+    )
     new_departure_datetime = arrival_datetime - new_duration
 
     ride.route_geometry = new_route_data["features"][0]["geometry"]["coordinates"]
