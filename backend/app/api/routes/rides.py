@@ -2,6 +2,7 @@ import datetime
 import math
 import uuid
 from typing import Any
+from zoneinfo import ZoneInfo
 
 import openrouteservice  # type: ignore
 from fastapi import APIRouter, Body, HTTPException, Query, status
@@ -89,10 +90,20 @@ def create_ride(
     distance_meters = route_summary.get("distance", 0)
 
     estimated_duration = datetime.timedelta(seconds=duration_seconds)
+
+    german_tz = ZoneInfo("Europe/Berlin")
+    now_in_germany = datetime.datetime.now(german_tz)
+
     arrival_datetime = datetime.datetime.combine(
-        ride_in.arrival_date, ride_in.arrival_time
+        ride_in.arrival_date, ride_in.arrival_time, tzinfo=german_tz
     )
     departure_datetime = arrival_datetime - estimated_duration
+
+    if departure_datetime <= now_in_germany:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="The calculated departure time is in the past. Please choose a later arrival time.",
+        )
 
     db_ride = Ride.model_validate(
         ride_in.model_dump(exclude={"start_location", "end_location"}),
