@@ -315,6 +315,7 @@ class Ride(SQLModel, table=True):
     route_geometry: list[list[float]] = Field(default=[], sa_column=Column(JSON))
     estimated_duration_seconds: int = Field()
     estimated_distance_meters: int = Field()
+    completed: bool = Field(default=False)
 
 
 class RideCreate(SQLModel):
@@ -356,6 +357,7 @@ class RidePublic(SQLModel):
     max_n_codrives: int
     n_codrives: int
     total_points: int
+    completed: bool
 
     start_location: LocationPublic
     end_location: LocationPublic
@@ -371,7 +373,6 @@ class RidesPublic(SQLModel):
     count: int
 
 
-# --- Models for the "get my codrives" endpoint ---
 class CodriveStatus(str, Enum):
     REQUESTED = "requested"
     ACCEPTED = "accepted"
