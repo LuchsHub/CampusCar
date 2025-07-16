@@ -401,6 +401,107 @@ def read_own_codrives(
     return UserCodrivesPublic(data=response_data, count=count)
 
 
+@router.get("/unpaid", response_model=UserCodrivesPublic)
+def read_unpaid_codrives(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    offset: int = 0,
+    limit: int = Query(default=100, le=200),
+) -> Any:
+    """
+    Get all of the current user's codrives that are unpaid for completed rides.
+    """
+    stmt = (
+        select(Codrive)
+        .join(Ride)
+        .where(Codrive.user_id == current_user.id)
+        .where(Codrive.accepted)
+        .where(not Codrive.paid)
+        .where(Ride.completed)
+        .options(
+            selectinload(Codrive.ride).options(  # type: ignore[arg-type]
+                selectinload(Ride.driver).options(selectinload(User.location)),  # type: ignore[arg-type]
+                selectinload(Ride.car),  # type: ignore[arg-type]
+                selectinload(Ride.start_location),  # type: ignore[arg-type]
+                selectinload(Ride.end_location),  # type: ignore[arg-type]
+                selectinload(Ride.codrives).options(  # type: ignore[arg-type]
+                    selectinload(Codrive.user).options(selectinload(User.location)),  # type: ignore[arg-type]
+                    selectinload(Codrive.location),  # type: ignore[arg-type]
+                ),
+            )
+        )
+    )
+
+    count_stmt = select(func.count()).select_from(stmt.subquery())
+    count = session.exec(count_stmt).one()
+
+    codrives_stmt = stmt.offset(offset).limit(limit)
+    codrives = session.exec(codrives_stmt).all()
+
+    response_data = []
+    for codrive in codrives:
+        ride = codrive.ride
+        accepted_codrives_public = []
+        requested_codrives_public = []
+
+        users_by_id = {str(ride.driver.id): UserPublic.model_validate(ride.driver)}
+        for c in ride.codrives:
+            users_by_id[str(c.user.id)] = UserPublic.model_validate(c.user)
+        locations_by_user_id = {str(c.user.id): c.location for c in ride.codrives}
+
+        for c_in_ride in ride.codrives:
+            if c_in_ride.accepted:
+                accepted_codrives_public.append(
+                    CodrivePassenger.model_validate(c_in_ride)
+                )
+            elif c_in_ride.route_update:
+                db_route_update = RouteUpdate.model_validate(c_in_ride.route_update)
+                passenger_arrivals = [
+                    PassengerArrivalTime(
+                        user=users_by_id[user_id_str],
+                        location=LocationPublic.model_validate(
+                            locations_by_user_id[user_id_str]
+                        ),
+                        arrival_date=arr_details.date,
+                        arrival_time=arr_details.time,
+                    )
+                    for user_id_str, arr_details in db_route_update.codriver_arrival_times.items()
+                    if user_id_str in users_by_id
+                    and user_id_str in locations_by_user_id
+                ]
+                route_update_public = RouteUpdatePublic.model_validate(
+                    db_route_update,
+                    update={"codriver_arrival_times": passenger_arrivals},
+                )
+                requested_codrives_public.append(
+                    CodriveRequestPublic.model_validate(
+                        c_in_ride, update={"route_update": route_update_public}
+                    )
+                )
+
+        ride_public = RidePublic.model_validate(
+            ride,
+            update={
+                "codrives": accepted_codrives_public,
+                "requested_codrives": requested_codrives_public,
+            },
+        )
+
+        user_codrive_public = UserCodrivePublic(
+            id=codrive.id,
+            accepted=codrive.accepted,
+            paid=codrive.paid,
+            message=codrive.message,
+            point_contribution=codrive.point_contribution,
+            route_update=None,
+            ride=ride_public,
+        )
+        response_data.append(user_codrive_public)
+
+    return UserCodrivesPublic(data=response_data, count=count)
+
+
 @router.get("/{codrive_id}", response_model=CodrivePublic)
 def read_codrive(
     *, session: SessionDep, current_user: CurrentUser, codrive_id: uuid.UUID

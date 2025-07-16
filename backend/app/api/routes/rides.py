@@ -388,6 +388,90 @@ def read_rides_by_driver(
     return RidesPublic(data=public_rides, count=count)
 
 
+@router.get("/me", response_model=RidesPublic)
+def read_own_rides(
+    session: SessionDep,
+    current_user: CurrentUser,
+    offset: int = 0,
+    limit: int = Query(default=100, le=200),
+) -> Any:
+    """
+    Get all rides for the current user.
+    """
+    stmt = get_rides_statement().where(Ride.driver_id == current_user.id)
+
+    count_stmt = select(func.count()).select_from(stmt.subquery())
+    count = session.exec(count_stmt).one()
+
+    rides_stmt = stmt.offset(offset).limit(limit)
+    rides = session.exec(rides_stmt).all()
+
+    public_rides = []
+    for ride in rides:
+        accepted_codrives_public = []
+        requested_codrives_public = []
+
+        users_by_id = {str(ride.driver.id): UserPublic.model_validate(ride.driver)}
+        for c in ride.codrives:
+            users_by_id[str(c.user_id)] = UserPublic.model_validate(c.user)
+
+        locations_by_user_id = {str(c.user_id): c.location for c in ride.codrives}
+
+        for codrive in ride.codrives:
+            if codrive.accepted:
+                accepted_codrives_public.append(
+                    CodrivePassenger.model_validate(codrive)
+                )
+            elif codrive.route_update:
+                db_route_update = RouteUpdate.model_validate(codrive.route_update)
+                passenger_arrivals: list[PassengerArrivalTime] = []
+                for (
+                    user_id_str,
+                    arrival_details,
+                ) in db_route_update.codriver_arrival_times.items():
+                    user_public_obj = users_by_id.get(user_id_str)
+                    location_obj = locations_by_user_id.get(user_id_str)
+                    if user_public_obj and location_obj:
+                        passenger_arrivals.append(
+                            PassengerArrivalTime(
+                                user=user_public_obj,
+                                location=LocationPublic.model_validate(location_obj),
+                                arrival_date=arrival_details.date,
+                                arrival_time=arrival_details.time,
+                            )
+                        )
+                route_update_public = RouteUpdatePublic(
+                    geometry=db_route_update.geometry,
+                    distance_meters=db_route_update.distance_meters,
+                    duration_seconds=db_route_update.duration_seconds,
+                    updated_ride_departure_date=db_route_update.updated_ride_departure_date,
+                    updated_ride_departure_time=db_route_update.updated_ride_departure_time,
+                    codriver_arrival_times=passenger_arrivals,
+                )
+                requested_codrives_public.append(
+                    CodriveRequestPublic(
+                        id=codrive.id,
+                        user=UserPublic.model_validate(codrive.user),
+                        location=LocationPublic.model_validate(codrive.location),
+                        route_update=route_update_public,
+                        point_contribution=codrive.point_contribution,
+                        message=codrive.message,
+                    )
+                )
+
+        public_rides.append(
+            RidePublic.model_validate(
+                ride,
+                update={
+                    "codrives": accepted_codrives_public,
+                    "requested_codrives": requested_codrives_public,
+                },
+            )
+        )
+
+    return RidesPublic(data=public_rides, count=count)
+
+
 @router.get("/{ride_id}", response_model=RidePublic)
 def read_ride_by_id(ride_id: uuid.UUID, session: SessionDep) -> Any:
     """
@@ -517,9 +601,18 @@ def complete_ride(
     ride_id: uuid.UUID,
 ) -> Message:
     """
-    Mark a ride as completed. Only the driver can do this, and only after the ride's scheduled arrival time.
+    Mark a ride as completed. This can only be done by the driver after the ride's
+    arrival time. Points will be transferred to the driver.
     """
-    ride = session.get(Ride, ride_id)
+    ride = session.get(
+        Ride,
+        ride_id,
+        options=[
+            selectinload(Ride.driver),  # type: ignore[arg-type]
+            selectinload(Ride.codrives).options(selectinload(Codrive.user)),  # type: ignore[arg-type]
+        ],
+    )
+
     if not ride:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Ride not found"
@@ -536,24 +629,25 @@ def complete_ride(
         )
 
     german_tz = ZoneInfo("Europe/Berlin")
-    now_in_germany = datetime.datetime.now(german_tz)
     arrival_datetime = datetime.datetime.combine(
         ride.arrival_date, ride.arrival_time, tzinfo=german_tz
     )
+    now_in_germany = datetime.datetime.now(german_tz)
 
-    if now_in_germany < arrival_datetime:
+    if arrival_datetime > now_in_germany:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Cannot complete a ride before its scheduled arrival time.",
+            detail="Cannot mark a ride as complete before its arrival time.",
         )
 
     ride.completed = True
+    ride.driver.points += ride.total_points
+    session.add(ride.driver)
     session.add(ride)
-    current_user.points += ride.total_points
-    session.add(current_user)
     session.commit()
-    return Message(message="Ride marked as completed successfully.")
 
+    return Message(message="Ride marked as complete and points have been transferred.")
+    
 
 @router.delete("/{ride_id}", response_model=Message)
 def delete_ride(

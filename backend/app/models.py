@@ -372,6 +372,7 @@ class RidePublic(SQLModel):
     max_n_codrives: int
     n_codrives: int
     total_points: int
+    completed: bool
 
     start_location: LocationPublic
     end_location: LocationPublic
@@ -388,7 +389,6 @@ class RidesPublic(SQLModel):
     count: int
 
 
-# --- Models for the "get my codrives" endpoint ---
 class CodriveStatus(str, Enum):
     REQUESTED = "requested"
     ACCEPTED = "accepted"
