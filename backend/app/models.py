@@ -74,6 +74,9 @@ class User(UserBase, table=True):
     rides: list["Ride"] = Relationship(back_populates="driver")
 
     points: int = Field(default=0)
+    cash: float = Field(default=0.0)
+    avg_rating: float = Field(default=0.0)
+    n_ratings: int = Field(default=0)
 
     profile_picture: bytes | None = None
     profile_picture_content_type: str | None = Field(default=None)
@@ -85,6 +88,8 @@ class UserPublic(UserBase):
     id: uuid.UUID
     location: Optional["LocationPublic"]
     has_license: bool
+    avg_rating: float
+    n_ratings: int
 
 
 class UsersPublic(SQLModel):
@@ -223,11 +228,21 @@ class Codrive(SQLModel, table=True):
     route_update: RouteUpdate | None = Field(default=None, sa_column=Column(JSON))
     accepted: bool = Field(default=False)
     paid: bool = Field(default=False)
+    rating_given: bool = Field(default=False)
 
 
 class CodriveCreate(SQLModel):
     location: LocationCreate
     message: str | None = Field(default=None)
+
+
+class CodrivePay(SQLModel):
+    rating: int | None = Field(
+        default=None,
+        ge=1,
+        le=5,
+        description="Optional rating for the driver from 1 to 5.",
+    )
 
 
 class CodrivePublic(SQLModel):
@@ -315,6 +330,7 @@ class Ride(SQLModel, table=True):
     route_geometry: list[list[float]] = Field(default=[], sa_column=Column(JSON))
     estimated_duration_seconds: int = Field()
     estimated_distance_meters: int = Field()
+    completed: bool = Field(default=False)
 
 
 class RideCreate(SQLModel):
@@ -364,6 +380,7 @@ class RidePublic(SQLModel):
     max_request_distance: float | None
     estimated_duration_seconds: int
     estimated_distance_meters: int
+    completed: bool
 
 
 class RidesPublic(SQLModel):

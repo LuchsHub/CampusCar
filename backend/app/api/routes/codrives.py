@@ -16,6 +16,7 @@ from app.models import (
     Codrive,
     CodriveCreate,
     CodrivePassenger,
+    CodrivePay,
     CodrivePublic,
     CodriveRequestPublic,
     CodriveStatus,
@@ -24,6 +25,7 @@ from app.models import (
     Message,
     PassengerArrival,
     PassengerArrivalTime,
+    Rating,
     Ride,
     RidePublic,
     RouteUpdate,
@@ -630,7 +632,7 @@ def accept_codrive(
                 updated_ride_departure_date=new_departure_datetime.date(),
                 updated_ride_departure_time=new_departure_datetime.time(),
             )
-            pending_codrive.route_update = route_update_obj
+            pending_codrive.route_update = route_update_obj.model_dump(mode="json")  # type: ignore
             pending_codrive.point_contribution = round(added_distance / 100)
             user_arrival = updated_codriver_arrival_times[str(pending_codrive.user_id)]
             pending_codrive.arrival_date = user_arrival.date
@@ -696,6 +698,92 @@ def accept_codrive(
             "requested_codrives": requested_codrives_public,
         },
     )
+
+
+@router.patch("/{codrive_id}/pay", response_model=Message)
+def pay_for_codrive(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    codrive_id: uuid.UUID,
+    payment_in: CodrivePay,
+) -> Message:
+    """
+    Pay for a completed codrive and optionally rate the driver.
+    """
+    codrive = session.get(
+        Codrive,
+        codrive_id,
+        options=[selectinload(Codrive.ride).selectinload(Ride.driver)],  # type: ignore[arg-type]
+    )
+
+    if not codrive:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Codrive not found."
+        )
+
+    if codrive.user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You can only pay for your own codrives.",
+        )
+
+    if not codrive.accepted:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot pay for a codrive that was not accepted.",
+        )
+
+    if codrive.paid:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="This codrive has already been paid for.",
+        )
+
+    ride = codrive.ride
+    if not ride.completed:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot pay for a ride that the driver has not marked as completed.",
+        )
+
+    cost = codrive.point_contribution / 100.0
+    if current_user.cash < cost:
+        raise HTTPException(
+            status_code=status.HTTP_402_PAYMENT_REQUIRED,
+            detail=f"Insufficient funds. You need {cost:.2f} but have {current_user.cash:.2f}.",
+        )
+
+    driver = ride.driver
+    current_user.cash -= cost
+    codrive.paid = True
+
+    session.add(current_user)
+    session.add(driver)
+    session.add(codrive)
+
+    if payment_in.rating is not None:
+        if codrive.rating_given:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="You have already rated the driver for this codrive.",
+            )
+
+        new_rating = Rating(
+            user_id=driver.id,
+            rater_id=current_user.id,
+            rating_value=payment_in.rating,
+        )
+        session.add(new_rating)
+
+        total_rating_value = (driver.avg_rating * driver.n_ratings) + payment_in.rating
+        driver.n_ratings += 1
+        driver.avg_rating = total_rating_value / driver.n_ratings
+        codrive.rating_given = True
+
+    session.commit()
+
+    return Message(message="Payment successful. Thank you for riding!")
 
 
 @router.delete("/{codrive_id}/own", response_model=Any)
@@ -873,7 +961,7 @@ def delete_own_codrive(
                 updated_ride_departure_time=proposal_departure_datetime.time(),
             )
 
-            pending_codrive.route_update = route_update_obj
+            pending_codrive.route_update = route_update_obj.model_dump(mode="json")  # type: ignore
             pending_codrive.point_contribution = round(added_distance / 100)
             user_arrival = updated_codriver_arrival_times[str(pending_codrive.user_id)]
             pending_codrive.arrival_date = user_arrival.date

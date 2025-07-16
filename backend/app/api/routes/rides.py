@@ -509,6 +509,52 @@ def update_ride(
     return read_ride_by_id(ride_id=updated_ride.id, session=session)
 
 
+@router.patch("/{ride_id}/complete", response_model=Message)
+def complete_ride(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    ride_id: uuid.UUID,
+) -> Message:
+    """
+    Mark a ride as completed. Only the driver can do this, and only after the ride's scheduled arrival time.
+    """
+    ride = session.get(Ride, ride_id)
+    if not ride:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Ride not found"
+        )
+    if ride.driver_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You are not the driver of this ride.",
+        )
+    if ride.completed:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="This ride has already been marked as completed.",
+        )
+
+    german_tz = ZoneInfo("Europe/Berlin")
+    now_in_germany = datetime.datetime.now(german_tz)
+    arrival_datetime = datetime.datetime.combine(
+        ride.arrival_date, ride.arrival_time, tzinfo=german_tz
+    )
+
+    if now_in_germany < arrival_datetime:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot complete a ride before its scheduled arrival time.",
+        )
+
+    ride.completed = True
+    session.add(ride)
+    current_user.points += ride.total_points
+    session.add(current_user)
+    session.commit()
+    return Message(message="Ride marked as completed successfully.")
+
+
 @router.delete("/{ride_id}", response_model=Message)
 def delete_ride(
     *, session: SessionDep, current_user: CurrentUser, ride_id: uuid.UUID
