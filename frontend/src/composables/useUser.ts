@@ -65,6 +65,11 @@ export function useUser() {
     }
   }
 
+  const checkUserHasLicense = async (): Promise<boolean> => {
+    const user: UserGet = await getUserMe();
+    return user.has_license
+  }
+
   const postUpdateUserData = async (user: UserUpdate) => {
     try {
       const response = await api.patch(
@@ -163,6 +168,7 @@ export function useUser() {
     getUserMe,
     postUpdateUserData,
     uploadProfileImage,
-    getProfileImageUrl
+    getProfileImageUrl,
+    checkUserHasLicense
   }
 }

@@ -8,6 +8,7 @@ export interface PageTitleProps {
 }
 export interface ButtonProps {
   variant: 'primary' | 'secondary' | 'tertiary'
+  disabled?: boolean
   color?: 'danger'
   to?: string 
   text?: string

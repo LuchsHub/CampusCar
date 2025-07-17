@@ -8,6 +8,9 @@
       const classes = ['button']
       classes.push(`button-${props.variant}`) // Add variant class
       classes.push(`button-${props.color}`) // Add color class
+      if (props.disabled) {
+        classes.push('button-disabled')
+      }
       return classes.join(' ')
     })
 
@@ -96,5 +99,13 @@
     @keyframes spin {
       0% { transform: rotate(0deg);}
       100% { transform: rotate(360deg);}
+    }
+
+    .button-disabled {
+      background-color: var(--color-neutral-300, #e0e0e0);
+      color: var(--color-neutral-500, #a0a0a0);
+      border: none;
+      opacity: 0.7;
+      box-shadow: none;
     }
 </style> 

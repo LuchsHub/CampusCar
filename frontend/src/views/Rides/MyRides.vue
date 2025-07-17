@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import PageTitle from '@/components/PageTitle.vue';
 import HoverButton from '@/components/HoverButton.vue';
-import type { ButtonProps } from '@/types/Props';
 import TabSwitcher from '@/components/TabSwitcher.vue';
 import { ref, onMounted, computed, type ComputedRef } from 'vue';
 import type { RideGetDto } from '@/types/Ride';
@@ -9,23 +8,26 @@ import { useRide } from '@/composables/useRide';
 import { useAuthStore } from '@/stores/AuthStore';
 import RideCard from '@/components/RideCard.vue';
 import { sortRidesByDateAsc } from '@/services/utils';
+import { useUser } from '@/composables/useUser';
+import { useToaster } from '@/composables/useToaster';
+import router from '@/router';
 
 const { getRidesForUser } = useRide()
+const { checkUserHasLicense } = useUser();
+const { showToast } = useToaster();
 const authStore = useAuthStore();
 
 const activeTab = ref('Bevorstehend')
 const tabs = ['Bevorstehend', 'Vergangen']
 
-const hoverButtons: ButtonProps[] = [
-    {variant: "primary", text: "Fahrt anbieten", to: "/create_ride"},
-]
-
 // Variables 
 const userOwnRides = ref<RideGetDto[]>([]);
+const hasLicense = ref<boolean>(true);
 
 // fetch data async from backend when component gets loaded
 onMounted(async () => {
   userOwnRides.value = await getRidesForUser(authStore.userId);
+  hasLicense.value = await checkUserHasLicense();
 })
 
 const sortedRides: ComputedRef<RideGetDto[]> = computed(() => {
@@ -47,10 +49,18 @@ const pastRides = computed<RideGetDto[]>(() =>
     return rideDate < now();
   })
 );
+
+const navigateToNextPage = () => {
+  if (!hasLicense.value) {
+    showToast('info', 'Lade zuerst deinen Führerschein hoch.');
+    return
+  }
+  router.push('/create_ride');
+}
 </script>
 
 <template>
-  <div class="view-container" :class="`padding-bottom-hb-${hoverButtons.length}`">
+  <div class="view-container padding-bottom-hb-1">
     <PageTitle>Meine Fahrten</PageTitle>
 
     <TabSwitcher v-model="activeTab" :tabs="tabs" />
@@ -72,7 +82,7 @@ const pastRides = computed<RideGetDto[]>(() =>
           <hr v-if="index < pastRides.length - 1" />
         </template>
       </div>
-    <HoverButton :buttons="hoverButtons"/>
+    <HoverButton :buttons='[{variant: "primary", text: "Fahrt anbieten", onClick: navigateToNextPage, disabled: !hasLicense}]'/>
   </div>
 </template>
 
