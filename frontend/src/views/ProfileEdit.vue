@@ -5,6 +5,7 @@ import { useUser } from '@/composables/useUser'
 import { useToaster } from '@/composables/useToaster'
 import { useCar } from '@/composables/useCar'
 import { Check } from 'lucide-vue-next';
+import { useAuthStore } from '@/stores/AuthStore'
 
 import PageTitle from '@/components/PageTitle.vue'
 import Input from '@/components/Input.vue'
@@ -17,6 +18,7 @@ import { validate, required, isValidEmail, isTHBEmail, isValidPostalCode } from 
 import type { ValidationSchema } from "@/types/Validation"
 
 const router = useRouter()
+const authStore = useAuthStore();
 const { getUserMe, getCurrentUserLocation, postUpdateUserData, uploadProfileImage, getProfileImageUrl } = useUser()
 const { getUserCarsData } = useCar()
 const { showToast } = useToaster()
@@ -58,6 +60,7 @@ const profileSchema: ValidationSchema = {
 }
 
 const errors = ref<Record<string, string[]>>({})
+const loading = ref(false)
 
 const handleCarSelect = (car: CarGet) => {
   router.push(`/profile/edit-car/${car.id}`)
@@ -117,7 +120,7 @@ const loadUserData = async () => {
       country.value = location.country
     }
 
-    const imgUrl = await getProfileImageUrl()
+    const imgUrl = await getProfileImageUrl(authStore.userId)
     profileImage.value = imgUrl ?? ""
 
     userCars.value = await getUserCarsData()
@@ -128,6 +131,7 @@ const loadUserData = async () => {
 }
 
 const saveProfile = async () => {
+  loading.value = true
   const values = {
     firstName: firstName.value,
     lastName: lastName.value,
@@ -144,6 +148,7 @@ const saveProfile = async () => {
   if (Object.keys(result).length > 0) {
     errors.value = result
     showToast('error', 'Bitte überprüfe deine Eingaben.')
+    loading.value = false
     return
   }
 
@@ -175,6 +180,7 @@ const saveProfile = async () => {
   }
 
   router.push('/profile')
+  loading.value = false
 }
 
 onMounted(() => {
@@ -251,7 +257,7 @@ onMounted(() => {
     </div>
 
     <div class="form-container">
-      <HoverButton :buttons="[{ variant: 'primary', text: 'Speichern', onClick: saveProfile }]" />
+      <HoverButton :buttons="[{ variant: 'primary', text: 'Speichern', onClick: saveProfile, loading: loading }]" />
     </div>
   </div>
 </template>

@@ -6,11 +6,13 @@ import axios from 'axios';
 import { useToaster } from '@/composables/useToaster';
 import type { LocationCreateDto } from '../types/Location';
 import type { CodriveGetDto } from '@/types/Codrive';
+import { useUser } from './useUser';
 
 
 export function useRide() {
   
   const { showDefaultError, showToast } = useToaster()
+  const { getProfileImageUrl } = useUser();
 
   const getEmptyRideCreate = (): RideCreateBase => {
     return reactive<RideCreateBase>({
@@ -97,22 +99,23 @@ export function useRide() {
         return []
       }
 
-      const rideGetDtos: RideGetDto[] = result.data.data.map((ride: RideGet) => ({
-        id: ride.id,
-        type: "other",
-        departure_time: ride.departure_time,
-        departure_date: ride.departure_date,
-        arrival_time: ride.arrival_time,
-        arrival_date: ride.arrival_date,
-        start_location: ride.start_location,
-        end_location: ride.end_location,
-        route_geometry: ride.route_geometry,
-        n_available_seats: ride.max_n_codrives - ride.n_codrives,
-        codrives: ride.codrives,
-        requested_codrives: ride.requested_codrives,
-        state: "default",
-        image: `https://randomuser.me/api/portraits/women/${Math.floor(Math.random() * 99) + 1}.jpg`,
-      } as RideGetDto));
+      const rideGetDtos: RideGetDto[] = await Promise.all(
+        result.data.data.map(async (ride: RideGet) => ({
+          id: ride.id,
+          type: "other",
+          departure_time: ride.departure_time,
+          departure_date: ride.departure_date,
+          arrival_time: ride.arrival_time,
+          arrival_date: ride.arrival_date,
+          start_location: ride.start_location,
+          end_location: ride.end_location,
+          route_geometry: ride.route_geometry,
+          n_available_seats: ride.max_n_codrives - ride.n_codrives,
+          codrives: ride.codrives,
+          requested_codrives: ride.requested_codrives,
+          state: "default",
+          image: await getProfileImageUrl(ride.driver.id),
+      } as RideGetDto)))
       return rideGetDtos;
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {

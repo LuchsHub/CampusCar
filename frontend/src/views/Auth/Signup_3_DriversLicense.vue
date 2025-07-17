@@ -2,7 +2,6 @@
 import Input from '@/components/Input.vue';
 import HoverButton from '@/components/HoverButton.vue';
 import PageTitle from '@/components/PageTitle.vue';
-import type { ButtonProps } from '@/types/Props';
 import { ref, reactive } from 'vue';
 import { required, validate } from '@/services/validation'
 import type { ValidationSchema } from '@/types/Validation';
@@ -23,6 +22,7 @@ const licenseValidationSchema: ValidationSchema = {
   file: [required('Führerschein')],
 }
 const errors = ref<Record<string, string[]>>({})
+const loading = ref(false);
 
 
 // functions
@@ -33,16 +33,11 @@ const tryUploadLicense = async (): Promise<void> => { // this is a mock function
     return
   }
 
+  loading.value = true;
   await updateUserHasLicense(true);
+  loading.value = false;
   router.push('/home');
 }
-
-// components
-const hoverButtons: ButtonProps[] = [
-  {variant: "primary", text: "Einrichtung abschließen", onClick: tryUploadLicense},
-  {variant: "tertiary", text: "Später", to: "/home"},
-]
-
 </script>
 
 <template>
@@ -62,6 +57,9 @@ const hoverButtons: ButtonProps[] = [
       </div>
     </div>
 
-    <HoverButton :buttons="hoverButtons"/>
+    <HoverButton :buttons='[
+      {variant: "primary", text: "Einrichtung abschließen", onClick: tryUploadLicense, loading: loading},
+      {variant: "tertiary", text: "Später", to: "/home"}]'
+    />
   </div>
 </template>

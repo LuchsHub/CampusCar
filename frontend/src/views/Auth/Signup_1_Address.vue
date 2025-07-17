@@ -2,7 +2,6 @@
 import Input from '@/components/Input.vue';
 import HoverButton from '@/components/HoverButton.vue';
 import PageTitle from '@/components/PageTitle.vue';
-import type { ButtonProps } from '@/types/Props';
 import { ref } from 'vue';
 import { validate } from '@/services/validation'
 import type { ValidationSchema } from '@/types/Validation';
@@ -20,6 +19,7 @@ const { updateUserLocation } = useUser();
 const locationCreate = getEmptyLocationCreate()
 const locationCreateValidationSchema: ValidationSchema = getLocationCreateValidationSchema();
 const errors = ref<Record<string, string[]>>({})
+const loading = ref<boolean>(false);
 
 
 // functions
@@ -30,16 +30,11 @@ const tryUpdateUserLocation = async (): Promise<void> => {
     return
   }
 
+  loading.value = true;
   await updateUserLocation(locationCreate);
+  loading.value = false;
   router.push('/signup/car');
 }
-
-// components
-const hoverButtons: ButtonProps[] = [
-  {variant: "primary", text: "Nächster Schritt", onClick: tryUpdateUserLocation},
-  {variant: "tertiary", text: "Später", to: "/signup/car"},
-]
-
 </script>
 
 <template>
@@ -82,6 +77,9 @@ const hoverButtons: ButtonProps[] = [
       />
       </div>
       
-      <HoverButton :buttons="hoverButtons"/>
+      <HoverButton :buttons='[
+        {variant: "primary", text: "Nächster Schritt", onClick: tryUpdateUserLocation},
+        {variant: "tertiary", text: "Später", to: "/signup/car"}]'
+      />
     </div>
 </template>

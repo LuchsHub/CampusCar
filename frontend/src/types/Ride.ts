@@ -1,5 +1,6 @@
 import type { CodriveGetDto } from "./Codrive"
 import type { LocationCreateDto, LocationGetDto } from "./Location"
+import type { UserGet } from "./User"
 
 export interface RideCreateBase extends Record<string, string | number>{
     car_id: string
@@ -20,9 +21,9 @@ export interface RideCreateComplete extends Record<string, string | number | Loc
 }
 
 // backend representation which is returned via api
-export interface RideGet extends Record<string, string | number | LocationGetDto | number[][] | CodriveGetDto[]>{
+export interface RideGet extends Record<string, string | number | LocationGetDto | number[][] | CodriveGetDto[] | UserGet >{
   id: string
-  driver_id: string
+  driver: UserGet
   car_id: string
   max_n_codrives: number
   n_codrives: number

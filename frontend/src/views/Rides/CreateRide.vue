@@ -3,7 +3,6 @@ import Input from '@/components/Input.vue';
 import Button from '@/components/Button.vue';
 import HoverButton from '@/components/HoverButton.vue';
 import PageTitle from '@/components/PageTitle.vue';
-import type { ButtonProps } from '@/types/Props';
 import { ref, onMounted } from 'vue'
 import { validate, required, largerThan, smallerThan } from '@/services/validation'
 import { useRide } from '@/composables/useRide';
@@ -33,6 +32,7 @@ const selectedCar = ref<CarGet | null>(null);
 // set to true if no cars available after initial fetch 
 // -> prevents error to show up for a short duration when cars are not fetched yet 
 const showCarError = ref<boolean>(false);
+const loading = ref<boolean>(false);
 
 const errorsRideCreate = ref<Record<string, string[]>>({})
 const errorsStartLocation = ref<Record<string, string[]>>({})
@@ -96,7 +96,9 @@ const createRide = async (): Promise<void> => {
   }
 
   try{
+    loading.value = true;
     await postRide(rideCreate, rideCreateStartLocation, rideCreateEndLocation);
+    loading.value = false;
     showToast("success", "Fahrt erstellt.")
     router.push("/my_rides");
   } catch (error: unknown){
@@ -111,14 +113,10 @@ const createRide = async (): Promise<void> => {
 const addStop = ():void => {
   showToast("info", "Dieses Feature ist noch nicht implementiert.");
 }
-
-const hoverButtons: ButtonProps[] = [
-  {variant: "primary", text: "Fahrt erstellen", onClick: createRide},
-]
 </script>
 
 <template>
-  <div class="view-container" :class="`padding-bottom-hb-${hoverButtons.length}`">
+  <div class="view-container padding-bottom-hb-1">
 
     <PageTitle :goBack="true">Fahrt anbieten</PageTitle>
     <div v-if="userCars.length === 0  && showCarError" class="margin-botton-l error-message-container">
@@ -243,7 +241,7 @@ const hoverButtons: ButtonProps[] = [
         <hr v-if="index < userCars.length - 1" />
       </template>
     </div>
-    <HoverButton :buttons="hoverButtons"/>
+    <HoverButton :buttons="[{variant: 'primary', text: 'Fahrt erstellen', onClick: createRide, loading: loading}]"/>
   </div>
 </template>
 

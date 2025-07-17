@@ -12,6 +12,7 @@ export interface ButtonProps {
   to?: string 
   text?: string
   onClick?: () => void
+  loading?: boolean;
 }
 
 export interface HoverButtonProps {

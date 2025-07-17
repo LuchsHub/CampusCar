@@ -8,6 +8,7 @@ import PageTitle from '@/components/PageTitle.vue'
 import { useToaster } from '@/composables/useToaster'
 import ConfirmDeleteModal from '@/components/ConfirmDeleteModal.vue'
 import { useUser } from '@/composables/useUser'
+import { useAuthStore } from '@/stores/AuthStore'
 
 // Lucide Icons
 import {
@@ -17,6 +18,7 @@ import {
 
 const router = useRouter()
 const auth = useAuth()
+const authStore = useAuthStore();
 const { deleteAccount } = useAccount()
 const { showToast } = useToaster()
 const { getProfileImageUrl } = useUser()
@@ -33,7 +35,7 @@ const loadUser = async () => {
     firstName.value = user.first_name
     lastName.value = user.last_name
 
-    const imageUrl = await getProfileImageUrl()
+    const imageUrl = await getProfileImageUrl(authStore.userId)
     profileImage.value = imageUrl ?? ""
 
     rating.value = user.rating ?? 0

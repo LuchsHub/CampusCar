@@ -28,6 +28,7 @@ const { getUserCarsData, updateCar, deleteCar } = useCar()
 const { showToast } = useToaster()
 
 const showDeleteModal = ref(false)
+const loading = ref(false);
 
 // Car state
 const carEdit = ref({
@@ -87,7 +88,9 @@ const tryUpdateCar = async () => {
     return
   }
 
+  loading.value = true;
   await updateCar(carId, carEdit.value)
+  loading.value = false;
   showToast('success', 'Auto gespeichert.')
   router.push('/profile/edit')
 }
@@ -99,7 +102,9 @@ const onRequestDelete = () => {
 
 const onConfirmDelete = async () => {
   showDeleteModal.value = false
+  loading.value = true;
   await deleteCar(carId)
+  loading.value = false;
   showToast('success', 'Auto gelöscht.')
   router.push('/profile/edit')
 }
@@ -154,8 +159,8 @@ const onCancelDelete = () => {
 
     <HoverButton
       :buttons="[
-        { variant: 'primary', text: 'Speichern', onClick: tryUpdateCar },
-        { variant: 'primary', text: 'Löschen', onClick: onRequestDelete , color: 'danger' },
+        { variant: 'primary', text: 'Speichern', onClick: tryUpdateCar, loading: loading },
+        { variant: 'primary', text: 'Löschen', onClick: onRequestDelete , color: 'danger', loading: loading },
       ]"
     />
   </div>

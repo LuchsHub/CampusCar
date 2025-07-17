@@ -5,7 +5,6 @@ import { useLocation } from './useLocation';
 import api from '@/services/api';
 import axios from 'axios';
 import { useToaster } from './useToaster';
-import { useAuthStore } from '@/stores/AuthStore';
 import profilePicturePlaceholder from '@/assets/profile_picture_placeholder.svg';
 
 const { getEmptyLocationCreate } = useLocation()
@@ -13,8 +12,6 @@ const { showDefaultError, showToast } = useToaster()
 
 
 export function useUser() {
-
-  const authStore = useAuthStore();
 
   const getEmptyUserLogin = (): UserLogin => {
     return reactive<UserLogin>({
@@ -133,9 +130,9 @@ export function useUser() {
     })
   }
 
-  const getProfileImageUrl = async (): Promise<string | null> => {
+  const getProfileImageUrl = async (userId: string): Promise<string | null> => {
     try {
-      const response = await api.get(`/users/${authStore.userId}/img`, {
+      const response = await api.get(`/users/${userId}/img`, {
         responseType: 'blob',
         headers: {
           Accept: 'image/*'
