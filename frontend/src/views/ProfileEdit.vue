@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { useUser } from '@/composables/useUser'
 import { useToaster } from '@/composables/useToaster'
 import { useCar } from '@/composables/useCar'
+import { Check } from 'lucide-vue-next';
 
 import PageTitle from '@/components/PageTitle.vue'
 import Input from '@/components/Input.vue'
@@ -242,7 +243,10 @@ onMounted(() => {
         />
       </div>
       <div v-else class="license-info">
-        ✅ Führerschein hinterlegt
+        <component :is="Check" class="icon-md text-primary"/>
+        <p class="margin-left-md">
+          Führerschein hinterlegt
+        </p>
       </div>
     </div>
 
@@ -295,6 +299,9 @@ onMounted(() => {
 }
 
 .license-info {
-  font-weight: bold;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
 }
 </style>

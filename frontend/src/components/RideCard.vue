@@ -41,7 +41,7 @@ const goToRideDetailsScreen = () => {
 
   <!-- display either icon if type="own" | "booked" or image if type="other" -->
   <img v-if="props.ride.type === 'other'" :src="props.ride.image" alt="Profilbild" class="profile-picture"/>
-  <component v-else-if="props.ride.type === 'own'" :is="Car" class="icon-xl" :class="stateInfo.standardTextClass" />
+  <component v-else-if="props.ride.type === 'own'" :is="Car" class="icon-xl" :class="stateInfo.standardTextClass"/>
   <component v-else :is="Users" class="icon-xl" :class="stateInfo.standardTextClass" />
 
   <div class="ride-card-content">
