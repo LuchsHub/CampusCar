@@ -221,6 +221,7 @@ class Codrive(SQLModel, table=True):
     ride: "Ride" = Relationship(back_populates="codrives")
     location_id: uuid.UUID = Field(foreign_key="location.id")
     location: "Location" = Relationship(back_populates="codrives")
+    n_passengers: int = Field(default=1)
     arrival_date: datetime.date = Field()
     arrival_time: datetime.time = Field()
     point_contribution: int = Field(default=0)
@@ -234,6 +235,7 @@ class Codrive(SQLModel, table=True):
 class CodriveCreate(SQLModel):
     location: LocationCreate
     message: str | None = Field(default=None)
+    n_passengers: int = Field(default=1, ge=1)
 
 
 class CodrivePay(SQLModel):
@@ -250,6 +252,7 @@ class CodrivePublic(SQLModel):
     user_id: uuid.UUID
     ride_id: uuid.UUID
     location: LocationPublic
+    n_passengers: int
     accepted: bool
     paid: bool
     point_contribution: int
@@ -263,6 +266,7 @@ class CodrivePassenger(SQLModel):
     arrival_date: datetime.date
     arrival_time: datetime.time
     point_contribution: int
+    n_passengers: int
 
 
 class CodriveRequestPublic(SQLModel):
@@ -271,6 +275,7 @@ class CodriveRequestPublic(SQLModel):
     location: LocationPublic
     route_update: RouteUpdatePublic
     point_contribution: int
+    n_passengers: int
     message: str | None = Field(default=None)
 
 
@@ -408,6 +413,7 @@ class UserCodrivePublic(SQLModel):
     paid: bool
     message: str | None
     point_contribution: int
+    n_passengers: int
     route_update: RouteUpdatePublic | None = None
     ride: RidePublic
 

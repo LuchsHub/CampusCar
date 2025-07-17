@@ -36,6 +36,7 @@ from app.models import (
     UserCodrivesPublic,
     UserPublic,
 )
+from app.utils import send_mail
 
 router = APIRouter(prefix="/codrives", tags=["codrives"])
 
@@ -95,6 +96,7 @@ def request_codrive(
         Ride,
         ride_id,
         options=[
+            selectinload(Ride.driver),  # type: ignore[arg-type]
             selectinload(Ride.start_location),  # type: ignore[arg-type]
             selectinload(Ride.end_location),  # type: ignore[arg-type]
             selectinload(Ride.codrives).options(selectinload(Codrive.location)),  # type: ignore[arg-type]
@@ -123,9 +125,10 @@ def request_codrive(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Ride is in the past."
         )
-    if ride.n_codrives >= ride.max_n_codrives:
+    if ride.n_codrives + codrive_in.n_passengers > ride.max_n_codrives:
         raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT, detail="Ride is full."
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Ride does not have enough free seats for {codrive_in.n_passengers} passengers.",
         )
     if session.exec(
         select(Codrive).where(
@@ -230,6 +233,7 @@ def request_codrive(
         user_id=current_user.id,
         ride_id=ride.id,
         location_id=new_pickup_location.id,
+        n_passengers=codrive_in.n_passengers,
         arrival_date=current_user_arrival.date,
         arrival_time=current_user_arrival.time,
         point_contribution=round(added_distance / 100),
@@ -239,6 +243,12 @@ def request_codrive(
     session.add(codrive_db)
     session.commit()
     session.refresh(codrive_db)
+
+    send_mail(
+        subject="Neue Mitfahranfrage",
+        body=f"Hey {ride.driver.user_name}, {current_user.user_name} möchte bei deiner Fahrt nach {ride.end_location.city} am {ride.departure_date.strftime('%d.%m.%Y')} mitfahren. Schau in der CampusCar-App vorbei, um zu antworten!",
+        to_email=ride.driver.email,
+    )
 
     db_route_update = RouteUpdate.model_validate(codrive_db.route_update)
     user_ids_to_fetch = [
@@ -281,6 +291,7 @@ def request_codrive(
         user_id=codrive_db.user_id,
         ride_id=codrive_db.ride_id,
         location=LocationPublic.model_validate(new_pickup_location),
+        n_passengers=codrive_db.n_passengers,
         accepted=codrive_db.accepted,
         paid=codrive_db.paid,
         point_contribution=codrive_db.point_contribution,
@@ -391,6 +402,7 @@ def read_own_codrives(
             paid=codrive.paid,
             message=codrive.message,
             point_contribution=codrive.point_contribution,
+            n_passengers=codrive.n_passengers,
             route_update=requested_codrives_public[0].route_update
             if not codrive.accepted and requested_codrives_public
             else None,
@@ -494,6 +506,7 @@ def read_unpaid_codrives(
             paid=codrive.paid,
             message=codrive.message,
             point_contribution=codrive.point_contribution,
+            n_passengers=codrive.n_passengers,
             route_update=None,
             ride=ride_public,
         )
@@ -585,6 +598,7 @@ def accept_codrive(
         Codrive,
         codrive_id,
         options=[
+            selectinload(Codrive.user),  # type: ignore[arg-type]
             selectinload(Codrive.ride).options(  # type: ignore[arg-type]
                 selectinload(Ride.driver).options(selectinload(User.location)),  # type: ignore[arg-type]
                 selectinload(Ride.car),  # type: ignore[arg-type]
@@ -594,7 +608,7 @@ def accept_codrive(
                     selectinload(Codrive.user).options(selectinload(User.location)),  # type: ignore[arg-type]
                     selectinload(Codrive.location),  # type: ignore[arg-type]
                 ),
-            )
+            ),
         ],
     )
     if not codrive_to_accept:
@@ -611,9 +625,10 @@ def accept_codrive(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Request already accepted."
         )
-    if ride.n_codrives >= ride.max_n_codrives:
+    if ride.n_codrives + codrive_to_accept.n_passengers > ride.max_n_codrives:
         raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT, detail="Ride is full."
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Cannot accept, not enough seats for {codrive_to_accept.n_passengers} passengers.",
         )
 
     update_data = RouteUpdate.model_validate(codrive_to_accept.route_update)
@@ -636,7 +651,7 @@ def accept_codrive(
     ride.estimated_duration_seconds = update_data.duration_seconds
     ride.departure_date = update_data.updated_ride_departure_date
     ride.departure_time = update_data.updated_ride_departure_time
-    ride.n_codrives += 1
+    ride.n_codrives += codrive_to_accept.n_passengers
     ride.total_points += codrive_to_accept.point_contribution
 
     codrive_to_accept.accepted = True
@@ -741,6 +756,13 @@ def accept_codrive(
             session.add(pending_codrive)
 
     session.commit()
+
+    send_mail(
+        subject="Deine Mitfahranfrage wurde angenommen!",
+        body=f"Hey {codrive_to_accept.user.user_name}, gute Nachrichten! Deine Anfrage für die Fahrt nach {ride.end_location.city} am {ride.departure_date.strftime('%d.%m.%Y')} wurde angenommen. Gute Fahrt!",
+        to_email=codrive_to_accept.user.email,
+    )
+
     session.refresh(ride)
 
     accepted_codrives_public = []
@@ -788,6 +810,7 @@ def accept_codrive(
                     location=LocationPublic.model_validate(codrive.location),
                     route_update=route_update_public,
                     point_contribution=codrive.point_contribution,
+                    n_passengers=codrive.n_passengers,
                     message=codrive.message,
                 )
             )
@@ -937,7 +960,7 @@ def delete_own_codrive(
     # --- User is leaving an accepted ride, recalculations are needed ---
     german_tz = ZoneInfo("Europe/Berlin")
 
-    ride.n_codrives -= 1
+    ride.n_codrives -= codrive_to_delete.n_passengers
     ride.total_points -= codrive_to_delete.point_contribution
 
     remaining_codrives = [c for c in ride.codrives if c.id != codrive_to_delete.id]
@@ -1139,6 +1162,7 @@ def delete_own_codrive(
                     location=LocationPublic.model_validate(codrive.location),
                     route_update=route_update_public,
                     point_contribution=codrive.point_contribution,
+                    n_passengers=codrive.n_passengers,
                     message=codrive.message,
                 )
             )
@@ -1159,7 +1183,14 @@ def refuse_codrive_request(
     """
     Refuse a passenger's request to join your ride.
     """
-    codrive = session.get(Codrive, codrive_id, options=[selectinload(Codrive.ride)])  # type: ignore[arg-type]
+    codrive = session.get(
+        Codrive,
+        codrive_id,
+        options=[
+            selectinload(Codrive.user),  # type: ignore[arg-type]
+            selectinload(Codrive.ride).options(selectinload(Ride.end_location)),  # type: ignore[arg-type]
+        ],
+    )
     if not codrive:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Codrive request not found."
@@ -1175,7 +1206,17 @@ def refuse_codrive_request(
             detail="Cannot refuse a request that has already been accepted.",
         )
 
+    requester_email = codrive.user.email
+    requester_name = codrive.user.user_name
+    ride_info = codrive.ride
+
     session.delete(codrive)
     session.commit()
+
+    send_mail(
+        subject="Deine Mitfahranfrage wurde abgelehnt",
+        body=f"Hey {requester_name}, leider wurde deine Anfrage für die Fahrt nach {ride_info.end_location.city} am {ride_info.departure_date.strftime('%d.%m.%Y')} abgelehnt.",
+        to_email=requester_email,
+    )
 
     return Message(message="Codrive request has been refused and deleted.")
