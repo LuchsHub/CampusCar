@@ -372,7 +372,6 @@ class RidePublic(SQLModel):
     max_n_codrives: int
     n_codrives: int
     total_points: int
-    completed: bool
 
     start_location: LocationPublic
     end_location: LocationPublic

@@ -647,7 +647,7 @@ def complete_ride(
     session.commit()
 
     return Message(message="Ride marked as complete and points have been transferred.")
-    
+
 
 @router.delete("/{ride_id}", response_model=Message)
 def delete_ride(

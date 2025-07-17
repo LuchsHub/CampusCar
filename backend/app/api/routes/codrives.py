@@ -417,7 +417,7 @@ def read_unpaid_codrives(
         .join(Ride)
         .where(Codrive.user_id == current_user.id)
         .where(Codrive.accepted)
-        .where(not Codrive.paid)
+        .where(Codrive.paid == False)  # noqa: E712
         .where(Ride.completed)
         .options(
             selectinload(Codrive.ride).options(  # type: ignore[arg-type]
