@@ -105,7 +105,7 @@
       background-color: var(--color-neutral-300, #e0e0e0);
       color: var(--color-neutral-500, #a0a0a0);
       border: none;
-      opacity: 0.7;
+      pointer-events: none;
       box-shadow: none;
     }
 </style> 
