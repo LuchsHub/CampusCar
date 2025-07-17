@@ -217,9 +217,7 @@ def register_user(session: SessionDep, user_in: UserRegister) -> Any:
 
 
 @router.get("/{user_id}", response_model=UserPublic)
-def read_user_by_id(
-    user_id: uuid.UUID, session: SessionDep, current_user: CurrentUser
-) -> Any:
+def read_user_by_id(user_id: uuid.UUID, session: SessionDep) -> Any:
     """
     Get a specific user by id.
     """
