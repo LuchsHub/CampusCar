@@ -118,6 +118,40 @@ export function useUser() {
     }
   }
 
+  const uploadProfileImage = async (file: File): Promise<void> => {
+    const formData = new FormData()
+    formData.append('profile_picture', file)
+    
+    await api.put('/users/me/img', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    })
+  }
+
+  const getProfileImageUrl = async (): Promise<string | null> => {
+    try {
+      const user = await getUserMe() // um user.id zu bekommen
+      const response = await api.get(`/users/${user.id}/img`, {
+        responseType: 'blob',
+        headers: {
+          Accept: 'image/*'
+        }
+      })
+
+      const contentType = response.headers['content-type']
+      if (response.status === 200 && contentType?.startsWith('image')) {
+        return URL.createObjectURL(response.data)
+      } else {
+        return null
+      }
+    } catch (error) {
+      console.warn('Profilbild konnte nicht geladen werden', error)
+      return null
+    }
+  }
+
+
   return {
     getEmptyUserLogin,
     getEmptyUserRegister,
@@ -125,6 +159,10 @@ export function useUser() {
     updateUserLocation,
     updateUserHasLicense,
     getCurrentUserLocation,
-    getCurrentUserId
+    getCurrentUserId,
+    getUserMe,
+    postUpdateUserData,
+    uploadProfileImage,
+    getProfileImageUrl
   }
 }

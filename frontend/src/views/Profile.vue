@@ -7,6 +7,7 @@ import { useAccount } from '@/composables/useAccount'
 import PageTitle from '@/components/PageTitle.vue'
 import { useToaster } from '@/composables/useToaster'
 import ConfirmDeleteModal from '@/components/ConfirmDeleteModal.vue'
+import { useUser } from '@/composables/useUser'
 
 // Lucide Icons
 import {
@@ -18,6 +19,7 @@ const router = useRouter()
 const auth = useAuth()
 const { deleteAccount } = useAccount()
 const { showToast } = useToaster()
+const { getProfileImageUrl } = useUser()
 
 const firstName = ref('')
 const lastName = ref('')
@@ -30,7 +32,10 @@ const loadUser = async () => {
     const user = await fetchCurrentUser()
     firstName.value = user.first_name
     lastName.value = user.last_name
-    profileImage.value = user.avatar_url || 'https://randomuser.me/api/portraits/lego/1.jpg'
+
+    const imageUrl = await getProfileImageUrl()
+    profileImage.value = imageUrl ?? ""
+
     rating.value = user.rating ?? 0
   } catch {
     showToast('error', 'Fehler beim Laden des Profils')
@@ -105,7 +110,7 @@ onMounted(() => {
     <PageTitle>Profil</PageTitle>
 
     <div class="profile-header">
-      <img :src="profileImage" alt="Profilbild" class="profile-image" />
+      <img :src="profileImage" class="profile-image" />
       <h2 class="user-name">{{ firstName }} {{ lastName }}</h2>
       <div class="rating-stars">
         <component
