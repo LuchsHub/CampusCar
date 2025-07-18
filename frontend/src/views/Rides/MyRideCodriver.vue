@@ -5,35 +5,61 @@ import { useMyRideStore } from '@/stores/MyRideStore';
 import { useRouter } from 'vue-router';
 import LocationItem from '@/components/LocationItem.vue';
 import HoverButton from '@/components/HoverButton.vue';
+import InformationItem from '@/components/InformationItem.vue';
+import { useCodrive } from '@/composables/useCodrive';
+import { useToaster } from '@/composables/useToaster';
 
 // Variables 
 const router = useRouter();
 const myRideStore = useMyRideStore();
+const { acceptCodrive, rejectCodrive } = useCodrive();
+const { showToast } = useToaster()
 
-const loading = ref<boolean>(false);
+const loadingAccept = ref<boolean>(false);
+const loadingReject = ref<boolean>(false);
 
 if (!myRideStore.ride && !myRideStore.requestedCodrive) {
   router.push({ name: 'myRides' }) // in case there is no ride or reqeusted codrive saved in the store
 }
 
-const onAcceptCodrive = () => {
-  loading.value = true;
-  console.log("Codrive akzeptiert")
-  loading.value = false;
-  router.go(-1);
+const onAcceptCodrive = async () => {
+  loadingAccept.value = true;
+  try {
+    if (!myRideStore.requestedCodrive) {
+      throw Error('No Codrive is saved in pinia.');
+    }
+    await acceptCodrive(myRideStore.requestedCodrive.id);
+    showToast('success', 'Mitfahrt akzeptiert.');
+    router.go(-1);
+  } catch (error: unknown) {
+    console.log(error);     
+  }
+  finally {
+    loadingAccept.value = false;
+  }
 }
 
-const onRejectCodrive = () => {
-  loading.value = true;
-  console.log("Codrive abgelehnt")
-  loading.value = false;
-  router.go(-1);
+const onRejectCodrive = async () => {
+  loadingReject.value = true;
+  try {
+    if (!myRideStore.requestedCodrive) {
+      throw Error('No Codrive is saved in pinia.');
+    }
+    await rejectCodrive(myRideStore.requestedCodrive.id);
+    showToast('success', 'Mitfahrt abgelehnt.');
+    router.go(-1);
+  } catch (error: unknown) {
+    console.log(error);     
+  }
+  finally {
+    loadingReject.value = false;
+  }
 }
 </script>
 
 <template>
   <div class="view-container padding-bottom-hb-2">
-    <PageTitle :goBack="true">Meine Fahrt</PageTitle>
+    <PageTitle :goBack="true">Mitfahrt</PageTitle>
     
     <h2>Neuer Fahrtverlauf</h2>
     <div class="component-list">
@@ -48,10 +74,20 @@ const onRejectCodrive = () => {
     </div>
 
     <h2>Informationen</h2>
+    <div class="component-list">
+      <InformationItem
+        type=bookedSeats
+        :value=myRideStore.requestedCodrive?.n_passengers
+      />
+      <InformationItem
+        type=pointReward
+        :value=myRideStore.requestedCodrive?.point_contribution
+      />
+    </div>
 
     <HoverButton :buttons='[
-      {variant: "primary", onClick: onAcceptCodrive, text: "Akzeptieren", loading: loading},
-      {variant: "primary", color: "danger", onClick: onRejectCodrive, text: "Ablehnen", loading: loading}]'
+      {variant: "primary", onClick: onAcceptCodrive, text: "Akzeptieren", loading: loadingAccept},
+      {variant: "primary", color: "danger", onClick: onRejectCodrive, text: "Ablehnen", loading: loadingReject}]'
     />
   </div>
 </template>
@@ -59,14 +95,5 @@ const onRejectCodrive = () => {
 <style scoped>
 .view-container h2:first-of-type {
   margin-top: 0;
-}
-
-.component-list {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-items: flex-start;
-  width: 100%;
-  gap: var(--horizontal-gap)
 }
 </style>

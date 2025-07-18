@@ -3,7 +3,7 @@ import { ref, computed } from 'vue';
 import { sortLocationItemPropsByTimeAsc, sortCodriveCardPropsByTimeAsc } from "@/services/utils";
 
 import type { RideGetDto } from "@/types/Ride";
-import type { CodriveGetDto, RouteUpdateDto, CodriverArrivalTimeGet, RequestedCodriveDto } from "@/types/Codrive";
+import type { RequestedCodriveGetDto, RouteUpdateDto, CodriverArrivalTimeGet, RequestedCodriveDto, CodriveGetDto } from "@/types/Codrive";
 import type { LocationItemProps, CodriveCardProps } from "@/types/Props";
 
 export const useMyRideStore = defineStore("myRide", () => {
@@ -45,21 +45,20 @@ export const useMyRideStore = defineStore("myRide", () => {
       codrive: codrive,
     } as CodriveCardProps));
     accepted = sortCodriveCardPropsByTimeAsc(accepted); 
-  
+
     // not yet accepted codrives
-    let notAccepted: CodriveCardProps[] = ride.value.requested_codrives.map((codrive: CodriveGetDto) => ({
-      state: "notAccepted",
+    let requested: CodriveCardProps[] = ride.value.requested_codrives.map((codrive: RequestedCodriveGetDto) => ({
+      state: "requested",
       codrive: codrive,
     } as CodriveCardProps));
-    notAccepted = sortCodriveCardPropsByTimeAsc(notAccepted);
-  
+    requested = sortCodriveCardPropsByTimeAsc(requested);
+    
     // fill the rest with empty codrives
-    const no_empty_seats = ride.value.n_available_seats - (accepted.length + notAccepted.length);
-    const empty = Array.from( {length: no_empty_seats}, () => ({
+    const empty = Array.from( {length: ride.value.n_available_seats}, () => ({
       state: "empty"
     } as CodriveCardProps))
-  
-    return [...accepted, ...notAccepted, ...empty];
+    
+    return [...accepted, ...requested, ...empty];
   });
 
   const requestedCodriveLocationItems = computed<LocationItemProps[]>(() => {
@@ -97,7 +96,7 @@ export const useMyRideStore = defineStore("myRide", () => {
     ride.value = null;
   }
   
-  function setRequestedCodrive(codrive: CodriveGetDto) {
+  function setRequestedCodrive(codrive: RequestedCodriveGetDto) {
     requestedCodrive.value = {
       id: codrive.id,
       first_name: codrive.user.first_name,

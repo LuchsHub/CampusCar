@@ -145,10 +145,21 @@ body {
   width: 100%;
 }
 
+/* container for input fields */
 .form-container {
   width: 100%;
   display: flex;
   flex-direction: column;
+  gap: var(--horizontal-gap)
+}
+
+/* Container for left-aligned items */
+.component-list {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  width: 100%;
   gap: var(--horizontal-gap)
 }
 

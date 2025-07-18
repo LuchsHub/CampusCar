@@ -1,5 +1,5 @@
 import type { CarGet } from "./Car"
-import type { CodriveGetDto } from "./Codrive"
+import type { CodriveGetDto, RequestedCodriveGetDto } from "./Codrive"
 import type { LocationGetDto } from "./Location"
 import type { RideGetDto } from "./Ride"
 
@@ -54,7 +54,12 @@ export interface LocationItemProps {
 }
 
 export interface CodriveCardProps { 
-  state: "accepted" | "notAccepted" | "empty"
-  codrive?: CodriveGetDto
+  state: "accepted" | "requested" | "empty"
+  codrive?: RequestedCodriveGetDto | CodriveGetDto
   seat_no?: number
+}
+
+export interface InformationItemProps {
+  type: "availableSeats" | "bookedSeats" | "pointReward" | "pointCost"
+  value: string | number | undefined
 }

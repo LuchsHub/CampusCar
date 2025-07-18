@@ -1,7 +1,17 @@
 import type { LocationGetDto } from "./Location"
 import type { UserGet, UserGet as UserGetDto } from "./User"
 
-export interface CodriveGetDto extends Record<string, string | boolean | number | UserGetDto | LocationGetDto | RouteUpdateGet> {
+export interface CodriveGetDto extends Record<string, string | boolean | number | UserGetDto | LocationGetDto> {
+    id: string
+    arrival_time: string
+    arrival_date: string
+    user: UserGetDto
+    location: LocationGetDto
+    point_contribution: number
+    n_passengers: number
+}
+
+export interface RequestedCodriveGetDto extends Record<string, string | boolean | number | UserGetDto | LocationGetDto | RouteUpdateGet> {
     id: string
     accepted: boolean
     arrival_time: string

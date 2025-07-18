@@ -27,16 +27,16 @@ const goToMyRideCodriverScreen = () => {
 <template>
 <div 
   class="codrive-card-container" 
-  :class="{'new-request-container': props.state == 'notAccepted'}"
+  :class="{'new-request-container': props.state == 'requested'}"
   @click="goToMyRideCodriverScreen"
 >
     <div class="codrive-card-content">
-        <p class="text-neutral-400" :class="{'text-info': props.state === 'notAccepted'}">Platz {{ props.seat_no }}</p>
+        <p class="text-neutral-400" :class="{'text-info': props.state === 'requested'}">Platz {{ props.seat_no }}</p>
         <p v-if="props.state === 'accepted'" class="text-md">{{ props.codrive?.user.first_name }} {{ props.codrive?.user.last_name }}</p>
         <p v-else-if="props.state === 'notAccepted'" class="text-md">Anfrage ausstehend </p>
         <p v-else class="text-md">-</p>
     </div>
-    <component v-if="props.state === 'notAccepted'" :is="ChevronRight" class="icon-md icon-info"/>
+    <component v-if="props.state === 'requested'" :is="ChevronRight" class="icon-md icon-info"/>
 </div>
 </template>
 

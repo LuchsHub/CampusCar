@@ -9,6 +9,7 @@ import CodriveCard from '@/components/CodriveCard.vue';
 import ConfirmDeleteModal from '@/components/ConfirmDeleteModal.vue';
 import { useToaster } from '@/composables/useToaster';
 import { useRide } from '@/composables/useRide';
+import InformationItem from '@/components/InformationItem.vue';
 
 // Variables 
 const router = useRouter();
@@ -82,6 +83,16 @@ const onCancelDelete = () => {
     </div>
     
     <h2>Informationen</h2>
+    <div class="component-list">
+      <InformationItem
+        type=availableSeats
+        :value=myRideStore.ride?.n_available_seats
+      />
+      <InformationItem
+        type=pointReward
+        :value=myRideStore.ride?.point_reward
+      />
+    </div>
 
     <HoverButton :buttons='[
       {variant: "secondary", text: "Bearbeiten"},
@@ -98,14 +109,5 @@ const onCancelDelete = () => {
 <style scoped>
 .view-container h2:first-of-type {
   margin-top: 0;
-}
-
-.component-list {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-items: flex-start;
-  width: 100%;
-  gap: var(--horizontal-gap)
 }
 </style>
