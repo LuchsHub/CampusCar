@@ -1,35 +1,30 @@
 <script setup lang="ts">
 import PageTitle from '@/components/PageTitle.vue';
 import HoverButton from '@/components/HoverButton.vue';
-import type { ButtonProps } from '@/types/Props';
 import TabSwitcher from '@/components/TabSwitcher.vue';
 import { ref, onMounted, computed, type ComputedRef } from 'vue';
 import type { RideGetDto } from '@/types/Ride';
 import { useRide } from '@/composables/useRide';
-import { useAuthStore } from '@/stores/AuthStore';
 import RideCard from '@/components/RideCard.vue';
 import { sortRidesByDateAsc } from '@/services/utils';
 
-const { getRidesForUser } = useRide()
-const authStore = useAuthStore();
+const { getRidesForUser, getBookedRidesForUser } = useRide()
 
 const activeTab = ref('Bevorstehend')
 const tabs = ['Bevorstehend', 'Vergangen']
 
-const hoverButtons: ButtonProps[] = [
-    {variant: "primary", text: "Fahrt anbieten", to: "/create_ride"},
-]
-
 // Variables 
 const userOwnRides = ref<RideGetDto[]>([]);
+const userBookedRides = ref<RideGetDto[]>([]);
 
 // fetch data async from backend when component gets loaded
 onMounted(async () => {
-  userOwnRides.value = await getRidesForUser(authStore.userId);
+  userOwnRides.value = await getRidesForUser();
+  userBookedRides.value = await getBookedRidesForUser();
 })
 
 const sortedRides: ComputedRef<RideGetDto[]> = computed(() => {
-  return sortRidesByDateAsc(userOwnRides.value);
+  return sortRidesByDateAsc([...userOwnRides.value, ...userBookedRides.value]);
 });
 
 const now = () => new Date();
@@ -50,7 +45,7 @@ const pastRides = computed<RideGetDto[]>(() =>
 </script>
 
 <template>
-  <div class="view-container" :class="`padding-bottom-hb-${hoverButtons.length}`">
+  <div class="view-container padding-bottom-hb-1">
     <PageTitle>Meine Fahrten</PageTitle>
 
     <TabSwitcher v-model="activeTab" :tabs="tabs" />
@@ -72,7 +67,7 @@ const pastRides = computed<RideGetDto[]>(() =>
           <hr v-if="index < pastRides.length - 1" />
         </template>
       </div>
-    <HoverButton :buttons="hoverButtons"/>
+    <HoverButton :buttons='[{variant: "primary", text: "Fahrt anbieten", to: "create_ride"}]'/>
   </div>
 </template>
 

@@ -1,18 +1,42 @@
 <script setup lang="ts">
 import type { CodriveCardProps } from '../types/Props'
 import { ChevronRight } from 'lucide-vue-next';
+import router from '@/router';
+import { useMyRideStore } from '@/stores/MyRideStore';
+import { useToaster } from '@/composables/useToaster';
 
 const props = defineProps<CodriveCardProps>();
+const myRideStore = useMyRideStore();
+const { showToast } = useToaster();
+
+const goToMyRideCodriverScreen = () => {
+  if (props.state === 'empty') {
+    return;
+  }
+
+  if (!props.codrive) {
+    showToast('error', 'Angefragte Mitfahrt nicht verfügbar.');
+    return;
+  }
+
+  myRideStore.setRequestedCodrive(props.codrive);
+  router.push({ name: 'myRideCodriver' });
+}
 </script>
 
 <template>
-<div class="codrive-card-container" :class="{'new-request-container': !props.codrive_accepted}">
+<div 
+  class="codrive-card-container" 
+  :class="{'new-request-container': props.state == 'requested'}"
+  @click="goToMyRideCodriverScreen"
+>
     <div class="codrive-card-content">
-        <p class="text-neutral-400" :class="{'text-info': !props.codrive_accepted}">Platz {{ props.seat_no }}</p>
-        <p v-if="props.codrive_accepted" class="text-md">{{ props.codrive.user.first_name }} {{ props.codrive.user.last_name }}</p>
-        <p v-else class="text-md">Anfrage ausstehend </p>
+        <p class="text-neutral-400" :class="{'text-info': props.state === 'requested'}">Platz {{ props.seat_no }}</p>
+        <p v-if="props.state === 'accepted'" class="text-md">{{ props.codrive?.user.first_name }} {{ props.codrive?.user.last_name }}</p>
+        <p v-else-if="props.state === 'notAccepted'" class="text-md">Anfrage ausstehend </p>
+        <p v-else class="text-md">-</p>
     </div>
-    <component v-if="!props.codrive_accepted" :is="ChevronRight" class="icon-md icon-info"/>
+    <component v-if="props.state === 'requested'" :is="ChevronRight" class="icon-md icon-info"/>
 </div>
 </template>
 

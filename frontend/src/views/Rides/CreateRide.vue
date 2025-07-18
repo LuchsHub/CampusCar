@@ -3,7 +3,6 @@ import Input from '@/components/Input.vue';
 import Button from '@/components/Button.vue';
 import HoverButton from '@/components/HoverButton.vue';
 import PageTitle from '@/components/PageTitle.vue';
-import type { ButtonProps } from '@/types/Props';
 import { ref, onMounted } from 'vue'
 import { validate, required, largerThan, smallerThan } from '@/services/validation'
 import { useRide } from '@/composables/useRide';
@@ -19,7 +18,7 @@ import CarSelect from '@/components/CarSelect.vue';
 
 const { getEmptyRideCreate, postRide } = useRide();
 const { getLocationCreateValidationSchema, getEmptyLocationCreate } = useLocation();
-const { getCurrentUserLocation } = useUser();
+const { getCurrentUserLocation, checkUserHasLicense } = useUser();
 const { showToast } = useToaster();
 const { getUserCarsData } = useCar();
 
@@ -29,10 +28,12 @@ const rideCreateStartLocation: LocationCreateDto = getEmptyLocationCreate();
 const rideCreateEndLocation: LocationCreateDto = getEmptyLocationCreate();
 const userCars = ref<CarGet[]>([]);
 const selectedCar = ref<CarGet | null>(null);
+const hasLicense = ref<boolean>(true);
 
 // set to true if no cars available after initial fetch 
 // -> prevents error to show up for a short duration when cars are not fetched yet 
 const showCarError = ref<boolean>(false);
+const loading = ref<boolean>(false);
 
 const errorsRideCreate = ref<Record<string, string[]>>({})
 const errorsStartLocation = ref<Record<string, string[]>>({})
@@ -41,6 +42,7 @@ const errorsEndLocation = ref<Record<string, string[]>>({})
 // fetch data async from backend when component gets loaded
 onMounted(async () => {
   userCars.value = await getUserCarsData();
+  hasLicense.value = await checkUserHasLicense();
   handleCarSelect(userCars.value[0]) // set first car as selected car
   
   if(!selectedCar.value){
@@ -96,11 +98,14 @@ const createRide = async (): Promise<void> => {
   }
 
   try{
+    loading.value = true;
     await postRide(rideCreate, rideCreateStartLocation, rideCreateEndLocation);
+    loading.value = false;
     showToast("success", "Fahrt erstellt.")
     router.push("/my_rides");
   } catch (error: unknown){
     console.log(error);
+    loading.value = false;
     // reset form data
     Object.assign(rideCreate, getEmptyRideCreate());
     Object.assign(rideCreateStartLocation, getEmptyLocationCreate());
@@ -111,18 +116,17 @@ const createRide = async (): Promise<void> => {
 const addStop = ():void => {
   showToast("info", "Dieses Feature ist noch nicht implementiert.");
 }
-
-const hoverButtons: ButtonProps[] = [
-  {variant: "primary", text: "Fahrt erstellen", onClick: createRide},
-]
 </script>
 
 <template>
-  <div class="view-container" :class="`padding-bottom-hb-${hoverButtons.length}`">
+  <div class="view-container padding-bottom-hb-1">
 
     <PageTitle :goBack="true">Fahrt anbieten</PageTitle>
     <div v-if="userCars.length === 0  && showCarError" class="margin-botton-l error-message-container">
       <p class="text-danger">Du hast noch kein Auto hinterlegt. Füge zunächst ein Auto zu deinem Profil hinzu bevor du eine Fahrt erstellst.</p>
+    </div>
+    <div v-if="!hasLicense" class="margin-botton-l error-message-container">
+      <p class="text-danger">Du hast noch kein Führerschein hinterlegt. Füge zunächst einen Führerschein zu deinem Profil hinzu bevor du eine Fahrt erstellst.</p>
     </div>
 
     <h2>Abfahrt</h2>
@@ -229,7 +233,7 @@ const hoverButtons: ButtonProps[] = [
     <h2>Auto</h2>
     <div v-if="userCars.length === 0" class="width-100">
       <!-- TODO: change route to go directly to the add car form -->
-      <Button variant="secondary" @click="router.push('/profile')">
+      <Button variant="secondary" @click="router.push('/profile/add-car')">
         Auto hinzufügen
       </Button>
     </div>
@@ -243,7 +247,7 @@ const hoverButtons: ButtonProps[] = [
         <hr v-if="index < userCars.length - 1" />
       </template>
     </div>
-    <HoverButton :buttons="hoverButtons"/>
+    <HoverButton :buttons="[{variant: 'primary', text: 'Fahrt erstellen', onClick: createRide, loading: loading, disabled: !hasLicense || userCars.length === 0}]"/>
   </div>
 </template>
 

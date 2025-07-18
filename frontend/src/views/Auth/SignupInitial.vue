@@ -2,7 +2,6 @@
 import Input from '@/components/Input.vue';
 import HoverButton from '@/components/HoverButton.vue';
 import PageTitle from '@/components/PageTitle.vue';
-import type { ButtonProps } from '@/types/Props';
 import { ref } from 'vue';
 import { isValidEmail, isTHBEmail, isValidPassword, required, validate } from '@/services/validation'
 import type { ValidationSchema } from '@/types/Validation';
@@ -27,6 +26,7 @@ const userRegisterValidationSchema: ValidationSchema = {
   password: [required('Passwort'), isValidPassword()],
 }
 const errors = ref<Record<string, string[]>>({})
+const loading = ref<boolean>(false);
 
 
 // functions
@@ -38,18 +38,11 @@ const tryRegisterUser = async (): Promise<void> => {
     return
   }
   
-  // post input data
+  loading.value = true;
   await registerUser(userRegister);
+  loading.value = false;
   router.push('/signup/address');
 }
-
-
-// components
-const hoverButtons: ButtonProps[] = [
-  {variant: "primary", text: "Registrieren", onClick: tryRegisterUser},
-  {variant: "tertiary", text: "Ich habe schon einen Account", to: "/login"},
-]
-
 </script>
 
 <template>
@@ -91,7 +84,10 @@ const hoverButtons: ButtonProps[] = [
         />
       </div>
       
-      <HoverButton :buttons="hoverButtons"/>
+      <HoverButton :buttons='[
+        {variant: "primary", text: "Registrieren", onClick: tryRegisterUser, loading: loading},
+        {variant: "tertiary", text: "Ich habe schon einen Account", to: "/login"}]'
+      />
     </div>
 </template>
 

@@ -5,51 +5,45 @@ import { ref } from 'vue';
 import { useMyRideStore } from '@/stores/MyRideStore';
 import { useRouter } from 'vue-router';
 import LocationItem from '@/components/LocationItem.vue';
-import CodriveCard from '@/components/CodriveCard.vue';
-import ConfirmDeleteModal from '@/components/ConfirmDeleteModal.vue';
 import { useToaster } from '@/composables/useToaster';
-import { useRide } from '@/composables/useRide';
 import InformationItem from '@/components/InformationItem.vue';
+import { useCodrive } from '@/composables/useCodrive';
+import ConfirmDeleteModal from '@/components/ConfirmDeleteModal.vue';
 
 // Variables 
 const router = useRouter();
 const myRideStore = useMyRideStore();
 
 const { showToast } = useToaster();
-const { deleteRide } = useRide();
+const { deleteBookedCodrive } = useCodrive();
 
-const showDeleteModal = ref<boolean>(false);
 const loading = ref<boolean>(false);
+const showDeleteModal = ref<boolean>(false);
 
-if (!myRideStore.ride) {
+if (!myRideStore.bookedRide) {
   router.push({ name: 'myRides' }) // in case there is no ride saved in the store
 }
 
 // Delete
-const onRequestDelete = () => {
-  showDeleteModal.value = true
-}
-
-const onConfirmDelete = async () => {
+const onConfirmCodriveDelete = async () => {
   showDeleteModal.value = false
   loading.value = true;
   try {
-    if (myRideStore.ride?.id) {
-      await deleteRide(myRideStore.ride?.id);
-      myRideStore.removeRide();
-
-    } else {
-      throw new Error('No ride ID found for deletion.');
+    if (!myRideStore.bookedRide || !myRideStore.bookedRide.codrive_id) {
+      throw Error('No booked ride saved in pinia.');
     }
-    showToast('success', 'Fahrt gelöscht.')
-    router.push('/my_rides')
-  }
-  catch (error: unknown) {
+    await deleteBookedCodrive(myRideStore.bookedRide.codrive_id);
+    showToast('success', 'Mitfahrt abgesagt.');
+    router.go(-1);
+  } catch (error: unknown) {
     console.log(error);
-  }
-  finally {
+  } finally {
     loading.value = false;
   }
+}
+
+const onRequestDelete = () => {
+  showDeleteModal.value = true
 }
 
 const onCancelDelete = () => {
@@ -58,13 +52,13 @@ const onCancelDelete = () => {
 </script>
 
 <template>
-  <div class="view-container padding-bottom-hb-2">
-    <PageTitle :goBack="true">Meine Fahrt</PageTitle>
+  <div class="view-container padding-bottom-hb-1">
+    <PageTitle :goBack="true">Meine Mitfahrt</PageTitle>
     
     <h2>Fahrtverlauf</h2>
     <div class="component-list">
       <LocationItem
-        v-for="item in myRideStore.rideLocationItems"
+        v-for="item in myRideStore.bookedRideLocationItems"
         :location="item.location"
         :arrival_time="item.arrival_time"
         :arrival_date="item.arrival_date"
@@ -72,36 +66,21 @@ const onCancelDelete = () => {
       />
     </div>
     
-    <h2>Mitfahrer</h2>
-    <div class="component-list">
-      <CodriveCard
-      v-for="(item, idx) in myRideStore.requestedCodriveCardItems"
-      :state="item.state"
-      :codrive="item.codrive"
-      :seat_no="idx+1"
-      />
-    </div>
-    
     <h2>Informationen</h2>
     <div class="component-list">
       <InformationItem
-        type=availableSeats
-        :value=myRideStore.ride?.n_available_seats
-      />
-      <InformationItem
-        type=pointReward
-        :value=myRideStore.ride?.point_reward
+        type=pointCost
+        :value=myRideStore.bookedRide?.point_cost
       />
     </div>
 
     <HoverButton :buttons='[
-      {variant: "secondary", text: "Bearbeiten"},
-      {variant: "primary", color: "danger", onClick: onRequestDelete, text: "Löschen"}]'
+      {variant: "primary", color: "danger", onClick: onRequestDelete, text: "Mitfahrt absagen", loading: loading}]'
     />
   </div>
   <ConfirmDeleteModal
     :open="showDeleteModal"
-    @confirm="onConfirmDelete"
+    @confirm="onConfirmCodriveDelete"
     @cancel="onCancelDelete"
   />
 </template>

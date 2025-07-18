@@ -2,7 +2,6 @@
 import Input from '@/components/Input.vue';
 import HoverButton from '@/components/HoverButton.vue';
 import PageTitle from '@/components/PageTitle.vue';
-import type { ButtonProps } from '@/types/Props';
 import { ref } from 'vue';
 import { isValidEmail, required, validate } from '@/services/validation'
 import type { ValidationSchema } from '@/types/Validation';
@@ -14,7 +13,7 @@ import router from '@/router';
 // composable functions
 const { loginUser } = useAuth();
 const { getEmptyUserLogin } = useUser();
-
+const loading = ref(false);
 
 // variables
 const userLogin = getEmptyUserLogin();
@@ -35,15 +34,11 @@ const tryLoginUser = async (): Promise<void> => {
     return
   }
 
+  loading.value = true;
   await loginUser(userLogin);
+  loading.value = false;
   router.push('/home');
 }
-
-// Hoverbuttons
-const hoverButtons: ButtonProps[] = [
-  {variant: "primary", text: "Anmelden", onClick: tryLoginUser},
-  {variant: "tertiary", text: "Account erstellen", to: "/signup"},
-]
 </script>
 
 <template>
@@ -67,7 +62,10 @@ const hoverButtons: ButtonProps[] = [
         />
       </div>
       
-    <HoverButton :buttons="hoverButtons"/>
+    <HoverButton :buttons="[
+      {variant: 'primary', text: 'Anmelden', onClick: tryLoginUser, loading: loading},
+      {variant: 'tertiary', text: 'Account erstellen', to: '/signup'}]"
+    />
   </div>
 </template>
 

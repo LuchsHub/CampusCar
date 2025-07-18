@@ -1,5 +1,5 @@
 import type { CarGet } from "./Car"
-import type { CodriveGetDto } from "./Codrive"
+import type { CodriveGetDto, RequestedCodriveGetDto } from "./Codrive"
 import type { LocationGetDto } from "./Location"
 import type { RideGetDto } from "./Ride"
 
@@ -8,10 +8,12 @@ export interface PageTitleProps {
 }
 export interface ButtonProps {
   variant: 'primary' | 'secondary' | 'tertiary'
+  disabled?: boolean
   color?: 'danger'
   to?: string 
   text?: string
   onClick?: () => void
+  loading?: boolean;
 }
 
 export interface HoverButtonProps {
@@ -44,15 +46,21 @@ export interface LocationItemProps {
   location: LocationGetDto
   arrival_time: string
   arrival_date?: string
+  updated_arrival_time?: string
   user?: {
     first_name: string
     last_name: string
+    id?: string
   }
 }
 
-// TODO: maybe you can make the attributes a bit more fine-grained. I dont think we need every attribute of Codrive
 export interface CodriveCardProps { 
-  codrive_accepted: boolean
-  codrive: CodriveGetDto
+  state: "accepted" | "requested" | "empty"
+  codrive?: RequestedCodriveGetDto | CodriveGetDto
   seat_no?: number
+}
+
+export interface InformationItemProps {
+  type: "availableSeats" | "bookedSeats" | "pointReward" | "pointCost"
+  value: string | number | undefined
 }

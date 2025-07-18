@@ -5,6 +5,7 @@ import { useLocation } from './useLocation';
 import api from '@/services/api';
 import axios from 'axios';
 import { useToaster } from './useToaster';
+import profilePicturePlaceholder from '@/assets/profile_picture_placeholder.svg';
 
 const { getEmptyLocationCreate } = useLocation()
 const { showDefaultError, showToast } = useToaster()
@@ -62,6 +63,11 @@ export function useUser() {
     } catch (error: unknown) {
       console.log(error);
     }
+  }
+
+  const checkUserHasLicense = async (): Promise<boolean> => {
+    const user: UserGet = await getUserMe();
+    return user.has_license
   }
 
   const postUpdateUserData = async (user: UserUpdate) => {
@@ -129,10 +135,9 @@ export function useUser() {
     })
   }
 
-  const getProfileImageUrl = async (): Promise<string | null> => {
+  const getProfileImageUrl = async (userId: string): Promise<string | null> => {
     try {
-      const user = await getUserMe() // um user.id zu bekommen
-      const response = await api.get(`/users/${user.id}/img`, {
+      const response = await api.get(`/users/${userId}/img`, {
         responseType: 'blob',
         headers: {
           Accept: 'image/*'
@@ -141,13 +146,13 @@ export function useUser() {
 
       const contentType = response.headers['content-type']
       if (response.status === 200 && contentType?.startsWith('image')) {
-        return URL.createObjectURL(response.data)
+        return URL.createObjectURL(response.data);
       } else {
-        return null
+        return profilePicturePlaceholder;
       }
     } catch (error) {
       console.warn('Profilbild konnte nicht geladen werden', error)
-      return null
+      return profilePicturePlaceholder
     }
   }
 
@@ -163,6 +168,7 @@ export function useUser() {
     getUserMe,
     postUpdateUserData,
     uploadProfileImage,
-    getProfileImageUrl
+    getProfileImageUrl,
+    checkUserHasLicense
   }
 }

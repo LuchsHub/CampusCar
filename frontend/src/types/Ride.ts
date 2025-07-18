@@ -1,5 +1,6 @@
-import type { CodriveGetDto } from "./Codrive"
+import type { CodriveGetDto, RequestedCodriveGetDto } from "./Codrive"
 import type { LocationCreateDto, LocationGetDto } from "./Location"
+import type { UserGet } from "./User"
 
 export interface RideCreateBase extends Record<string, string | number>{
     car_id: string
@@ -20,9 +21,9 @@ export interface RideCreateComplete extends Record<string, string | number | Loc
 }
 
 // backend representation which is returned via api
-export interface RideGet extends Record<string, string | number | LocationGetDto | number[][] | CodriveGetDto[]>{
+export interface RideGet extends Record<string, string | number | LocationGetDto | number[][] | RequestedCodriveGetDto[] | CodriveGetDto[] | UserGet >{
   id: string
-  driver_id: string
+  driver: UserGet
   car_id: string
   max_n_codrives: number
   n_codrives: number
@@ -35,12 +36,14 @@ export interface RideGet extends Record<string, string | number | LocationGetDto
   end_location: LocationGetDto
   route_geometry: number[][]
   codrives: CodriveGetDto[]
-  requested_codrives: CodriveGetDto[]
+  requested_codrives: RequestedCodriveGetDto[]
   estimated_duration_seconds: number,
   estimated_distance_meters: number
 }
 
-export interface RideGetDto extends Record<string, string | number | number[][] | LocationGetDto | CodriveGetDto[] | boolean | undefined> {
+export interface RideGetDto extends Record<string, string | number | number[][] | LocationGetDto | RequestedCodriveGetDto[] | CodriveGetDto[] | boolean | undefined> {
+  id: string
+  codrive_id?: string // to reference booked codrive on a ride. only necessary when type = "booked"
   type: "own" | "booked" | "other" // other = another user posted the ride
   departure_time: string
   departure_date: string
@@ -51,7 +54,7 @@ export interface RideGetDto extends Record<string, string | number | number[][] 
   route_geometry: number[][]
   n_available_seats: number
   codrives: CodriveGetDto[]
-  requested_codrives: CodriveGetDto[]
+  requested_codrives: RequestedCodriveGetDto[]
   state: "default" | "new request" | "accepted" | "not accepted yet" | "rejected" | "payment outstanding"
   point_reward?: number // reward you get when its your own ride (sum of point_contribution for every accepted codrive)
   point_cost?: number // your cost for a booked ride (point_contribution for your codrive)

@@ -1,5 +1,6 @@
 import datetime
 import uuid
+from enum import Enum
 from typing import Optional
 
 from pydantic import EmailStr
@@ -73,8 +74,12 @@ class User(UserBase, table=True):
     rides: list["Ride"] = Relationship(back_populates="driver")
 
     points: int = Field(default=0)
+    cash: float = Field(default=0.0)
+    avg_rating: float = Field(default=0.0)
+    n_ratings: int = Field(default=0)
 
     profile_picture: bytes | None = None
+    profile_picture_content_type: str | None = Field(default=None)
     has_license: bool = Field(default=False)
 
 
@@ -83,6 +88,8 @@ class UserPublic(UserBase):
     id: uuid.UUID
     location: Optional["LocationPublic"]
     has_license: bool
+    avg_rating: float
+    n_ratings: int
 
 
 class UsersPublic(SQLModel):
@@ -192,6 +199,7 @@ class RouteUpdate(SQLModel):
 
 class PassengerArrivalTime(SQLModel):
     user: UserPublic
+    location: LocationPublic
     arrival_date: datetime.date
     arrival_time: datetime.time
 
@@ -213,16 +221,30 @@ class Codrive(SQLModel, table=True):
     ride: "Ride" = Relationship(back_populates="codrives")
     location_id: uuid.UUID = Field(foreign_key="location.id")
     location: "Location" = Relationship(back_populates="codrives")
+    n_passengers: int = Field(default=1)
     arrival_date: datetime.date = Field()
     arrival_time: datetime.time = Field()
     point_contribution: int = Field(default=0)
+    message: str | None = Field(default=None)
     route_update: RouteUpdate | None = Field(default=None, sa_column=Column(JSON))
     accepted: bool = Field(default=False)
     paid: bool = Field(default=False)
+    rating_given: bool = Field(default=False)
 
 
 class CodriveCreate(SQLModel):
     location: LocationCreate
+    message: str | None = Field(default=None)
+    n_passengers: int = Field(default=1, ge=1)
+
+
+class CodrivePay(SQLModel):
+    rating: int | None = Field(
+        default=None,
+        ge=1,
+        le=5,
+        description="Optional rating for the driver from 1 to 5.",
+    )
 
 
 class CodrivePublic(SQLModel):
@@ -230,10 +252,11 @@ class CodrivePublic(SQLModel):
     user_id: uuid.UUID
     ride_id: uuid.UUID
     location: LocationPublic
+    n_passengers: int
     accepted: bool
     paid: bool
     point_contribution: int
-    route_update: RouteUpdatePublic
+    route_update: RouteUpdatePublic | None
 
 
 class CodrivePassenger(SQLModel):
@@ -243,6 +266,7 @@ class CodrivePassenger(SQLModel):
     arrival_date: datetime.date
     arrival_time: datetime.time
     point_contribution: int
+    n_passengers: int
 
 
 class CodriveRequestPublic(SQLModel):
@@ -250,6 +274,9 @@ class CodriveRequestPublic(SQLModel):
     user: UserPublic
     location: LocationPublic
     route_update: RouteUpdatePublic
+    point_contribution: int
+    n_passengers: int
+    message: str | None = Field(default=None)
 
 
 class Rating(SQLModel, table=True):
@@ -279,7 +306,9 @@ class Ride(SQLModel, table=True):
     car_id: uuid.UUID = Field(foreign_key="car.id")
     car: "Car" = Relationship(back_populates="rides")
 
-    codrives: list["Codrive"] = Relationship(back_populates="ride")
+    codrives: list["Codrive"] = Relationship(
+        back_populates="ride", sa_relationship_kwargs={"cascade": "all, delete"}
+    )
     n_codrives: int = Field(default=0)
     total_points: int = Field(default=0)
 
@@ -306,6 +335,7 @@ class Ride(SQLModel, table=True):
     route_geometry: list[list[float]] = Field(default=[], sa_column=Column(JSON))
     estimated_duration_seconds: int = Field()
     estimated_distance_meters: int = Field()
+    completed: bool = Field(default=False)
 
 
 class RideCreate(SQLModel):
@@ -320,6 +350,14 @@ class RideCreate(SQLModel):
 
     start_location: LocationCreate
     end_location: LocationCreate
+
+
+class RideUpdate(SQLModel):
+    """Properties to receive via API on ride update."""
+
+    car_id: uuid.UUID | None = None
+    max_n_codrives: int | None = None
+    max_request_distance: float | None = None
 
 
 class RidePublic(SQLModel):
@@ -347,10 +385,41 @@ class RidePublic(SQLModel):
     max_request_distance: float | None
     estimated_duration_seconds: int
     estimated_distance_meters: int
+    completed: bool
 
 
 class RidesPublic(SQLModel):
     data: list[RidePublic]
+    count: int
+
+
+class CodriveStatus(str, Enum):
+    REQUESTED = "requested"
+    ACCEPTED = "accepted"
+
+
+class TimeFrame(str, Enum):
+    PAST = "past"
+    FUTURE = "future"
+
+
+class UserCodrivePublic(SQLModel):
+    """
+    Represents a codrive from the user's perspective, containing the full ride context.
+    """
+
+    id: uuid.UUID
+    accepted: bool
+    paid: bool
+    message: str | None
+    point_contribution: int
+    n_passengers: int
+    route_update: RouteUpdatePublic | None = None
+    ride: RidePublic
+
+
+class UserCodrivesPublic(SQLModel):
+    data: list[UserCodrivePublic]
     count: int
 
 
