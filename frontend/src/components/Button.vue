@@ -29,7 +29,7 @@
     @click="handleClick"
     :disabled="props.loading"
   >
-    <span v-if="props.loading" class="spinner"></span>
+    <span v-if="props.loading" class="spinner"/>
     <slot v-else/>
   </component>
 </template>

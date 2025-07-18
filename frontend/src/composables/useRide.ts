@@ -136,14 +136,6 @@ export function useRide() {
       }
 
       const codrive = result.data.data;
-
-      let state;
-      if (codrive.accepted) {
-        state = codrive.paid ? 'accepted' : 'payment outstanding';
-      } else {
-        state = 'not accepted yet';
-      }
-
       const rideGetDtos: RideGetDto[] = codrive.map((codrive: MyCodriveGet) => ({
         id: codrive.ride.id,
         type: "booked",
@@ -155,7 +147,7 @@ export function useRide() {
         start_location: codrive.ride.start_location,
         end_location: codrive.ride.end_location,
         codrives: codrive.ride.codrives,
-        state: state,
+        state: codrive.accepted ? 'accepted' : 'not accepted yet',
         point_cost: codrive.point_contribution
       } as RideGetDto));
       return rideGetDtos;
