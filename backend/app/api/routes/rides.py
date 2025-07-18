@@ -35,6 +35,7 @@ from app.models import (
     User,
     UserPublic,
 )
+from app.utils import send_mail
 
 router = APIRouter(prefix="/rides", tags=["rides"])
 
@@ -287,6 +288,7 @@ def read_rides(
                         location=LocationPublic.model_validate(codrive.location),
                         route_update=route_update_public,
                         point_contribution=codrive.point_contribution,
+                        n_passengers=codrive.n_passengers,
                         message=codrive.message,
                     )
                 )
@@ -371,6 +373,7 @@ def read_rides_by_driver(
                         location=LocationPublic.model_validate(codrive.location),
                         route_update=route_update_public,
                         point_contribution=codrive.point_contribution,
+                        n_passengers=codrive.n_passengers,
                         message=codrive.message,
                     )
                 )
@@ -455,6 +458,7 @@ def read_own_rides(
                         location=LocationPublic.model_validate(codrive.location),
                         route_update=route_update_public,
                         point_contribution=codrive.point_contribution,
+                        n_passengers=codrive.n_passengers,
                         message=codrive.message,
                     )
                 )
@@ -530,6 +534,7 @@ def read_ride_by_id(ride_id: uuid.UUID, session: SessionDep) -> Any:
                     location=LocationPublic.model_validate(codrive.location),
                     route_update=route_update_public,
                     point_contribution=codrive.point_contribution,
+                    n_passengers=codrive.n_passengers,
                     message=codrive.message,
                 )
             )
@@ -609,6 +614,7 @@ def complete_ride(
         ride_id,
         options=[
             selectinload(Ride.driver),  # type: ignore[arg-type]
+            selectinload(Ride.end_location),  # type: ignore[arg-type]
             selectinload(Ride.codrives).options(selectinload(Codrive.user)),  # type: ignore[arg-type]
         ],
     )
@@ -645,6 +651,14 @@ def complete_ride(
     session.add(ride.driver)
     session.add(ride)
     session.commit()
+
+    for codrive in ride.codrives:
+        if codrive.accepted:
+            send_mail(
+                subject="Fahrt abgeschlossen: Bitte bezahlen & bewerten",
+                body=f"Hey {codrive.user.user_name}, die Fahrt nach {ride.end_location.city} ist jetzt abgeschlossen. Bitte schau in der CampusCar-App vorbei, um die Fahrt zu bezahlen und den Fahrer zu bewerten. Danke!",
+                to_email=codrive.user.email,
+            )
 
     return Message(message="Ride marked as complete and points have been transferred.")
 
