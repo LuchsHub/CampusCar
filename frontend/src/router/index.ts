@@ -12,6 +12,7 @@ import Home from '@/views/Home.vue';
 
 import MyRides from '@/views/Rides/MyRides.vue';
 import MyRideDetails from '@/views/Rides/MyRideDetails.vue';
+import MyRideCodriver from '@/views/Rides/MyRideCodriver.vue';
 import CreateRide from '@/views/Rides/CreateRide.vue';
 
 import Profile from '@/views/Profile.vue';
@@ -94,6 +95,12 @@ const routes: RouteRecordRaw[] = [
     path: '/my_ride/details',
     name: 'myRideDetails',
     component: MyRideDetails,
+    beforeEnter: requireAuthentication(),
+  },
+  {
+    path: '/my_ride/details/codriver',
+    name: 'myRideCodriver',
+    component: MyRideCodriver,
     beforeEnter: requireAuthentication(),
   },
   {

@@ -22,8 +22,8 @@ export const sortRidesByDateAsc = (rides: RideGetDto[]): RideGetDto[] => {
 export const sortLocationItemPropsByTimeAsc = (items: LocationItemProps[]): LocationItemProps[] => {
     const today = new Date().toISOString().slice(0, 10); 
     return [...items].sort((a, b) => {
-        const aDate = new Date(`${today}T${a.arrival_time}`);
-        const bDate = new Date(`${today}T${b.arrival_time}`);
+        const aDate = new Date(`${today}T${a.updated_arrival_time ? a.updated_arrival_time : a.arrival_time}`);
+        const bDate = new Date(`${today}T${b.updated_arrival_time ? b.updated_arrival_time : b.arrival_time}`);
         return aDate.getTime() - bDate.getTime();
       });
 }

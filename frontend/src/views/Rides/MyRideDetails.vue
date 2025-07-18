@@ -1,24 +1,18 @@
 <script setup lang="ts">
 import PageTitle from '@/components/PageTitle.vue';
 import HoverButton from '@/components/HoverButton.vue';
-import type { CodriveCardProps } from '@/types/Props';
-import { ref, computed } from 'vue';
-import type { RideGetDto } from '@/types/Ride';
-import { useRideStore } from '@/stores/RideStore';
+import { ref } from 'vue';
+import { useMyRideStore } from '@/stores/MyRideStore';
 import { useRouter } from 'vue-router';
-import type { LocationItemProps } from '@/types/Props';
 import LocationItem from '@/components/LocationItem.vue';
-import { sortLocationItemPropsByTimeAsc, sortCodriveCardPropsByTimeAsc } from '@/services/utils';
 import CodriveCard from '@/components/CodriveCard.vue';
-import type { CodriveGetDto } from '@/types/Codrive';
 import ConfirmDeleteModal from '@/components/ConfirmDeleteModal.vue';
 import { useToaster } from '@/composables/useToaster';
 import { useRide } from '@/composables/useRide';
 
 // Variables 
 const router = useRouter();
-const rideStore = useRideStore();
-const ride = ref<RideGetDto | null>();
+const myRideStore = useMyRideStore();
 
 const { showToast } = useToaster();
 const { deleteRide } = useRide();
@@ -26,58 +20,8 @@ const { deleteRide } = useRide();
 const showDeleteModal = ref<boolean>(false);
 const loading = ref<boolean>(false);
 
-const rideLocationItems = computed<LocationItemProps[]>(() => {
-  if (!ride.value) {return [];} 
-  let items: LocationItemProps[] = [
-    {
-      'location': ride.value.start_location, 
-      'arrival_time': ride.value.departure_time,
-      'arrival_date': ride.value.departure_date
-    },
-    ...ride.value.codrives.map(codrive => ({ 
-      'location': codrive.location, 
-      'arrival_time': codrive.arrival_time,
-      'user': codrive.user,
-    })),
-    {
-      'location': ride.value.end_location, 
-      'arrival_time': ride.value.arrival_time,
-      'arrival_date': ride.value.arrival_date
-    }
-  ];
-  return sortLocationItemPropsByTimeAsc(items);
-}); 
-
-const codriveCardItems = computed<CodriveCardProps[]>(() => {
-  if (!ride.value) { return []; }
-
-  // accepted codrives
-  let accepted: CodriveCardProps[] = ride.value.codrives.map((codrive: CodriveGetDto) => ({
-    state: "accepted",
-    codrive: codrive,
-  } as CodriveCardProps));
-  accepted = sortCodriveCardPropsByTimeAsc(accepted); 
-
-  // not yet accepted codrives
-  let notAccepted: CodriveCardProps[] = ride.value.requested_codrives.map((codrive: CodriveGetDto) => ({
-    state: "notAccepted",
-    codrive: codrive,
-  } as CodriveCardProps));
-  notAccepted = sortCodriveCardPropsByTimeAsc(notAccepted);
-
-  // fill the rest with empty codrives
-  const no_empty_seats = ride.value.n_available_seats - (accepted.length + notAccepted.length);
-  const empty = Array.from( {length: no_empty_seats}, () => ({
-    state: "empty"
-  } as CodriveCardProps))
-
-  return [...accepted, ...notAccepted, ...empty];
-});
-
-if (!rideStore.ride) {
+if (!myRideStore.ride) {
   router.push({ name: 'myRides' }) // in case there is no ride saved in the store
-} else {
-  ride.value = rideStore.ride;
 }
 
 // Delete
@@ -89,8 +33,10 @@ const onConfirmDelete = async () => {
   showDeleteModal.value = false
   loading.value = true;
   try {
-    if (ride.value?.id) {
-      await deleteRide(ride.value.id);
+    if (myRideStore.ride?.id) {
+      await deleteRide(myRideStore.ride?.id);
+      myRideStore.removeRide();
+
     } else {
       throw new Error('No ride ID found for deletion.');
     }
@@ -117,7 +63,7 @@ const onCancelDelete = () => {
     <h2>Fahrtverlauf</h2>
     <div class="component-list">
       <LocationItem
-        v-for="item in rideLocationItems"
+        v-for="item in myRideStore.rideLocationItems"
         :location="item.location"
         :arrival_time="item.arrival_time"
         :arrival_date="item.arrival_date"
@@ -126,20 +72,21 @@ const onCancelDelete = () => {
     </div>
     
     <h2>Mitfahrer</h2>
-    <HoverButton :buttons='[
-      {variant: "secondary", text: "Bearbeiten"},
-      {variant: "primary", color: "danger", onClick: onRequestDelete, text: "Löschen"}]'
-    />
     <div class="component-list">
       <CodriveCard
-      v-for="(item, idx) in codriveCardItems"
+      v-for="(item, idx) in myRideStore.requestedCodriveCardItems"
       :state="item.state"
       :codrive="item.codrive"
       :seat_no="idx+1"
       />
     </div>
-
+    
     <h2>Informationen</h2>
+
+    <HoverButton :buttons='[
+      {variant: "secondary", text: "Bearbeiten"},
+      {variant: "primary", color: "danger", onClick: onRequestDelete, text: "Löschen"}]'
+    />
   </div>
   <ConfirmDeleteModal
     :open="showDeleteModal"

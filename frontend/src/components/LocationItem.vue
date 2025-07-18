@@ -11,7 +11,10 @@ const props = defineProps<LocationItemProps>();
     
     <div class="date-info-container">
         <p v-if="props.arrival_date" class="text-xs text-neutral-400">{{ formatDate(props.arrival_date) }}</p>
-        <p class="text-l text-bold">{{ formatTime(props.arrival_time) }}</p>
+        <div class="time-container">
+            <p class="text-l text-bold" :class="{'text-strikethrough text-neutral-400': props.updated_arrival_time}">{{ formatTime(props.arrival_time) }}</p>
+            <p v-if="props.updated_arrival_time" class="text-l text-bold text-danger">{{ formatTime(props.updated_arrival_time) }}</p>
+        </div>
     </div>
 
     <div class="location-item-content">
@@ -45,6 +48,13 @@ const props = defineProps<LocationItemProps>();
     justify-content: center;
     align-items: center;
     gap: 6px;
+}
+
+.time-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
 .location-item-content {

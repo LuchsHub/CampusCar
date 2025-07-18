@@ -46,13 +46,13 @@ export interface LocationItemProps {
   location: LocationGetDto
   arrival_time: string
   arrival_date?: string
+  updated_arrival_time?: string
   user?: {
     first_name: string
     last_name: string
   }
 }
 
-// TODO: maybe you can make the attributes a bit more fine-grained. I dont think we need every attribute of Codrive
 export interface CodriveCardProps { 
   state: "accepted" | "notAccepted" | "empty"
   codrive?: CodriveGetDto

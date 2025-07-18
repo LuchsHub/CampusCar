@@ -3,12 +3,12 @@ import type { RideCardProps } from '@/types/Props';
 import { computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { Users, Car } from 'lucide-vue-next';
-import { useRideStore } from '@/stores/RideStore';
+import { useMyRideStore } from '@/stores/MyRideStore';
 import { formatTime, formatDate } from '@/services/utils';
 
 const props = defineProps<RideCardProps>();
 const router = useRouter();
-const rideStore = useRideStore();
+const rideStore = useMyRideStore();
 
 const stateInfo = computed(() => {
   switch (props.ride.state) {
