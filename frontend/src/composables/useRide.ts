@@ -39,6 +39,7 @@ export function useRide() {
   }
 
   const postRideData = async (ride: RideCreateComplete): Promise<void> => {
+    ride.max_request_distance = (Number(ride.max_request_distance) * 1000).toString() // convert to meters
     try {
       await api.post(
         '/rides',
@@ -46,7 +47,7 @@ export function useRide() {
       );
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
-        showToast('error', 'Fehler beim erstellen der Fahrt.');
+        showToast('error', 'Fehler beim Erstellen der Fahrt.');
       } else {
         showDefaultError();
       }
@@ -127,10 +128,24 @@ export function useRide() {
     }
   }
 
+  const deleteRide = async (rideId: string): Promise<void> => {
+    try {
+      await api.delete(`/rides/${rideId}`);
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        showToast('error', 'Fehler beim Löschen der Fahrt.');
+      } else {
+        showDefaultError();
+      }
+      throw error
+    }
+  }
+
   return {
     getEmptyRideCreate,
     postRide,
     getRidesForUser,
-    getAllRides
+    getAllRides,
+    deleteRide
   }
 }

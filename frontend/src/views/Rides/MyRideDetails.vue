@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import PageTitle from '@/components/PageTitle.vue';
 import HoverButton from '@/components/HoverButton.vue';
-import type { ButtonProps, CodriveCardProps } from '@/types/Props';
+import type { CodriveCardProps } from '@/types/Props';
 import { ref, computed } from 'vue';
 import type { RideGetDto } from '@/types/Ride';
 import { useRideStore } from '@/stores/RideStore';
@@ -11,11 +11,21 @@ import LocationItem from '@/components/LocationItem.vue';
 import { sortLocationItemPropsByTimeAsc, sortCodriveCardPropsByTimeAsc } from '@/services/utils';
 import CodriveCard from '@/components/CodriveCard.vue';
 import type { CodriveGetDto } from '@/types/Codrive';
+import ConfirmDeleteModal from '@/components/ConfirmDeleteModal.vue';
+import { useToaster } from '@/composables/useToaster';
+import { useRide } from '@/composables/useRide';
 
 // Variables 
 const router = useRouter();
 const rideStore = useRideStore();
 const ride = ref<RideGetDto | null>();
+
+const { showToast } = useToaster();
+const { deleteRide } = useRide();
+
+const showDeleteModal = ref<boolean>(false);
+const loading = ref<boolean>(false);
+
 const rideLocationItems = computed<LocationItemProps[]>(() => {
   if (!ride.value) {return [];} 
   let items: LocationItemProps[] = [
@@ -40,15 +50,21 @@ const rideLocationItems = computed<LocationItemProps[]>(() => {
 
 const codriveCardItems = computed<CodriveCardProps[]>(() => {
   if (!ride.value) { return []; }
+
+  // accepted codrives
   let accepted: CodriveCardProps[] = ride.value.codrives.map((codrive: CodriveGetDto) => ({
     codrive: codrive,
     codrive_accepted: true
   } as CodriveCardProps));
   accepted = sortCodriveCardPropsByTimeAsc(accepted); 
-  const notAccepted: CodriveCardProps[] = ride.value.requested_codrives.map((codrive: CodriveGetDto) => ({
+
+  // not yet accepted codrives
+  let notAccepted: CodriveCardProps[] = ride.value.requested_codrives.map((codrive: CodriveGetDto) => ({
     codrive: codrive,
     codrive_accepted: false
   } as CodriveCardProps));
+  notAccepted = sortCodriveCardPropsByTimeAsc(notAccepted);
+
   return [...accepted, ...notAccepted];
 });
 
@@ -58,14 +74,38 @@ if (!rideStore.ride) {
   ride.value = rideStore.ride;
 }
 
-const hoverButtons: ButtonProps[] = [
-    {variant: "secondary", text: "Bearbeiten"},
-    {variant: "primary", color: "danger", text: "Löschen"},
-]
+// Delete
+const onRequestDelete = () => {
+  showDeleteModal.value = true
+}
+
+const onConfirmDelete = async () => {
+  showDeleteModal.value = false
+  loading.value = true;
+  try {
+    if (ride.value?.id) {
+      await deleteRide(ride.value.id);
+    } else {
+      throw new Error('No ride ID found for deletion.');
+    }
+    showToast('success', 'Fahrt gelöscht.')
+    router.push('/my_rides')
+  }
+  catch (error: unknown) {
+    console.log(error);
+  }
+  finally {
+    loading.value = false;
+  }
+}
+
+const onCancelDelete = () => {
+  showDeleteModal.value = false
+}
 </script>
 
 <template>
-  <div class="view-container" :class="`padding-bottom-hb-${hoverButtons.length}`">
+  <div class="view-container padding-bottom-hb-2">
     <PageTitle :goBack="true">Meine Fahrt</PageTitle>
     
     <h2>Fahrtverlauf</h2>
@@ -80,7 +120,10 @@ const hoverButtons: ButtonProps[] = [
     </div>
     
     <h2>Mitfahrer</h2>
-    <HoverButton :buttons="hoverButtons"/>
+    <HoverButton :buttons='[
+      {variant: "secondary", text: "Bearbeiten"},
+      {variant: "primary", color: "danger", onClick: onRequestDelete, text: "Löschen"}]'
+    />
     <div class="component-list">
       <CodriveCard
         v-for="(item, idx) in codriveCardItems"
@@ -90,6 +133,11 @@ const hoverButtons: ButtonProps[] = [
       />
     </div>
   </div>
+  <ConfirmDeleteModal
+    :open="showDeleteModal"
+    @confirm="onConfirmDelete"
+    @cancel="onCancelDelete"
+  />
 </template>
 
 <style scoped>

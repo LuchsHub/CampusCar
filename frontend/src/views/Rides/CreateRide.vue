@@ -105,6 +105,7 @@ const createRide = async (): Promise<void> => {
     router.push("/my_rides");
   } catch (error: unknown){
     console.log(error);
+    loading.value = false;
     // reset form data
     Object.assign(rideCreate, getEmptyRideCreate());
     Object.assign(rideCreateStartLocation, getEmptyLocationCreate());
