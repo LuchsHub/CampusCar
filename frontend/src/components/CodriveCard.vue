@@ -3,16 +3,19 @@ import type { CodriveCardProps } from '../types/Props'
 import { ChevronRight } from 'lucide-vue-next';
 
 const props = defineProps<CodriveCardProps>();
+
+console.log(props);
 </script>
 
 <template>
-<div class="codrive-card-container" :class="{'new-request-container': !props.codrive_accepted}">
+<div class="codrive-card-container" :class="{'new-request-container': props.state == 'notAccepted'}">
     <div class="codrive-card-content">
-        <p class="text-neutral-400" :class="{'text-info': !props.codrive_accepted}">Platz {{ props.seat_no }}</p>
-        <p v-if="props.codrive_accepted" class="text-md">{{ props.codrive.user.first_name }} {{ props.codrive.user.last_name }}</p>
-        <p v-else class="text-md">Anfrage ausstehend </p>
+        <p class="text-neutral-400" :class="{'text-info': props.state == 'notAccepted'}">Platz {{ props.seat_no }}</p>
+        <p v-if="props.state == 'accepted'" class="text-md">{{ props.codrive?.user.first_name }} {{ props.codrive?.user.last_name }}</p>
+        <p v-else-if="props.state == 'notAccepted'" class="text-md">Anfrage ausstehend </p>
+        <p v-else class="text-md">-</p>
     </div>
-    <component v-if="!props.codrive_accepted" :is="ChevronRight" class="icon-md icon-info"/>
+    <component v-if="props.state == 'notAccepted'" :is="ChevronRight" class="icon-md icon-info"/>
 </div>
 </template>
 

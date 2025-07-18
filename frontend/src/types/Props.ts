@@ -54,7 +54,7 @@ export interface LocationItemProps {
 
 // TODO: maybe you can make the attributes a bit more fine-grained. I dont think we need every attribute of Codrive
 export interface CodriveCardProps { 
-  codrive_accepted: boolean
-  codrive: CodriveGetDto
+  state: "accepted" | "notAccepted" | "empty"
+  codrive?: CodriveGetDto
   seat_no?: number
 }

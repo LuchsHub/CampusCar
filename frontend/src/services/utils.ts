@@ -30,8 +30,8 @@ export const sortLocationItemPropsByTimeAsc = (items: LocationItemProps[]): Loca
 
 export const sortCodriveCardPropsByTimeAsc = (items: CodriveCardProps[]): CodriveCardProps[] => { 
     return [...items].sort((a, b) => {
-        const aDate = new Date(`${a.codrive.arrival_date}T${a.codrive.arrival_time}`);
-        const bDate = new Date(`${b.codrive.arrival_date}T${b.codrive.arrival_time}`);
+        const aDate = new Date(`${a.codrive?.arrival_date}T${a.codrive?.arrival_time}`);
+        const bDate = new Date(`${b.codrive?.arrival_date}T${b.codrive?.arrival_time}`);
         return aDate.getTime() - bDate.getTime();
       });
 }

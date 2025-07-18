@@ -53,19 +53,25 @@ const codriveCardItems = computed<CodriveCardProps[]>(() => {
 
   // accepted codrives
   let accepted: CodriveCardProps[] = ride.value.codrives.map((codrive: CodriveGetDto) => ({
+    state: "accepted",
     codrive: codrive,
-    codrive_accepted: true
   } as CodriveCardProps));
   accepted = sortCodriveCardPropsByTimeAsc(accepted); 
 
   // not yet accepted codrives
   let notAccepted: CodriveCardProps[] = ride.value.requested_codrives.map((codrive: CodriveGetDto) => ({
+    state: "notAccepted",
     codrive: codrive,
-    codrive_accepted: false
   } as CodriveCardProps));
   notAccepted = sortCodriveCardPropsByTimeAsc(notAccepted);
 
-  return [...accepted, ...notAccepted];
+  // fill the rest with empty codrives
+  const no_empty_seats = ride.value.n_available_seats - (accepted.length + notAccepted.length);
+  const empty = Array.from( {length: no_empty_seats}, () => ({
+    state: "empty"
+  } as CodriveCardProps))
+
+  return [...accepted, ...notAccepted, ...empty];
 });
 
 if (!rideStore.ride) {
@@ -126,12 +132,14 @@ const onCancelDelete = () => {
     />
     <div class="component-list">
       <CodriveCard
-        v-for="(item, idx) in codriveCardItems"
-        :codrive_accepted="item.codrive_accepted"
-        :codrive="item.codrive"
-        :seat_no="idx+1"
+      v-for="(item, idx) in codriveCardItems"
+      :state="item.state"
+      :codrive="item.codrive"
+      :seat_no="idx+1"
       />
     </div>
+
+    <h2>Informationen</h2>
   </div>
   <ConfirmDeleteModal
     :open="showDeleteModal"
