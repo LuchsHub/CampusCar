@@ -5,7 +5,7 @@ import api from '@/services/api';
 import axios from 'axios';
 import { useToaster } from '@/composables/useToaster';
 import type { LocationCreateDto } from '../types/Location';
-import type { CodriveGetDto } from '@/types/Codrive';
+import type { CodriveGetDto, MyCodriveGet } from '@/types/Codrive';
 import { useUser } from './useUser';
 
 
@@ -55,42 +55,6 @@ export function useRide() {
     }
   }
 
-  const getRidesForUser = async (user_id: string): Promise<RideGetDto[]> => {
-    try {
-      const result = await api.get(`/rides/by_driver/${user_id}`);
-
-      if (result.data.data.length === 0) { // idk why it is result.data.data but otherwise it wont work
-        return []
-      }
-
-      const rideGetDtos: RideGetDto[] = result.data.data.map((ride: RideGet) => ({
-        id: ride.id,
-        type: "own",
-        departure_time: ride.departure_time,
-        departure_date: ride.departure_date,
-        arrival_time: ride.arrival_time,
-        arrival_date: ride.arrival_date,
-        start_location: ride.start_location,
-        end_location: ride.end_location,
-        route_geometry: ride.route_geometry,
-        n_available_seats: ride.max_n_codrives - ride.n_codrives,
-        codrives: ride.codrives,
-        requested_codrives: ride.requested_codrives,
-        state: ride.requested_codrives.length === 0 ? "default" : "new request",
-        point_reward: ride.codrives
-          .reduce((sum: number, codrive: CodriveGetDto) => sum + codrive.point_contribution, 0)
-      } as RideGetDto));
-      return rideGetDtos;
-    } catch (error: unknown) {
-      if (axios.isAxiosError(error)) {
-        showToast('error', 'Fehler beim Abrufen deiner Fahrten.');
-      } else {
-        showDefaultError();
-      }
-      throw error
-    }
-  }
-
   const getAllRides = async (): Promise<RideGetDto[]> => {
     try {
       const result = await api.get(`/rides`);
@@ -127,6 +91,84 @@ export function useRide() {
     }
   }
 
+  const getRidesForUser = async (): Promise<RideGetDto[]> => {
+    try {
+      const result = await api.get(`/rides/me`);
+
+      if (result.data.data.length === 0) { // idk why it is result.data.data but otherwise it wont work
+        return []
+      }
+
+      const rideGetDtos: RideGetDto[] = result.data.data.map((ride: RideGet) => ({
+        id: ride.id,
+        type: "own",
+        departure_time: ride.departure_time,
+        departure_date: ride.departure_date,
+        arrival_time: ride.arrival_time,
+        arrival_date: ride.arrival_date,
+        start_location: ride.start_location,
+        end_location: ride.end_location,
+        route_geometry: ride.route_geometry,
+        n_available_seats: ride.max_n_codrives - ride.n_codrives,
+        codrives: ride.codrives,
+        requested_codrives: ride.requested_codrives,
+        state: ride.requested_codrives.length === 0 ? "default" : "new request",
+        point_reward: ride.codrives
+          .reduce((sum: number, codrive: CodriveGetDto) => sum + codrive.point_contribution, 0)
+      } as RideGetDto));
+      return rideGetDtos;
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        showToast('error', 'Fehler beim Abrufen deiner Fahrten.');
+      } else {
+        showDefaultError();
+      }
+      throw error
+    }
+  }
+
+  const getBookedRidesForUser = async (): Promise<RideGetDto[]> => {
+    try {
+      const result = await api.get(`/codrives/me`);
+
+      if (result.data.data.length === 0) { // idk why it is result.data.data but otherwise it wont work
+        return []
+      }
+
+      const codrive = result.data.data;
+
+      let state;
+      if (codrive.accepted) {
+        state = codrive.paid ? 'accepted' : 'payment outstanding';
+      } else {
+        state = 'not accepted yet';
+      }
+
+      const rideGetDtos: RideGetDto[] = codrive.map((codrive: MyCodriveGet) => ({
+        id: codrive.ride.id,
+        type: "booked",
+        codrive_id: codrive.id,
+        departure_time: codrive.ride.departure_time,
+        departure_date: codrive.ride.departure_date,
+        arrival_time: codrive.ride.arrival_time,
+        arrival_date: codrive.ride.arrival_date,
+        start_location: codrive.ride.start_location,
+        end_location: codrive.ride.end_location,
+        codrives: codrive.ride.codrives,
+        state: state,
+        point_cost: codrive.point_contribution
+      } as RideGetDto));
+      return rideGetDtos;
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        showToast('error', 'Fehler beim Abrufen deiner gebuchten Fahrten.');
+      } else {
+        showDefaultError();
+      }
+      throw error
+    }
+  }
+
   const deleteRide = async (rideId: string): Promise<void> => {
     try {
       await api.delete(`/rides/${rideId}`);
@@ -145,6 +187,7 @@ export function useRide() {
     postRide,
     getRidesForUser,
     getAllRides,
-    deleteRide
+    deleteRide,
+    getBookedRidesForUser
   }
 }

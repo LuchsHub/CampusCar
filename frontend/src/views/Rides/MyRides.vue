@@ -5,26 +5,26 @@ import TabSwitcher from '@/components/TabSwitcher.vue';
 import { ref, onMounted, computed, type ComputedRef } from 'vue';
 import type { RideGetDto } from '@/types/Ride';
 import { useRide } from '@/composables/useRide';
-import { useAuthStore } from '@/stores/AuthStore';
 import RideCard from '@/components/RideCard.vue';
 import { sortRidesByDateAsc } from '@/services/utils';
 
-const { getRidesForUser } = useRide()
-const authStore = useAuthStore();
+const { getRidesForUser, getBookedRidesForUser } = useRide()
 
 const activeTab = ref('Bevorstehend')
 const tabs = ['Bevorstehend', 'Vergangen']
 
 // Variables 
 const userOwnRides = ref<RideGetDto[]>([]);
+const userBookedRides = ref<RideGetDto[]>([]);
 
 // fetch data async from backend when component gets loaded
 onMounted(async () => {
-  userOwnRides.value = await getRidesForUser(authStore.userId);
+  userOwnRides.value = await getRidesForUser();
+  userBookedRides.value = await getBookedRidesForUser();
 })
 
 const sortedRides: ComputedRef<RideGetDto[]> = computed(() => {
-  return sortRidesByDateAsc(userOwnRides.value);
+  return sortRidesByDateAsc([...userOwnRides.value, ...userBookedRides.value]);
 });
 
 const now = () => new Date();

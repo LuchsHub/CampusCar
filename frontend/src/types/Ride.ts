@@ -43,6 +43,7 @@ export interface RideGet extends Record<string, string | number | LocationGetDto
 
 export interface RideGetDto extends Record<string, string | number | number[][] | LocationGetDto | RequestedCodriveGetDto[] | CodriveGetDto[] | boolean | undefined> {
   id: string
+  codrive_id?: string // to reference booked codrive on a ride. only necessary when type = "booked"
   type: "own" | "booked" | "other" // other = another user posted the ride
   departure_time: string
   departure_date: string

@@ -8,7 +8,7 @@ import { formatTime, formatDate } from '@/services/utils';
 
 const props = defineProps<RideCardProps>();
 const router = useRouter();
-const rideStore = useMyRideStore();
+const myRideStore = useMyRideStore();
 
 const stateInfo = computed(() => {
   switch (props.ride.state) {
@@ -28,8 +28,13 @@ const stateInfo = computed(() => {
 })
 
 const goToRideDetailsScreen = () => {
-  rideStore.setRide(props.ride);
-  router.push({ name: 'myRideDetails' });
+  if (props.ride.type === 'own') {
+    myRideStore.setRide(props.ride);
+    router.push({ name: 'myRideDetails' });
+  } else if (props.ride.type === 'booked' && ['accepted', 'payment outstanding'].includes(props.ride.state)) {
+    myRideStore.setBookedRide(props.ride);
+    router.push({ name: 'myBookedRideDetails' });
+  }
 }
 </script>
 

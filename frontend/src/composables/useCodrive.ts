@@ -33,8 +33,22 @@ export function useCodrive() {
       }
   }
 
+  const deleteBookedCodrive = async (codriveId: string) => {
+    try {
+      await api.delete(`codrives/${codriveId}/own`);
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        showToast('error', 'Fehler beim Absagen der Mitfahrt. Versuche es später nochmal.');
+      } else {
+        showDefaultError();
+      }
+      throw error
+    }
+  }
+
   return {
     acceptCodrive,
-    rejectCodrive
+    rejectCodrive,
+    deleteBookedCodrive,
   }
 }

@@ -120,6 +120,43 @@ export const useMyRideStore = defineStore("myRide", () => {
     requestedCodrive.value = null;
   }
 
+   
+  // BOOKED RIDES
+
+  const bookedRide = ref<RideGetDto | null>();
+
+  // for displaying ride locations in "Meine Mitfahrt" screen
+  const bookedRideLocationItems = computed<LocationItemProps[]>(() => {
+    if (!bookedRide.value) {return [];} 
+
+    let items: LocationItemProps[] = [
+      {
+        'location': bookedRide.value.start_location, 
+        'arrival_time': bookedRide.value.departure_time,
+        'arrival_date': bookedRide.value.departure_date
+      },
+      ...bookedRide.value.codrives.map(codrive => ({ 
+        'location': codrive.location, 
+        'arrival_time': codrive.arrival_time,
+        'user': codrive.user,
+      })),
+      {
+        'location': bookedRide.value.end_location, 
+        'arrival_time': bookedRide.value.arrival_time,
+        'arrival_date': bookedRide.value.arrival_date
+      }
+    ];
+    return sortLocationItemPropsByTimeAsc(items);
+  }); 
+
+  function setBookedRide(newRide: RideGetDto) {
+    bookedRide.value = newRide;
+  }
+  
+  function removeBookedRide() {
+    bookedRide.value = null;
+  }
+
   return {
     ride,
     rideLocationItems,
@@ -130,5 +167,10 @@ export const useMyRideStore = defineStore("myRide", () => {
     removeRide,
     setRequestedCodrive,
     removeRequestedCodrive,
+
+    bookedRide,
+    bookedRideLocationItems,
+    setBookedRide,
+    removeBookedRide,
   };
 });
