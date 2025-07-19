@@ -2,7 +2,7 @@ import { createToaster } from "@meforma/vue-toaster";
 
 const toaster = createToaster({
   duration: 2000,
-  position: "bottom",
+  position: "top",
   maxToasts: 3,
 });
 

@@ -1,6 +1,6 @@
 import axios from 'axios';
+import { useAuthStore } from '@/stores/AuthStore';
 
-// You can set this to your backend API URL, or use an environment variable
 const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1';
 
 const api = axios.create({
@@ -15,11 +15,11 @@ const api = axios.create({
 // Request interceptor (e.g., to add auth tokens)
 api.interceptors.request.use(
   (config) => {
-    // Example: Add auth token if available
-    // const token = localStorage.getItem('token');
-    // if (token) {
-    //   config.headers.Authorization = `Bearer ${token}`;
-    // }
+    // Add auth token from AuthStore if available
+    const authStore = useAuthStore();
+    if (authStore.accessToken) {
+      config.headers.Authorization = `Bearer ${authStore.accessToken}`;
+    }
     return config;
   },
   (error) => Promise.reject(error)

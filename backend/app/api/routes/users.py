@@ -59,14 +59,15 @@ def read_users(session: SessionDep, skip: int = 0, limit: int = 100) -> Any:
     "/{user_id}/img",
 )
 def get_profile_picture(
-    user_id: int,
+    user_id: uuid.UUID,
     session: SessionDep,
 ) -> Any:
     user = session.exec(select(User).where(User.id == user_id)).first()
     if not user or not user.profile_picture:
         raise HTTPException(status_code=404, detail="Profile picture not found")
 
-    return Response(content=user.profile_picture, media_type="image/png")
+    media_type = user.profile_picture_content_type or "image/png"
+    return Response(content=user.profile_picture, media_type=media_type)
 
 
 @router.post(
@@ -134,11 +135,14 @@ async def update_my_profile_picture(
     session: SessionDep,
     current_user: CurrentUser,
 ) -> Any:
-    if profile_picture.content_type not in ["image/png"]:
-        raise HTTPException(status_code=400, detail="Only PNG files are allowed.")
+    if profile_picture.content_type not in ["image/png", "image/jpeg", "image/jpg"]:
+        raise HTTPException(
+            status_code=400, detail="Only PNG, JPG, and JPEG files are allowed."
+        )
 
     image_bytes = await profile_picture.read()
     current_user.profile_picture = image_bytes
+    current_user.profile_picture_content_type = profile_picture.content_type
 
     session.add(current_user)
     session.commit()
@@ -213,20 +217,11 @@ def register_user(session: SessionDep, user_in: UserRegister) -> Any:
 
 
 @router.get("/{user_id}", response_model=UserPublic)
-def read_user_by_id(
-    user_id: uuid.UUID, session: SessionDep, current_user: CurrentUser
-) -> Any:
+def read_user_by_id(user_id: uuid.UUID, session: SessionDep) -> Any:
     """
     Get a specific user by id.
     """
     user = session.get(User, user_id)
-    if user == current_user:
-        return user
-    if not current_user.is_superuser:
-        raise HTTPException(
-            status_code=403,
-            detail="The user doesn't have enough privileges",
-        )
     return user
 
 

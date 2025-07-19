@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import TabBar from './components/TabBar.vue'
+import TabBar from '@/components/TabBar.vue'
 import { useRoute } from 'vue-router'
 const route = useRoute()
 </script>
