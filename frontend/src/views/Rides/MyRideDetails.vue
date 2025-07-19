@@ -76,8 +76,8 @@ const onCancelDelete = () => {
     <div class="component-list">
       <CodriveCard
       v-for="(item, idx) in myRideStore.requestedCodriveCardItems"
-      :state="item.state"
       :codrive="item.codrive"
+      :requested_codrive="item.requested_codrive"
       :seat_no="idx+1"
       />
     </div>

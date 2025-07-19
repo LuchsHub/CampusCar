@@ -41,22 +41,18 @@ export const useMyRideStore = defineStore("myRide", () => {
   
     // accepted codrives
     let accepted: CodriveCardProps[] = ride.value.codrives.map((codrive: CodriveGetDto) => ({
-      state: "accepted",
       codrive: codrive,
     } as CodriveCardProps));
     accepted = sortCodriveCardPropsByTimeAsc(accepted); 
 
     // not yet accepted codrives
     let requested: CodriveCardProps[] = ride.value.requested_codrives.map((codrive: RequestedCodriveGetDto) => ({
-      state: "requested",
-      codrive: codrive,
+      requested_codrive: codrive,
     } as CodriveCardProps));
     requested = sortCodriveCardPropsByTimeAsc(requested);
     
     // fill the rest with empty codrives
-    const empty = Array.from( {length: ride.value.n_available_seats}, () => ({
-      state: "empty"
-    } as CodriveCardProps))
+    const empty = Array.from( {length: ride.value.n_available_seats}, () => ({} as CodriveCardProps)) // empty 
     
     return [...accepted, ...requested, ...empty];
   });

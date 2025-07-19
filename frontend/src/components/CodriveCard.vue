@@ -10,16 +10,16 @@ const myRideStore = useMyRideStore();
 const { showToast } = useToaster();
 
 const goToMyRideCodriverScreen = () => {
-  if (props.state === 'empty') {
+  if (!props.codrive && !props.requested_codrive) {
     return;
   }
 
-  if (!props.codrive) {
+  if (!props.requested_codrive) {
     showToast('error', 'Angefragte Mitfahrt nicht verfügbar.');
     return;
   }
 
-  myRideStore.setRequestedCodrive(props.codrive);
+  myRideStore.setRequestedCodrive(props.requested_codrive);
   router.push({ name: 'myRideCodriver' });
 }
 </script>
@@ -27,16 +27,16 @@ const goToMyRideCodriverScreen = () => {
 <template>
 <div 
   class="codrive-card-container" 
-  :class="{'new-request-container': props.state == 'requested'}"
+  :class="{'new-request-container': props.requested_codrive}"
   @click="goToMyRideCodriverScreen"
 >
     <div class="codrive-card-content">
-        <p class="text-neutral-400" :class="{'text-info': props.state === 'requested'}">Platz {{ props.seat_no }}</p>
-        <p v-if="props.state === 'accepted'" class="text-md">{{ props.codrive?.user.first_name }} {{ props.codrive?.user.last_name }}</p>
-        <p v-else-if="props.state === 'notAccepted'" class="text-md">Anfrage ausstehend </p>
+        <p class="text-neutral-400" :class="{'text-info': props.requested_codrive}">Platz {{ props.seat_no }}</p>
+        <p v-if="props.codrive" class="text-md">{{ props.codrive.user.first_name }} {{ props.codrive?.user.last_name }}</p>
+        <p v-else-if="props.requested_codrive" class="text-md">Anfrage ausstehend </p>
         <p v-else class="text-md">-</p>
     </div>
-    <component v-if="props.state === 'requested'" :is="ChevronRight" class="icon-md icon-info"/>
+    <component v-if="props.requested_codrive" :is="ChevronRight" class="icon-md icon-info"/>
 </div>
 </template>
 
