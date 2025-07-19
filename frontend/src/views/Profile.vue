@@ -69,7 +69,7 @@ const actions = [
     icon: Wallet,
     isComponent: true,
     text: 'Guthaben aufladen',
-    onClick: () => console.log('Guthaben aufladen')
+    onClick: () => router.push('/profile/balance')
   },
   {
     icon: Lock,

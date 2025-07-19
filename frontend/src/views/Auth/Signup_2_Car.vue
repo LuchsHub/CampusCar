@@ -71,7 +71,7 @@ const tryCreateCar = async (): Promise<void> => {
       />
       <Input 
         type="number"
-        label="Anzahl Sitzplätze" 
+        label="Anzahl Sitzplätze (inkl. Fahrer)" 
         v-model="carCreate.n_seats"
         :min="2"
         :max="20"
