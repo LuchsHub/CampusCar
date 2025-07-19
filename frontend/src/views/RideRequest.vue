@@ -171,7 +171,7 @@ const sendCodriveRequest = async () => {
     })
     showToast('success', 'Anfrage erfolgreich gesendet.')
     router.push('/home')
-  } catch (err) {
+  } catch {
     showToast('error', 'Anfrage fehlgeschlagen.')
   }
 }
@@ -269,7 +269,7 @@ onMounted(async () => {
         type="text"
         label="Nachricht (optional)"
         v-model="message"
-        placeholder="Schreib dem Fahrer z. B. wo du zusteigst oder warum du mitfahren möchtest..."
+        placeholder="Schreib dem Fahrer z.B. wo du zusteigst oder warum du mitfahren möchtest..."
       />
 
       <!-- Wiederholte Mitfahrt Checkbox -->
@@ -277,7 +277,7 @@ onMounted(async () => {
         <label class="repeat-checkbox">
           <input type="checkbox" v-model="isRecurring" />
           <span>Wiederholte Mitfahrt</span>
-          <span class="info-icon" title="Diese Fahrt wird regelmäßig angeboten"></span>
+          <span class="info-icon" title="Diese Fahrt wird regelmäßig angeboten"/>
         </label>
 
         <div v-if="isRecurring" class="weekday-toggle">
