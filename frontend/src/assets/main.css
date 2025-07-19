@@ -40,6 +40,8 @@
   --nav-min-height: 85px; /* minimal height of the bottom tab navigation bar */
   --hover-button-nav-margin: 40px;
   --hover-button-width-percentage: 80;
+  --toast-margin-top: 40px;
+  --toast-max-width: 80%;
 
   /* Font */
   --text-line-height: 0.85;
@@ -345,4 +347,30 @@ a {
 
 .margin-botton-l {
   margin-bottom: 20px;
+}
+
+.v--default-css .c-toast {
+  padding: var(--button-padding-vertical) var(--button-padding-horizontal);
+  font-family: Author;
+  font-size: var(--font-size-md);
+  color: var(--color-neutral-100);
+  margin: var(--toast-margin-top) 0 0 0;
+  font-weight: var(--font-weight-normal);
+  line-height: var(--text-line-height);
+  max-width: var(--toast-max-width);
+}
+
+.v--default-css .c-toast--success {
+  background-color: var(--color-support-positive-500);
+  box-shadow: 0 1px 10px var(--color-support-positive-500-transparent);
+}
+
+.v--default-css .c-toast--info {
+  background-color: var(--color-support-info-500);
+  box-shadow: 0 1px 10px var(--color-support-info-500-transparent);
+}
+
+.v--default-css .c-toast--error {
+  background-color: var(--color-support-danger-500);
+  box-shadow: 0 1px 10px var(--color-support-danger-500-transparent);
 }
