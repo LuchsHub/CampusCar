@@ -263,13 +263,6 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.view-container {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-  padding: 0 1rem 4rem;
-}
-
 .profile-picture-section {
   display: flex;
   flex-direction: column;
@@ -280,8 +273,8 @@ onMounted(() => {
 }
 
 .profile-picture {
-  width: 100px;
-  height: 100px;
+  width: var(--profile-picture-l-dim);
+  height: var(--profile-picture-l-dim);
   border-radius: 50%;
   object-fit: cover;
 }

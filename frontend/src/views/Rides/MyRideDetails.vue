@@ -16,7 +16,7 @@ const router = useRouter();
 const myRideStore = useMyRideStore();
 
 const { showToast } = useToaster();
-const { deleteRide } = useRide();
+const { deleteRide, markRideAsCompleted } = useRide();
 
 const showDeleteModal = ref<boolean>(false);
 const loading = ref<boolean>(false);
@@ -55,10 +55,27 @@ const onConfirmDelete = async () => {
 const onCancelDelete = () => {
   showDeleteModal.value = false
 }
+
+// request payment
+const onRequestPayment = async () => {
+  try {
+
+    if (!myRideStore.ride) throw Error("Ride is not available in pinia");
+
+    loading.value = true;
+    await markRideAsCompleted(myRideStore.ride?.id);
+
+    showToast('success', 'Zahlung angefordert')
+  } catch (error: unknown) {
+    console.log(error);
+  } finally {
+    loading.value = false
+  }
+}
 </script>
 
 <template>
-  <div class="view-container padding-bottom-hb-2">
+  <div class="view-container " :class="{'padding-bottom-hb-1': myRideStore.ride?.state !== 'payment requested'}">
     <PageTitle :goBack="true">Meine Fahrt</PageTitle>
     
     <h2>Fahrtverlauf</h2>
@@ -94,9 +111,10 @@ const onCancelDelete = () => {
       />
     </div>
 
-    <HoverButton :buttons='[
-      {variant: "secondary", text: "Bearbeiten"},
-      {variant: "primary", color: "danger", onClick: onRequestDelete, text: "Löschen"}]'
+    <HoverButton v-if="myRideStore.ride?.state !== 'payment requested'" :buttons='[
+      myRideStore.ride?.state === "request payment"
+        ? {variant: "primary", text: "Zahlung anfordern", onClick: onRequestPayment, loading: loading} 
+        : {variant: "primary", color: "danger", text: "Löschen", onClick: onRequestDelete, loading: loading}]'
     />
   </div>
   <ConfirmDeleteModal

@@ -205,7 +205,7 @@ onMounted(async () => {
     <ProfileCard v-if="driver && ride"
       :first_name="driver.first_name"
       :last_name="driver.last_name"
-      :avg_rating="driver.rating"
+      :avg_rating="driver.avg_rating"
       :profile_picture="ride.image"
     />
 

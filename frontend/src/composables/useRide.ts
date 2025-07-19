@@ -1,13 +1,11 @@
 import { reactive } from 'vue';
-import type { RideCreateBase, RideGet, RideGetDto } from '../types/Ride';
-import type { RideCreateComplete } from '../types/Ride';
+import type { RideCreateBase, RideGet, RideGetDto, RideCreateComplete, RideState } from '../types/Ride';
 import api from '@/services/api';
 import axios from 'axios';
 import { useToaster } from '@/composables/useToaster';
 import type { LocationCreateDto } from '../types/Location';
-import type { CodriveGetDto, MyCodriveGet } from '@/types/Codrive';
+import type { CodriveGetDto, MyCodriveGet, RequestedCodriveGetDto } from '@/types/Codrive';
 import { useUser } from './useUser';
-
 
 export function useRide() {
   
@@ -22,6 +20,38 @@ export function useRide() {
         arrival_time: "",
         arrival_date: "",
     })
+  }
+
+  const checkIfRideIsOver = ( arrival_date: string, arrival_time: string) => {
+    const dateTimeString = `${arrival_date}T${arrival_time}`;
+    const rideEndDate = new Date(dateTimeString);
+    return rideEndDate < new Date();
+}
+
+  const checkBookedRideState = (accepted: boolean, paid: boolean, completed: boolean, arrivalDate: string, arrivalTime: string): RideState => {
+    if (!accepted) {
+      return "not accepted yet";
+    } else if (!checkIfRideIsOver(arrivalDate, arrivalTime)) {
+      return "accepted";
+    } else if (!paid && !completed) {
+      return "payment not requested yet";
+    } else if (!paid && completed) {
+      return "payment outstanding";
+    } else {
+      return "finished";
+    }
+  }
+  
+  const checkOwnRideState = (requestedCodrives: RequestedCodriveGetDto[], completed: boolean, arrivalDate: string, arrivalTime: string): RideState => {
+    if (requestedCodrives.length > 0) {
+      return "new request";
+    } else if (checkIfRideIsOver(arrivalDate, arrivalTime) && !completed) {
+      return "request payment";
+    } else if (checkIfRideIsOver(arrivalDate, arrivalTime) && completed) {
+      return "payment requested";
+    } else {
+      return "default"
+    }
   }
 
   const postRide = async (ride: RideCreateBase, startLocation: LocationCreateDto, endLocation: LocationCreateDto) => {
@@ -115,7 +145,8 @@ export function useRide() {
         n_available_seats: ride.max_n_codrives - ride.n_codrives,
         codrives: ride.codrives,
         requested_codrives: ride.requested_codrives,
-        state: ride.requested_codrives.length === 0 ? "default" : "new request",
+        state: checkOwnRideState(ride.requested_codrives, ride.completed, ride.arrival_date, ride.arrival_time),
+        completed: ride.completed,
         point_reward: ride.codrives
           .reduce((sum: number, codrive: CodriveGetDto) => sum + codrive.point_contribution, 0)
       } as RideGetDto));
@@ -137,22 +168,27 @@ export function useRide() {
       if (result.data.data.length === 0) { // idk why it is result.data.data but otherwise it wont work
         return []
       }
+      
+      const codrive: MyCodriveGet[] = result.data.data;
 
-      const codrive = result.data.data;
-      const rideGetDtos: RideGetDto[] = codrive.map((codrive: MyCodriveGet) => ({
-        id: codrive.ride.id,
-        type: "booked",
-        codrive_id: codrive.id,
-        departure_time: codrive.ride.departure_time,
-        departure_date: codrive.ride.departure_date,
-        arrival_time: codrive.ride.arrival_time,
-        arrival_date: codrive.ride.arrival_date,
-        start_location: codrive.ride.start_location,
-        end_location: codrive.ride.end_location,
-        codrives: codrive.ride.codrives,
-        state: codrive.accepted ? 'accepted' : 'not accepted yet',
-        point_cost: codrive.point_contribution
-      } as RideGetDto));
+      const rideGetDtos: RideGetDto[] = await Promise.all(
+        codrive.map(async (codrive: MyCodriveGet) => ({
+          id: codrive.ride.id,
+          driver: codrive.ride.driver,
+          type: "booked",
+          codrive_id: codrive.id,
+          departure_time: codrive.ride.departure_time,
+          departure_date: codrive.ride.departure_date,
+          arrival_time: codrive.ride.arrival_time,
+          arrival_date: codrive.ride.arrival_date,
+          start_location: codrive.ride.start_location,
+          end_location: codrive.ride.end_location,
+          codrives: codrive.ride.codrives,
+          state: checkBookedRideState(codrive.accepted, codrive.paid, codrive.ride.completed ,codrive.ride.arrival_date, codrive.ride.arrival_time),
+          completed: codrive.ride.completed,
+          point_cost: codrive.point_contribution,
+          image: await getProfileImageUrl(codrive.ride.driver.id),
+        } as RideGetDto)))
       return rideGetDtos;
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
@@ -183,6 +219,7 @@ export function useRide() {
         codrives: ride.codrives,
         requested_codrives: ride.requested_codrives,
         state: ride.requested_codrives.length === 0 ? "default" : "new request",
+        completed: ride.completed,
         point_reward: ride.codrives
           .reduce((sum: number, codrive: CodriveGetDto) => sum + codrive.point_contribution, 0)
       } as RideGetDto
@@ -190,6 +227,19 @@ export function useRide() {
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
         showToast('error', 'Fehler beim Abrufen der Fahrt.');
+      } else {
+        showDefaultError();
+      }
+      throw error
+    }
+  }
+
+  const markRideAsCompleted = async (rideId: string): Promise<void> => {
+    try {
+      await api.patch(`rides/${rideId}/complete`);
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        showToast('error', 'Fehler beim Abschließen der Fahrt.');
       } else {
         showDefaultError();
       }
@@ -217,6 +267,7 @@ export function useRide() {
     getAllRides,
     getRideById,
     deleteRide,
-    getBookedRidesForUser
+    getBookedRidesForUser,
+    markRideAsCompleted
   }
 }

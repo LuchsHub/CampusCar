@@ -10,16 +10,18 @@ import InformationItem from '@/components/InformationItem.vue';
 import { useCodrive } from '@/composables/useCodrive';
 import ConfirmDeleteModal from '@/components/ConfirmDeleteModal.vue';
 import ProfileCard from '@/components/ProfileCard.vue';
+import RatingModal from '@/components/RatingModal.vue';
 
 // Variables 
 const router = useRouter();
 const myRideStore = useMyRideStore();
 
 const { showToast } = useToaster();
-const { deleteBookedCodrive } = useCodrive();
+const { deleteBookedCodrive, payForCodrive } = useCodrive();
 
 const loading = ref<boolean>(false);
 const showDeleteModal = ref<boolean>(false);
+const showRatingModal = ref<boolean>(false);
 
 if (!myRideStore.bookedRide) {
   router.push({ name: 'myRides' }) // in case there is no ride saved in the store
@@ -50,6 +52,29 @@ const onRequestDelete = () => {
 const onCancelDelete = () => {
   showDeleteModal.value = false
 }
+
+// Payment
+const onRequestPayment = () => {
+  showRatingModal.value = true
+}
+
+const onConfirmRating = async (rating: number) => {
+  try {
+    if (!myRideStore.bookedRide?.codrive_id) throw Error('No booked ride saved in pinia.');
+    loading.value = true;
+    await payForCodrive(myRideStore.bookedRide.codrive_id, rating);
+    router.go(-1);
+  } catch (error: unknown) {
+    showToast("error", "Zu wenig Guthaben");
+    console.log(error);
+  } finally {
+    loading.value = false;
+  }
+}
+
+const onCancelRating = () => {
+  showRatingModal.value = false
+}
 </script>
 
 <template>
@@ -57,11 +82,11 @@ const onCancelDelete = () => {
     <PageTitle :goBack="true">Meine Mitfahrt</PageTitle>
     
     <h2>Fahrer</h2>
-    <ProfileCard v-if="myRideStore.ride"
-      :first_name="myRideStore.ride.driver.first_name"
-      :last_name="myRideStore.ride.driver.last_name"
-      :avg_rating="myRideStore.ride.driver.avg_rating"
-      :profile_picture="myRideStore.ride.image"
+    <ProfileCard v-if="myRideStore.bookedRide"
+      :first_name="myRideStore.bookedRide.driver.first_name"
+      :last_name="myRideStore.bookedRide.driver.last_name"
+      :avg_rating="myRideStore.bookedRide.driver.avg_rating"
+      :profile_picture="myRideStore.bookedRide.image"
     />
     
     <h2>Fahrtverlauf</h2>
@@ -81,16 +106,26 @@ const onCancelDelete = () => {
         type=pointCost
         :value=myRideStore.bookedRide?.point_cost
       />
+      <div v-if="myRideStore.bookedRide?.state === 'payment not requested yet'" class="margin-botton-l error-message-container">
+      <p class="text-danger">Du kannst die Fahrt noch nicht bezahlen, da der Fahrer die Zahlung noch nicht angefordert hat.</p>
+    </div>
     </div>
 
-    <HoverButton :buttons='[
-      {variant: "primary", color: "danger", onClick: onRequestDelete, text: "Mitfahrt absagen", loading: loading}]'
+    <HoverButton v-if="myRideStore.bookedRide?.state !== 'finished'" :buttons='[
+      myRideStore.bookedRide?.state === "payment outstanding" || myRideStore.bookedRide?.state === "payment not requested yet"
+      ? {variant: "primary", onClick: onRequestPayment, text: "Mitfahrt bezahlen", disabled: myRideStore.bookedRide?.state === "payment not requested yet", loading: loading}
+      : {variant: "primary", color: "danger", onClick: onRequestDelete, text: "Mitfahrt absagen", loading: loading}]'
     />
   </div>
   <ConfirmDeleteModal
     :open="showDeleteModal"
     @confirm="onConfirmCodriveDelete"
     @cancel="onCancelDelete"
+  />
+  <RatingModal
+    :open="showRatingModal"
+    @confirm="onConfirmRating"
+    @cancel="onCancelRating"
   />
 </template>
 

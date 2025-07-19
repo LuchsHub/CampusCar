@@ -38,7 +38,7 @@ const loadUser = async () => {
     const imageUrl = await getProfileImageUrl(authStore.userId)
     profileImage.value = imageUrl ?? ""
 
-    rating.value = user.rating ?? 0
+    rating.value = user.avg_rating ?? 0
   } catch {
     showToast('error', 'Fehler beim Laden des Profils')
   }
@@ -112,9 +112,9 @@ onMounted(() => {
     <PageTitle>Profil</PageTitle>
 
     <div class="profile-header">
-      <img :src="profileImage" class="profile-image" />
-      <h2 class="user-name">{{ firstName }} {{ lastName }}</h2>
-      <div class="rating-stars">
+      <img :src="profileImage" class="profile-image margin-botton-l" />
+      <p class="text-xl text-bold margin-botton-l">{{ firstName }} {{ lastName }}</p>
+      <div class="rating-stars margin-botton-l">
         <component
             v-for="(star, index) in getStarIcons(rating)"
             :key="index"
@@ -192,29 +192,21 @@ onMounted(() => {
 }
 
 .profile-image {
-  width: 96px;
-  height: 96px;
+  width: var(--profile-picture-md-dim);
+  height: var(--profile-picture-md-dim);
   border-radius: 9999px;
   object-fit: cover;
-  margin-bottom: 0.5rem;
-}
-
-.user-name {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--color-neutral-900);
 }
 
 .rating-stars {
   display: flex;
   gap: 0.25rem;
-  margin-top: 0.25rem;
 }
 
 .star-icon {
-  height: 28px;
-  width: 28px;
-  stroke-width: 1.5;
+  height: var(--icon-md);
+  width: var(--icon-md);
+  stroke-width: var(--line-width-m);
 }
 
 .action-list {
