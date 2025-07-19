@@ -73,7 +73,7 @@ const goToRideDetailsScreen = () => {
     <p v-else-if="props.ride.type === 'own'" class="text-s text-bold" :class="stateInfo.standardTextClass">
       + {{ props.ride.point_reward }} Punkte
     </p>
-    <p v-else-if="props.ride.type === 'booked' && props.ride.state === 'accepted'" class="text-s text-bold" :class="stateInfo.standardTextClass">
+    <p v-else-if="props.ride.type === 'booked' && ['accepted', 'payment outstanding', 'payment not requested yet', 'finished'].includes(props.ride.state)" class="text-s text-bold" :class="stateInfo.standardTextClass">
       - {{ props.ride.point_cost }} Punkte
     </p>
 

@@ -43,7 +43,7 @@ export interface CurrentUser {
   last_name: string
   email: string
   avatar_url?: string
-  rating: number
+  avg_rating: number
 }
 
 export interface CodriverDto extends Record<string, string | number> {
