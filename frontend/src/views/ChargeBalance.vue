@@ -2,15 +2,50 @@
 import Input from '@/components/Input.vue'
 import HoverButton from '@/components/HoverButton.vue';
 import PageTitle from '@/components/PageTitle.vue';
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
+import { useUser } from '@/composables/useUser';
+import type { ValidationSchema } from '@/types/Validation';
+import { smallerThan, largerThan, required, validate } from '@/services/validation';
+import { useToaster } from '@/composables/useToaster';
+import { useRouter } from 'vue-router';
 
-const loading = ref<boolean>(false)
-const charges = ref<number>(0)
+const { getUserBalance, chargeUserBalance } = useUser(); 
+const { showToast } = useToaster();
+
+const router = useRouter();
+
+const loading = ref<boolean>(false);
+const amount = ref<number | string>(0);
+const balance = ref<number>(0);
+
+const chargeBalanceValidationSchema: ValidationSchema = {
+  amount: [required('Betrag'), largerThan(0, 'Beträge zwischen 1 - 1000€ möglich.'), smallerThan(1001, 'Beträge zwischen 1 - 1000€ möglich.')]
+}
+
+const errors = ref<Record<string, string[]>>({})
+
+onMounted(async() => {
+  balance.value = await getUserBalance();
+})
 
 const onChargeBalance = async () => {
-  loading.value = true;
-  console.log('charge balance called');
-  loading.value = false;
+  errors.value = validate({'amount': amount.value} as Record<string, string>, chargeBalanceValidationSchema)
+  if (Object.keys(errors.value).length > 0) {
+    return
+  }
+
+  try {
+    loading.value = true;
+    const newBalance = await chargeUserBalance(Number(amount.value));
+    showToast('success', `Neues Guthaben: ${newBalance}€`);
+    balance.value = newBalance;
+    amount.value = 0;
+    router.go(-1);
+  } catch (error:unknown) {
+    console.log(error);
+  } finally {
+    loading.value = false;
+  }
 }
 </script>
 
@@ -18,24 +53,30 @@ const onChargeBalance = async () => {
   <div class="view-container padding-bottom-hb-1">
     <PageTitle :goBack="true">Guthaben aufladen</PageTitle>
     
-    <p class="text-md text-bold margin-botton-l">Hier kannst du dein Guthaben aufladen, um später deine Fahrten zu bezahlen.</p>
+    <h2 class="margin-botton-l margin-top-l center-text">Aktuelles Guthaben:</h2>
+    
+    <p class="text-xxl text-semibold text-primary margin-bottom-xxl center-text">{{ balance.toFixed(2) }}€</p>
+
     <div class="form-container">
       <Input 
         type="number"
-        label="Anzahl Sitzplätze (inkl. Fahrer)" 
-        v-model="carCreate.n_seats"
+        label="Aufzuladener Betrag (€)" 
+        v-model="amount"
         :min="1"
-        :max="1000"
-        :error="errors.n_seats?.[0]"
+        :max="1001"
+        :error="errors.amount?.[0]"
         />
     </div>
 
     <HoverButton :buttons='[
-      {variant: "primary", onClick: onChargeBalance, text: "Aufladen", disabled: !!charges, loading: loading}]'
+      {variant: "primary", onClick: onChargeBalance, text: "Aufladen", disabled: amount===0, loading: loading}]'
     />
   </div>
 </template>
 
 <style scoped>
-
+.center-text {
+  margin-left: auto;
+  margin-right: auto;
+}
 </style>
