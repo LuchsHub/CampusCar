@@ -9,6 +9,7 @@ import Signup_2_Car from '@/views/Auth/Signup_2_Car.vue';
 import Signup_3_DriversLicense from '@/views/Auth/Signup_3_DriversLicense.vue';
 
 import Home from '@/views/Home.vue';
+import RideRequest from '@/views/RideRequest.vue';
 
 import MyRides from '@/views/Rides/MyRides.vue';
 import MyRideDetails from '@/views/Rides/MyRideDetails.vue';
@@ -82,6 +83,13 @@ const routes: RouteRecordRaw[] = [
     path: '/home',
     name: 'home',
     component: Home,
+    beforeEnter: requireAuthentication(),
+  },
+  //Request Ride
+  {
+    path: '/home/ride-request',
+    name: 'RideRequest',
+    component: RideRequest,
     beforeEnter: requireAuthentication(),
   },
   
