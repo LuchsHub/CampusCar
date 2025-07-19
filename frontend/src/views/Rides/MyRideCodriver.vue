@@ -8,13 +8,15 @@ import HoverButton from '@/components/HoverButton.vue';
 import InformationItem from '@/components/InformationItem.vue';
 import { useCodrive } from '@/composables/useCodrive';
 import { useToaster } from '@/composables/useToaster';
-import ProfileCard from '@/components/ProfileCard.vue'
+import ProfileCard from '@/components/ProfileCard.vue';
+import { useRide } from '@/composables/useRide';
 
 // Variables 
 const router = useRouter();
 const myRideStore = useMyRideStore();
 const { acceptCodrive, rejectCodrive } = useCodrive();
-const { showToast } = useToaster()
+const { showToast } = useToaster();
+const { getRideById } = useRide();
 
 const loadingAccept = ref<boolean>(false);
 const loadingReject = ref<boolean>(false);
@@ -23,15 +25,22 @@ if (!myRideStore.ride && !myRideStore.requestedCodrive) {
   router.push({ name: 'myRides' }) // in case there is no ride or reqeusted codrive saved in the store
 }
 
-console.log(myRideStore.requestedCodrive)
-
 const onAcceptCodrive = async () => {
   loadingAccept.value = true;
   try {
-    if (!myRideStore.requestedCodrive) {
-      throw Error('No Codrive is saved in pinia.');
+
+    // check if ride or codrive exist in store
+    if (!myRideStore.requestedCodrive || !myRideStore.ride) {
+      throw Error('No Codrive or Ride is saved in pinia.');
     }
+
     await acceptCodrive(myRideStore.requestedCodrive.id);
+
+    // update ride in store
+    const updatedRide = await getRideById(myRideStore.ride.id);
+    myRideStore.setRide(updatedRide);
+
+    // success
     showToast('success', 'Mitfahrt akzeptiert.');
     router.go(-1);
   } catch (error: unknown) {

@@ -3,11 +3,9 @@ import type { CodriveCardProps } from '../types/Props'
 import { ChevronRight } from 'lucide-vue-next';
 import router from '@/router';
 import { useMyRideStore } from '@/stores/MyRideStore';
-import { useToaster } from '@/composables/useToaster';
 
 const props = defineProps<CodriveCardProps>();
 const myRideStore = useMyRideStore();
-const { showToast } = useToaster();
 
 const goToMyRideCodriverScreen = async () => {
   if (!props.codrive && !props.requested_codrive) {
@@ -15,7 +13,6 @@ const goToMyRideCodriverScreen = async () => {
   }
 
   if (!props.requested_codrive) {
-    showToast('error', 'Angefragte Mitfahrt nicht verfügbar.');
     return;
   }
 

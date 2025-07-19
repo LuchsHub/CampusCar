@@ -41,6 +41,8 @@ export const useMyRideStore = defineStore("myRide", () => {
   const requestedCodriveCardItems = computed<CodriveCardProps[]>(() => {
     if (!ride.value) { return []; }
   
+    console.log("neue codrive card items")
+    console.log(ride);
     // accepted codrives
     let accepted: CodriveCardProps[] = ride.value.codrives.map((codrive: CodriveGetDto) => ({
       codrive: codrive,
@@ -56,6 +58,7 @@ export const useMyRideStore = defineStore("myRide", () => {
     // fill the rest with empty codrives
     const empty = Array.from( {length: ride.value.n_available_seats}, () => ({} as CodriveCardProps)) // empty 
     
+
     return [...accepted, ...requested, ...empty];
   });
 
@@ -87,7 +90,6 @@ export const useMyRideStore = defineStore("myRide", () => {
   }); 
 
   function setRide(newRide: RideGetDto) {
-    console.log(newRide);
     ride.value = newRide;
   }
 
