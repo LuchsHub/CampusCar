@@ -6,7 +6,14 @@ from fastapi import APIRouter, HTTPException, status
 from sqlmodel import select
 
 from app.api.deps import CurrentUser, SessionDep
-from app.models import Bonus, BonusCreate, BonusPublic, Message, UserBonusLink, RedeemedBonusPublic
+from app.models import (
+    Bonus,
+    BonusCreate,
+    BonusPublic,
+    Message,
+    RedeemedBonusPublic,
+    UserBonusLink,
+)
 
 router = APIRouter(prefix="/boni", tags=["boni"])
 
@@ -23,13 +30,13 @@ def get_boni_by_user(
         .where(UserBonusLink.user_id == current_user.id)
     )
     results = session.exec(query).all()
-    
+
     response_data = []
     for bonus, redemption_time in results:
         bonus_data = bonus.model_dump()
         bonus_data["redemption_time"] = redemption_time
         response_data.append(RedeemedBonusPublic(**bonus_data))
-        
+
     return response_data
 
 
