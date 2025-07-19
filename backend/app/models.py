@@ -1,8 +1,9 @@
 import datetime
 import uuid
 
+from typing import Optional
 from pydantic import EmailStr
-from sqlmodel import JSON, Column, Field, Relationship, SQLModel, DateTime, func
+from sqlmodel import JSON, Column, Field, Relationship, SQLModel, DateTime, text
 
 
 class UserBonusLink(SQLModel, table=True):
@@ -12,9 +13,11 @@ class UserBonusLink(SQLModel, table=True):
     redemption_time: datetime.datetime = Field(
         sa_column=Column(
             DateTime(timezone=True), 
-            server_default=func.now(),
+            # Use text() to pass the raw SQL for setting the timezone
+            server_default=text("TIMEZONE('Europe/Berlin', now())"),
             nullable=False
-        ))
+        )
+    )
 
 
 # Shared properties
