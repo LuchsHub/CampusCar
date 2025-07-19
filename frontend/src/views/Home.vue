@@ -1,26 +1,35 @@
 <script setup lang="ts">
 import Map from '../components/Map.vue'
 import SearchBar from '../components/SearchBar.vue'
-import HoverButton from '../components/HoverButton.vue'
 import BottomSheet from '../components/BottomSheet.vue'
 import { ref, computed, onMounted } from 'vue'
 import type { RideGetDto } from '../types/Ride' // removed import for RideDto because of linting
 import { useRide } from '@/composables/useRide'
 import RideCard from '@/components/RideCard.vue'
+import type { UserGet } from '@/types/User'
+import { useUser } from '@/composables/useUser'
 
 const { getAllRides } = useRide();
+const { getUserMe } = useUser()
 const searchQuery = ref('')
 const rides = ref<RideGetDto[]>([])
 const sheetY = ref(0)
+const currentUser = ref<UserGet | null>(null)
 
 const filteredRides = computed(() =>
-  rides.value.filter((ride) =>
-    ride.end_location.city.toLowerCase().includes(searchQuery.value.toLowerCase()) // city for now, other stuff can be added
-  )
-);
+  rides.value.filter((ride) => {
+    return (
+      ride.type === 'other' &&
+      ride.driver.id !== currentUser.value?.id &&
+      ride.end_location.city.toLowerCase().includes(searchQuery.value.toLowerCase())
+    )
+  })
+)
+
 
 onMounted( async () => {
   rides.value = await getAllRides();
+  currentUser.value = await getUserMe()
 })
 </script>
 
@@ -38,7 +47,6 @@ onMounted( async () => {
           <hr v-if="index < filteredRides.length - 1" />
         </template>
       </div>
-      <HoverButton :buttons="[{ variant: 'primary', text: 'Logout', color: 'danger', onClick: () => console.log('logout') }]" />
     </BottomSheet>
   </div>
 </template>
