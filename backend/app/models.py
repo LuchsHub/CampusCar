@@ -238,6 +238,11 @@ class CodriveCreate(SQLModel):
     n_passengers: int = Field(default=1, ge=1)
 
 
+class CodriveCostPreview(SQLModel):
+    point_contribution: int
+    added_distance_meters: int
+
+
 class CodrivePay(SQLModel):
     rating: int | None = Field(
         default=None,
