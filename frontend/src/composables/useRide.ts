@@ -66,6 +66,7 @@ export function useRide() {
       const rideGetDtos: RideGetDto[] = await Promise.all(
         result.data.data.map(async (ride: RideGet) => ({
           id: ride.id,
+          driver: ride.driver,
           type: "other",
           departure_time: ride.departure_time,
           departure_date: ride.departure_date,
@@ -101,6 +102,7 @@ export function useRide() {
 
       const rideGetDtos: RideGetDto[] = result.data.data.map((ride: RideGet) => ({
         id: ride.id,
+        driver: ride.driver,
         type: "own",
         departure_time: ride.departure_time,
         departure_date: ride.departure_date,
