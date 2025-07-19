@@ -66,10 +66,18 @@ export function useCodrive() {
       }
   }
 
+  const payForCodrive = async (codriveId: string, rating: number): Promise<void> => {
+    await api.patch(
+      `codrives/${codriveId}/pay`,
+      {'rating': rating}
+    );
+  }
+
   return {
     acceptCodrive,
     rejectCodrive,
     deleteBookedCodrive,
-    previewCodriveCost
+    previewCodriveCost,
+    payForCodrive
   }
 }

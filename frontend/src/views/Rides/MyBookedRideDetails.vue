@@ -10,16 +10,18 @@ import InformationItem from '@/components/InformationItem.vue';
 import { useCodrive } from '@/composables/useCodrive';
 import ConfirmDeleteModal from '@/components/ConfirmDeleteModal.vue';
 import ProfileCard from '@/components/ProfileCard.vue';
+import RatingModal from '@/components/RatingModal.vue';
 
 // Variables 
 const router = useRouter();
 const myRideStore = useMyRideStore();
 
 const { showToast } = useToaster();
-const { deleteBookedCodrive } = useCodrive();
+const { deleteBookedCodrive, payForCodrive } = useCodrive();
 
 const loading = ref<boolean>(false);
 const showDeleteModal = ref<boolean>(false);
+const showRatingModal = ref<boolean>(false);
 
 if (!myRideStore.bookedRide) {
   router.push({ name: 'myRides' }) // in case there is no ride saved in the store
@@ -52,8 +54,26 @@ const onCancelDelete = () => {
 }
 
 // Payment
-const payForCodrive = async () => {
-  console.log('bezahlt')
+const onRequestPayment = () => {
+  showRatingModal.value = true
+}
+
+const onConfirmRating = async (rating: number) => {
+  try {
+    if (!myRideStore.bookedRide?.codrive_id) throw Error('No booked ride saved in pinia.');
+    loading.value = true;
+    await payForCodrive(myRideStore.bookedRide.codrive_id, rating);
+    router.go(-1);
+  } catch (error: unknown) {
+    showToast("error", "Zu wenig Guthaben");
+    console.log(error);
+  } finally {
+    loading.value = false;
+  }
+}
+
+const onCancelRating = () => {
+  showRatingModal.value = false
 }
 </script>
 
@@ -93,7 +113,7 @@ const payForCodrive = async () => {
 
     <HoverButton v-if="myRideStore.bookedRide?.state !== 'finished'" :buttons='[
       myRideStore.bookedRide?.state === "payment outstanding" || myRideStore.bookedRide?.state === "payment not requested yet"
-      ? {variant: "primary", onClick: payForCodrive, text: "Mitfahrt bezahlen", disabled: myRideStore.bookedRide?.state === "payment not requested yet", loading: loading}
+      ? {variant: "primary", onClick: onRequestPayment, text: "Mitfahrt bezahlen", disabled: myRideStore.bookedRide?.state === "payment not requested yet", loading: loading}
       : {variant: "primary", color: "danger", onClick: onRequestDelete, text: "Mitfahrt absagen", loading: loading}]'
     />
   </div>
@@ -101,6 +121,11 @@ const payForCodrive = async () => {
     :open="showDeleteModal"
     @confirm="onConfirmCodriveDelete"
     @cancel="onCancelDelete"
+  />
+  <RatingModal
+    :open="showRatingModal"
+    @confirm="onConfirmRating"
+    @cancel="onCancelRating"
   />
 </template>
 

@@ -355,6 +355,9 @@ a {
 .margin-botton-l {
   margin-bottom: 20px;
 }
+.margin-bottom-xl {
+  margin-bottom: 40px;
+}
 
 .v--default-css .c-toast {
   padding: var(--button-padding-vertical) var(--button-padding-horizontal);
