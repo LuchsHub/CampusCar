@@ -34,6 +34,9 @@ const goToRideDetailsScreen = () => {
   } else if (props.ride.type === 'booked' && ['accepted', 'payment outstanding'].includes(props.ride.state)) {
     myRideStore.setBookedRide(props.ride);
     router.push({ name: 'myBookedRideDetails' });
+  }else if (props.ride.type === 'other'){
+    myRideStore.setRide(props.ride);
+    router.push({ name: 'RideRequest' });
   }
 }
 </script>
