@@ -95,7 +95,6 @@ class UserPublic(UserBase):
     location: Optional["LocationPublic"]
     has_license: bool
     points: int
-    points: int
 
 
 class UsersPublic(SQLModel):
