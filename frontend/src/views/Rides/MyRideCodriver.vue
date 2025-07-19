@@ -103,6 +103,10 @@ const onRejectCodrive = async () => {
         type=pointReward
         :value=myRideStore.requestedCodrive?.point_contribution
       />
+      <InformationItem
+        type=message
+        :value=myRideStore.requestedCodrive?.message
+      />
     </div>
 
     <HoverButton :buttons='[

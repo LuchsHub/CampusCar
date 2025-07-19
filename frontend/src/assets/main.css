@@ -292,6 +292,7 @@ a {
 .icon-xl {
   height: var(--icon-xl);
   width: var(--icon-xl);
+  min-width: var(--icon-xl);
 }
 .icon-l {
   height: var(--icon-md);
@@ -300,10 +301,12 @@ a {
 .icon-s {
   height: var(--icon-s);
   width: var(--icon-s);
+  min-width: var(--icon-s);
 }
 .icon-xs {
   height: var(--icon-xs);
   width: var(--icon-xs);
+  min-width: var(--icon-xs);
 }
 
 .icon-info {
