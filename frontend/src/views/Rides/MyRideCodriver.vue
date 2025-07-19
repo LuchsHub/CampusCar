@@ -54,10 +54,18 @@ const onAcceptCodrive = async () => {
 const onRejectCodrive = async () => {
   loadingReject.value = true;
   try {
-    if (!myRideStore.requestedCodrive) {
-      throw Error('No Codrive is saved in pinia.');
+    
+    // check 
+    if (!myRideStore.requestedCodrive || !myRideStore.ride) {
+      throw Error('No Codrive or Ride is saved in pinia.');
     }
+
     await rejectCodrive(myRideStore.requestedCodrive.id);
+
+    // fetch new ride and put in store 
+    const updatedRide = await getRideById(myRideStore.ride.id);
+    myRideStore.setRide(updatedRide);
+
     showToast('success', 'Mitfahrt abgelehnt.');
     router.go(-1);
   } catch (error: unknown) {

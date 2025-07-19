@@ -70,3 +70,8 @@ export interface RouteUpdateDto extends Record<string, string | LocationGetDto> 
     arrival_time: string
 }
 
+export interface EstimatedCostsGet extends Record<string, number>{
+    point_contribution: number;
+    added_distance_meters: number;
+  }
+

@@ -6,7 +6,11 @@ const props = withDefaults(defineProps<InputProps & { error?: string }>(), {
   error: ''
 })
 
-const emit = defineEmits(['update:modelValue', 'update:error'])
+const emit = defineEmits(['update:modelValue', 'update:error', 'blur'])
+
+function onBlur(event: FocusEvent) {
+  emit('blur', event);
+}
 
 const handleInput = (event: Event) => {
   const target = event.target as HTMLInputElement
@@ -32,6 +36,7 @@ const handleInput = (event: Event) => {
         :value="props.modelValue"
         :maxlength="props.maxLength"
         @input="handleInput"
+        @blur="onBlur"
         :class="{ 'input-error': !!props.error }"
       />
       <label>{{ props.label }}</label>

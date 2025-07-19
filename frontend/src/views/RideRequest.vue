@@ -12,16 +12,19 @@ import api from '@/services/api'
 import { useToaster } from '@/composables/useToaster'
 import InformationItem from '@/components/InformationItem.vue'
 import ProfileCard from '@/components/ProfileCard.vue'
+import { useCodrive } from '@/composables/useCodrive'
 
 import type { LocationItemProps } from '@/types/Props'
 
 import type { ValidationSchema } from "@/types/Validation"
 import { validate, required, isValidPostalCode } from '@/services/validation'
+import type { LocationCreateDto } from '@/types/Location'
 
 const router = useRouter()
 const rideStore = useMyRideStore()
 const { showToast } = useToaster()
 const { getCurrentUserLocation } = useUser()
+const { previewCodriveCost } = useCodrive();
 
 const ride = computed(() => rideStore.ride)
 const driver = computed(() => rideStore.ride?.driver)
@@ -82,6 +85,7 @@ const validateSeats = () => {
 }
 
 const errors = ref<Record<string, string[]>>({})
+const loading = ref<boolean>(false);
 
 // Location
 const street = ref('')
@@ -89,6 +93,22 @@ const houseNumber = ref('')
 const postalCode = ref('')
 const city = ref('')
 const country = ref('Deutschland')
+const estimatedCost = ref(0);
+
+const calculateEstimatedCost = async () => {
+  if (street.value && houseNumber.value && postalCode.value && city.value && country.value && ride.value) {
+    const result = await previewCodriveCost(ride.value.id, {
+      'country': country.value,
+      'postal_code': postalCode.value,
+      'city': city.value,
+      'street': street.value,
+      'house_number': houseNumber.value,
+    } as LocationCreateDto)
+    estimatedCost.value = result
+  } else {
+    estimatedCost.value = 0;
+  }
+};
 
 // Validaton Schema
 const profileSchema: ValidationSchema = {
@@ -108,6 +128,7 @@ const loadLocation = async () => {
       postalCode.value = location.postal_code?.toString?.() || ''
       city.value = location.city
       country.value = location.country
+      await calculateEstimatedCost();
     }
   } catch {
     showToast('error', 'Fehler beim Laden des Profils')
@@ -155,6 +176,7 @@ const sendCodriveRequest = async () => {
   const fullMessage = message.value
 
   try {
+    loading.value = true;
     await api.post(`/codrives/${ride.value.id}`, {
       location: location,
       message: fullMessage,
@@ -164,12 +186,13 @@ const sendCodriveRequest = async () => {
     router.push('/home')
   } catch {
     showToast('error', 'Anfrage fehlgeschlagen.')
+  } finally {
+    loading.value = false;
   }
 }
 
 onMounted(async () => {
   loadLocation()
-  console.log(ride.value);
 })
 </script>
 
@@ -202,7 +225,7 @@ onMounted(async () => {
     <div class="component-list">
       <InformationItem v-if="ride?.max_request_distance"
         type=pointCost
-        :value="`max. ${ride.max_request_distance/100}`"
+        :value="estimatedCost"
       />
       <InformationItem
         type=availableSeats
@@ -213,11 +236,11 @@ onMounted(async () => {
     <div class="mitfahrt-block">
       <h2>Mitfahrt</h2>
 
-      <Input type="text" label="Land" v-model="country" />
-      <Input type="text" label="PLZ" v-model="postalCode" />
-      <Input type="text" label="Stadt" v-model="city" />
-      <Input type="text" label="Straße" v-model="street" />
-      <Input type="text" label="Hausnummer" v-model="houseNumber" />
+      <Input type="text" label="Land" v-model="country" @blur="calculateEstimatedCost"/>
+      <Input type="text" label="PLZ" v-model="postalCode" @blur="calculateEstimatedCost"/>
+      <Input type="text" label="Stadt" v-model="city" @blur="calculateEstimatedCost"/>
+      <Input type="text" label="Straße" v-model="street" @blur="calculateEstimatedCost"/>
+      <Input type="text" label="Hausnummer" v-model="houseNumber" @blur="calculateEstimatedCost"/>
 
       <Input
         type="number"
@@ -263,7 +286,8 @@ onMounted(async () => {
         {
           text: 'Mitfahrt anfragen',
           variant: 'primary',
-          onClick: sendCodriveRequest
+          onClick: sendCodriveRequest,
+          loading: loading
         }
       ]" />
     </div>
