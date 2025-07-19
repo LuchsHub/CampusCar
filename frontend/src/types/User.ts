@@ -33,6 +33,7 @@ export interface UserGet extends Record<string, string | boolean | LocationGetDt
   has_license: boolean
   avg_rating: number
   location: LocationGetDto | null
+  rating: number
 }
 
 export interface CurrentUser {

@@ -1,0 +1,415 @@
+<script setup lang="ts">
+import PageTitle from '@/components/PageTitle.vue'
+import HoverButton from '@/components/HoverButton.vue'
+import LocationItem from '@/components/LocationItem.vue'
+import Input from '@/components/Input.vue'
+import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { useMyRideStore  } from '@/stores/MyRideStore'
+import { useUser } from '@/composables/useUser'
+import { sortLocationItemPropsByTimeAsc } from '@/services/utils'
+import { Star, UserPlus, DollarSign } from 'lucide-vue-next'
+import api from '@/services/api'
+import { useToaster } from '@/composables/useToaster'
+
+import type { LocationItemProps } from '@/types/Props'
+
+import type { ValidationSchema } from "@/types/Validation"
+import { validate, required, isValidPostalCode } from '@/services/validation'
+
+const router = useRouter()
+const rideStore = useMyRideStore()
+const { showToast } = useToaster()
+const { getCurrentUserLocation } = useUser()
+
+const ride = computed(() => rideStore.ride)
+const driver = computed(() => rideStore.ride?.driver)
+
+if (!ride.value) router.push({ name: 'home' })
+
+const isRecurring = ref(false)
+const selectedDays = ref<string[]>([])
+
+const weekdays = [
+  { key: 'mo', label: 'Mo' },
+  { key: 'di', label: 'Di' },
+  { key: 'mi', label: 'Mi' },
+  { key: 'do', label: 'Do' },
+  { key: 'fr', label: 'Fr' },
+  { key: 'sa', label: 'Sa' },
+  { key: 'so', label: 'So' }
+]
+
+function toggleDay(dayKey: string) {
+  if (selectedDays.value.includes(dayKey)) {
+    selectedDays.value = selectedDays.value.filter(d => d !== dayKey)
+  } else {
+    selectedDays.value.push(dayKey)
+  }
+}
+
+const rideLocationItems = computed<LocationItemProps[]>(() => {
+  if (!ride.value) return []
+  const items: LocationItemProps[] = [
+    {
+      location: ride.value.start_location,
+      arrival_time: ride.value.departure_time,
+      arrival_date: ride.value.departure_date
+    },
+    ...ride.value.codrives.map(codrive => ({
+      location: codrive.location,
+      arrival_time: codrive.arrival_time,
+      user: codrive.user
+    })),
+    {
+      location: ride.value.end_location,
+      arrival_time: ride.value.arrival_time,
+      arrival_date: ride.value.arrival_date
+    }
+  ]
+  return sortLocationItemPropsByTimeAsc(items)
+})
+
+const getStarIcons = (value: number) => {
+  const stars = []
+  for (let i = 1; i <= 5; i++) {
+    if (value >= i) stars.push({ type: 'full' })
+    else if (value >= i - 0.5) stars.push({ type: 'half' })
+    else stars.push({ type: 'empty' })
+  }
+  return stars
+}
+
+// Mitfahrtanfrage
+const message = ref('')
+const seats = ref<number>(0)
+
+const validateSeats = () => {
+  const maxSeats = ride.value?.n_available_seats ?? 1
+  if (seats.value < 1) seats.value = 1
+  if (seats.value > maxSeats) seats.value = maxSeats
+}
+
+const errors = ref<Record<string, string[]>>({})
+
+// Location
+const street = ref('')
+const houseNumber = ref('')
+const postalCode = ref('')
+const city = ref('')
+const country = ref('Deutschland')
+
+// Validaton Schema
+const profileSchema: ValidationSchema = {
+  country: [required('Land')],
+  street: [required('Straße')],
+  houseNumber: [required('Hausnummer')],
+  city: [required('Stadt')],
+  postalCode: [required('PLZ'), isValidPostalCode()],
+}
+
+const loadLocation = async () => {
+  try {
+    const location = await getCurrentUserLocation()
+    if (location) {
+      street.value = location.street
+      houseNumber.value = location.house_number
+      postalCode.value = location.postal_code?.toString?.() || ''
+      city.value = location.city
+      country.value = location.country
+    }
+  } catch {
+    showToast('error', 'Fehler beim Laden des Profils')
+  }
+}
+
+const sendCodriveRequest = async () => {
+  if (!ride.value) return
+
+  const values = {
+    country: country.value,
+    street: street.value,
+    houseNumber: houseNumber.value,
+    city: city.value,
+    postalCode: postalCode.value,
+  }
+
+  const result = validate(values, profileSchema)
+
+  if (Object.keys(result).length > 0) {
+    errors.value = result
+    showToast('error', 'Bitte überprüfe deine Eingaben.')
+    return
+  }
+
+  const location = {
+    street: street.value,
+    house_number: houseNumber.value,
+    postal_code: postalCode.value.toString(),
+    city: city.value,
+    country: country.value
+  }
+
+  if (!location) {
+    showToast('error', 'Kein Standort im Profil gefunden.')
+    return
+  }
+
+  const maxSeats = ride.value.n_available_seats
+  if (!seats.value || seats.value < 1 || seats.value > maxSeats) {
+    showToast('error', `Bitte eine gültige Platzanzahl angeben (1–${maxSeats}).`)
+    return
+  }
+
+  const fullMessage = message.value
+
+  try {
+    await api.post(`/codrives/${ride.value.id}`, {
+      location: location,
+      message: fullMessage,
+      n_passengers: seats.value
+    })
+    showToast('success', 'Anfrage erfolgreich gesendet.')
+    router.push('/home')
+  } catch {
+    showToast('error', 'Anfrage fehlgeschlagen.')
+  }
+}
+
+onMounted(async () => {
+  loadLocation()
+  console.log(driver.value)
+})
+</script>
+
+<template>
+  <div class="view-container">
+    <PageTitle :goBack="true">{{ 'Mitfahrt anbieten' }}</PageTitle>
+
+    <!-- Fahrerinfo -->
+    <div class="driver-card">
+      <img :src="ride?.image" alt="Profilbild" class="profile-img" />
+      <div class="driver-details">
+        <p v-if="driver">{{ driver.first_name }} {{ driver.last_name }}</p>
+        <div class="rating-stars">
+          <component
+            v-for="(star, index) in getStarIcons(driver?.rating ?? 0)"
+            :key="index"
+            :is="Star"
+            class="star-icon"
+            :style="{
+              fill: star.type === 'full' ? 'black' : star.type === 'half' ? 'url(#half)' : 'none',
+              stroke: 'black'
+            }"
+          />
+          <svg width="0" height="0">
+            <defs>
+              <linearGradient id="half" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="50%" stop-color="black" />
+                <stop offset="50%" stop-color="white" stop-opacity="1" />
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <h2>Fahrtverlauf</h2>
+    <div class="component-list">
+      <LocationItem
+        v-for="item in rideLocationItems"
+        :key="item.arrival_time + item.location.city"
+        :location="item.location"
+        :arrival_time="item.arrival_time"
+        :arrival_date="item.arrival_date"
+        :user="item.user"
+      />
+    </div>
+
+    <h2>Informationen</h2>
+    <div class="ride-info">
+      <div class="info-row">
+        <UserPlus class="info-icon" />
+        <div class="info-text">
+          <small class="info-label">Freie Plätze</small>
+          <strong>{{ ride?.n_available_seats }}</strong>
+        </div>
+      </div>
+      <div class="info-row">
+        <DollarSign class="info-icon" />
+        <div class="info-text">
+          <small class="info-label">Kosten</small>
+          <strong>{{ ride?.point_cost }} Punkte</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="mitfahrt-block">
+      <h2>Mitfahrt</h2>
+
+      <Input type="text" label="Land" v-model="country" />
+      <Input type="text" label="PLZ" v-model="postalCode" />
+      <Input type="text" label="Stadt" v-model="city" />
+      <Input type="text" label="Straße" v-model="street" />
+      <Input type="text" label="Hausnummer" v-model="houseNumber" />
+
+      <Input
+        type="number"
+        label="Anzahl Plätze"
+        v-model.number="seats"
+        :max="ride?.n_available_seats"
+        min="1"
+        required
+        placeholder="Plätze anfragen"
+        @input="validateSeats"
+        @change="validateSeats"
+      />
+
+      <Input
+        type="text"
+        label="Nachricht (optional)"
+        v-model="message"
+        placeholder="Schreib dem Fahrer z.B. wo du zusteigst oder warum du mitfahren möchtest..."
+      />
+
+      <!-- Wiederholte Mitfahrt Checkbox -->
+      <div class="repeat-block">
+        <label class="repeat-checkbox">
+          <input type="checkbox" v-model="isRecurring" />
+          <span>Wiederholte Mitfahrt</span>
+          <span class="info-icon" title="Diese Fahrt wird regelmäßig angeboten"/>
+        </label>
+
+        <div v-if="isRecurring" class="weekday-toggle">
+          <div
+            v-for="day in weekdays"
+            :key="day.key"
+            class="weekday"
+            :class="{ active: selectedDays.includes(day.key) }"
+            @click="toggleDay(day.key)"
+          >
+            <span>{{ day.label }}</span>
+          </div>
+        </div>
+      </div>
+
+      <HoverButton :buttons="[
+        {
+          text: 'Mitfahrt anfragen',
+          variant: 'primary',
+          onClick: sendCodriveRequest
+        }
+      ]" />
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.view-container {
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 2rem;
+  box-sizing: border-box;
+}
+.component-list,
+.ride-info,
+.mitfahrt-block {
+  width: 100%;
+}
+.driver-card {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin: 0 auto;
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  background-color: #f7f5fb;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  max-width: 600px;
+  width: 100%;
+}
+.profile-img {
+  width: 56px;
+  height: 56px;
+  border-radius: 9999px;
+  object-fit: cover;
+}
+.driver-details {
+  display: flex;
+  flex-direction: column;
+}
+.name {
+  font-size: 1.1rem;
+}
+.rating-stars {
+  display: flex;
+  gap: 0.25rem;
+  margin-top: 0.25rem;
+}
+.ride-info {
+  margin-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.info-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.info-icon {
+  width: 24px;
+  height: 24px;
+  color: #1c1120;
+}
+.info-text {
+  display: flex;
+  flex-direction: column;
+}
+.info-label {
+  font-size: 0.75rem;
+  color: var(--color-neutral-500);
+}
+.mitfahrt-block {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+.mitfahrt-block::after {
+  content: '';
+  display: block;
+  height: 6rem;
+}
+.repeat-block {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+.repeat-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: bold;
+}
+.weekday-toggle {
+  display: flex;
+  gap: 0.5rem;
+}
+.weekday {
+  padding: 0.5rem 0.75rem;
+  border-radius: 12px;
+  background: #f0edf4;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.2s;
+  user-select: none;
+}
+.weekday.active {
+  background: #1c1120;
+  color: white;
+}
+</style>
