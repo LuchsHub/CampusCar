@@ -10,7 +10,7 @@ class UserBonusLink(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     user_id: uuid.UUID = Field(foreign_key="user.id")
     bonus_id: uuid.UUID = Field(foreign_key="bonus.id")
-    redemption_time: datetime.datetime = Field(default=datetime.datetime.now(),)
+    redemption_time: datetime.datetime = Field(default=datetime.datetime.now())
 
 
 # Shared properties
@@ -166,6 +166,13 @@ class BonusPublic(SQLModel):
     id: uuid.UUID
     name: str | None
     cost: int | None
+
+
+class RedeemedBonusPublic(SQLModel):
+    id: uuid.UUID
+    name: str | None
+    cost: int | None
+    redemption_time: datetime.datetime | None
 
 
 class Location(SQLModel, table=True):
