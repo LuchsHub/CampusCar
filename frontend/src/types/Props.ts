@@ -55,8 +55,8 @@ export interface LocationItemProps {
 }
 
 export interface CodriveCardProps { 
-  state: "accepted" | "requested" | "empty"
-  codrive?: RequestedCodriveGetDto | CodriveGetDto
+  codrive?: CodriveGetDto
+  requested_codrive?: RequestedCodriveGetDto
   seat_no?: number
 }
 
