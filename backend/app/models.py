@@ -100,6 +100,7 @@ class UserPublic(UserBase):
     location: Optional["LocationPublic"]
     has_license: bool
     points: int
+    cash: float
     avg_rating: float
     n_ratings: int
 
