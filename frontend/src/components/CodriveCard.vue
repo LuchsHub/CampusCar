@@ -9,7 +9,7 @@ const props = defineProps<CodriveCardProps>();
 const myRideStore = useMyRideStore();
 const { showToast } = useToaster();
 
-const goToMyRideCodriverScreen = () => {
+const goToMyRideCodriverScreen = async () => {
   if (!props.codrive && !props.requested_codrive) {
     return;
   }
@@ -19,7 +19,7 @@ const goToMyRideCodriverScreen = () => {
     return;
   }
 
-  myRideStore.setRequestedCodrive(props.requested_codrive);
+  await myRideStore.setRequestedCodrive(props.requested_codrive);
   router.push({ name: 'myRideCodriver' });
 }
 </script>

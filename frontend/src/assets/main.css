@@ -50,6 +50,7 @@
   --font-weight-semibold: 500;
   --font-weight-bold: 600;
 
+  --font-size-xl: 26px;
   --font-size-l: 20px;
   --font-size-md: 18px;
   --font-size-s: 16px;
@@ -229,6 +230,9 @@ a {
 }
 
 /* Text font sizes */
+.text-xl {
+  font-size: var(--font-size-xl)
+}
 .text-l {
   font-size: var(--font-size-l)
 }
@@ -337,11 +341,11 @@ a {
 }
 
 /* BOTTOM */
-.margin-botton-s {
+.margin-bottom-s {
   margin-bottom: 5px;
 }
 
-.margin-botton-md {
+.margin-bottom-md {
   margin-bottom: 10px;
 }
 

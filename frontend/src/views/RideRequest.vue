@@ -8,10 +8,10 @@ import { useRouter } from 'vue-router'
 import { useMyRideStore  } from '@/stores/MyRideStore'
 import { useUser } from '@/composables/useUser'
 import { sortLocationItemPropsByTimeAsc } from '@/services/utils'
-import { Star, UserPlus, DollarSign } from 'lucide-vue-next'
 import api from '@/services/api'
 import { useToaster } from '@/composables/useToaster'
 import InformationItem from '@/components/InformationItem.vue'
+import ProfileCard from '@/components/ProfileCard.vue'
 
 import type { LocationItemProps } from '@/types/Props'
 
@@ -70,16 +70,6 @@ const rideLocationItems = computed<LocationItemProps[]>(() => {
   ]
   return sortLocationItemPropsByTimeAsc(items)
 })
-
-const getStarIcons = (value: number) => {
-  const stars = []
-  for (let i = 1; i <= 5; i++) {
-    if (value >= i) stars.push({ type: 'full' })
-    else if (value >= i - 0.5) stars.push({ type: 'half' })
-    else stars.push({ type: 'empty' })
-  }
-  return stars
-}
 
 // Mitfahrtanfrage
 const message = ref('')
@@ -185,35 +175,15 @@ onMounted(async () => {
 
 <template>
   <div class="view-container">
-    <PageTitle :goBack="true">{{ 'Mitfahrt anbieten' }}</PageTitle>
+    <PageTitle :goBack="true">{{ 'Mitfahrt anfragen' }}</PageTitle>
 
     <!-- Fahrerinfo -->
-    <div class="driver-card">
-      <img :src="ride?.image" alt="Profilbild" class="profile-img" />
-      <div class="driver-details">
-        <p v-if="driver">{{ driver.first_name }} {{ driver.last_name }}</p>
-        <div class="rating-stars">
-          <component
-            v-for="(star, index) in getStarIcons(driver?.rating ?? 0)"
-            :key="index"
-            :is="Star"
-            class="star-icon"
-            :style="{
-              fill: star.type === 'full' ? 'black' : star.type === 'half' ? 'url(#half)' : 'none',
-              stroke: 'black'
-            }"
-          />
-          <svg width="0" height="0">
-            <defs>
-              <linearGradient id="half" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="50%" stop-color="black" />
-                <stop offset="50%" stop-color="white" stop-opacity="1" />
-              </linearGradient>
-            </defs>
-          </svg>
-        </div>
-      </div>
-    </div>
+    <ProfileCard v-if="driver && ride"
+      :first_name="driver.first_name"
+      :last_name="driver.last_name"
+      :avg_rating="driver.rating"
+      :profile_picture="ride.image"
+    />
 
     <h2>Fahrtverlauf</h2>
     <div class="component-list">
@@ -300,40 +270,12 @@ onMounted(async () => {
 </template>
 
 <style scoped>
+.view-container h2:first-of-type {
+  margin-top: 0;
+}
 .ride-info,
 .mitfahrt-block {
   width: 100%;
-}
-.driver-card {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  margin: 0 auto;
-  padding: 1rem 1.5rem;
-  border-radius: 12px;
-  background-color: #f7f5fb;
-  gap: 1rem;
-  margin-bottom: 2rem;
-  max-width: 600px;
-  width: 100%;
-}
-.profile-img {
-  width: 56px;
-  height: 56px;
-  border-radius: 9999px;
-  object-fit: cover;
-}
-.driver-details {
-  display: flex;
-  flex-direction: column;
-}
-.name {
-  font-size: 1.1rem;
-}
-.rating-stars {
-  display: flex;
-  gap: 0.25rem;
-  margin-top: 0.25rem;
 }
 .ride-info {
   margin-top: 1.5rem;

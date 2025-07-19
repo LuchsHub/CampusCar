@@ -64,3 +64,10 @@ export interface InformationItemProps {
   type: "availableSeats" | "bookedSeats" | "pointReward" | "pointCost"
   value: string | number | undefined
 }
+
+export interface ProfileCardProps {
+  profile_picture: string | undefined
+  first_name: string
+  last_name: string
+  avg_rating: number
+}

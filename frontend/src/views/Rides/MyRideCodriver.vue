@@ -8,6 +8,7 @@ import HoverButton from '@/components/HoverButton.vue';
 import InformationItem from '@/components/InformationItem.vue';
 import { useCodrive } from '@/composables/useCodrive';
 import { useToaster } from '@/composables/useToaster';
+import ProfileCard from '@/components/ProfileCard.vue'
 
 // Variables 
 const router = useRouter();
@@ -21,6 +22,8 @@ const loadingReject = ref<boolean>(false);
 if (!myRideStore.ride && !myRideStore.requestedCodrive) {
   router.push({ name: 'myRides' }) // in case there is no ride or reqeusted codrive saved in the store
 }
+
+console.log(myRideStore.requestedCodrive)
 
 const onAcceptCodrive = async () => {
   loadingAccept.value = true;
@@ -59,7 +62,14 @@ const onRejectCodrive = async () => {
 
 <template>
   <div class="view-container padding-bottom-hb-2">
-    <PageTitle :goBack="true">Mitfahrt</PageTitle>
+    <PageTitle :goBack="true">Angefragte Mitfahrt</PageTitle>
+
+    <ProfileCard v-if="myRideStore.requestedCodrive"
+      :first_name="myRideStore.requestedCodrive.first_name"
+      :last_name="myRideStore.requestedCodrive.last_name"
+      :avg_rating="myRideStore.requestedCodrive.avg_rating"
+      :profile_picture="myRideStore.requestedCodrive.image"
+    />
     
     <h2>Neuer Fahrtverlauf</h2>
     <div class="component-list">

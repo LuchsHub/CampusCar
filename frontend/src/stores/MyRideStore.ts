@@ -5,8 +5,10 @@ import { sortLocationItemPropsByTimeAsc, sortCodriveCardPropsByTimeAsc } from "@
 import type { RideGetDto } from "@/types/Ride";
 import type { RequestedCodriveGetDto, RouteUpdateDto, CodriverArrivalTimeGet, RequestedCodriveDto, CodriveGetDto } from "@/types/Codrive";
 import type { LocationItemProps, CodriveCardProps } from "@/types/Props";
+import { useUser } from "@/composables/useUser";
 
 export const useMyRideStore = defineStore("myRide", () => {
+  const { getProfileImageUrl } = useUser();
   const ride = ref<RideGetDto | null>();
 
   // for displaying ride locations in "Meine Fahrt" screen
@@ -85,6 +87,7 @@ export const useMyRideStore = defineStore("myRide", () => {
   }); 
 
   function setRide(newRide: RideGetDto) {
+    console.log(newRide);
     ride.value = newRide;
   }
 
@@ -92,11 +95,13 @@ export const useMyRideStore = defineStore("myRide", () => {
     ride.value = null;
   }
   
-  function setRequestedCodrive(codrive: RequestedCodriveGetDto) {
+  async function setRequestedCodrive(codrive: RequestedCodriveGetDto) {
     requestedCodrive.value = {
       id: codrive.id,
       first_name: codrive.user.first_name,
       last_name: codrive.user.last_name,
+      avg_rating: codrive.user.avg_rating,
+      image: await getProfileImageUrl(codrive.user.id),
       route_update: codrive.route_update.codriver_arrival_times.map((arrival: CodriverArrivalTimeGet) => ({
         location: arrival.location,
         passenger_first_name: arrival.user.first_name,
@@ -108,7 +113,7 @@ export const useMyRideStore = defineStore("myRide", () => {
       new_departure_time: codrive.route_update.updated_ride_departure_time,
       point_contribution: codrive.point_contribution,
       n_passengers: codrive.n_passengers,
-      message: codrive.message
+      message: codrive.message,
     } as RequestedCodriveDto
   }
 
