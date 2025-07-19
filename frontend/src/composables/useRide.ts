@@ -78,6 +78,7 @@ export function useRide() {
           n_available_seats: ride.max_n_codrives - ride.n_codrives,
           codrives: ride.codrives,
           requested_codrives: ride.requested_codrives,
+          max_request_distance: ride.max_request_distance,
           state: "default",
           image: await getProfileImageUrl(ride.driver.id),
       } as RideGetDto)))

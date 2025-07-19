@@ -11,6 +11,7 @@ import { sortLocationItemPropsByTimeAsc } from '@/services/utils'
 import { Star, UserPlus, DollarSign } from 'lucide-vue-next'
 import api from '@/services/api'
 import { useToaster } from '@/composables/useToaster'
+import InformationItem from '@/components/InformationItem.vue'
 
 import type { LocationItemProps } from '@/types/Props'
 
@@ -178,7 +179,7 @@ const sendCodriveRequest = async () => {
 
 onMounted(async () => {
   loadLocation()
-  console.log(driver.value)
+  console.log(ride.value);
 })
 </script>
 
@@ -227,21 +228,15 @@ onMounted(async () => {
     </div>
 
     <h2>Informationen</h2>
-    <div class="ride-info">
-      <div class="info-row">
-        <UserPlus class="info-icon" />
-        <div class="info-text">
-          <small class="info-label">Freie Plätze</small>
-          <strong>{{ ride?.n_available_seats }}</strong>
-        </div>
-      </div>
-      <div class="info-row">
-        <DollarSign class="info-icon" />
-        <div class="info-text">
-          <small class="info-label">Kosten</small>
-          <strong>{{ ride?.point_cost }} Punkte</strong>
-        </div>
-      </div>
+    <div class="component-list">
+      <InformationItem v-if="ride?.max_request_distance"
+        type=pointCost
+        :value="`max. ${ride.max_request_distance/100}`"
+      />
+      <InformationItem
+        type=availableSeats
+        :value=ride?.n_available_seats
+      />
     </div>
 
     <div class="mitfahrt-block">
@@ -305,14 +300,6 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-.view-container {
-  max-width: 1200px;
-  width: 100%;
-  margin: 0 auto;
-  padding: 2rem;
-  box-sizing: border-box;
-}
-.component-list,
 .ride-info,
 .mitfahrt-block {
   width: 100%;
