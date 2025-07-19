@@ -7,11 +7,12 @@ from sqlmodel import JSON, Column, Field, Relationship, SQLModel
 
 
 class UserBonusLink(SQLModel, table=True):
-    team_id: uuid.UUID | None = Field(
-        default=None, foreign_key="user.id", primary_key=True
-    )
-    hero_id: uuid.UUID | None = Field(
-        default=None, foreign_key="bonus.id", primary_key=True
+    id: int | None = Field(default=None, primary_key=True)
+    user_id: uuid.UUID = Field(foreign_key="user.id")
+    bonus_id: uuid.UUID = Field(foreign_key="bonus.id")
+    redemption_time: datetime.datetime = Field(
+        default_factory=datetime.datetime.now(), 
+        nullable=False
     )
 
 
