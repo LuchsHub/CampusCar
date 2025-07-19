@@ -1,16 +1,20 @@
 import datetime
 import uuid
-from typing import Optional
 
 from pydantic import EmailStr
-from sqlmodel import JSON, Column, Field, Relationship, SQLModel
+from sqlmodel import JSON, Column, Field, Relationship, SQLModel, DateTime, func
 
 
 class UserBonusLink(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     user_id: uuid.UUID = Field(foreign_key="user.id")
     bonus_id: uuid.UUID = Field(foreign_key="bonus.id")
-    redemption_time: datetime.datetime = Field(default=datetime.datetime.now())
+    redemption_time: datetime.datetime = Field(
+        sa_column=Column(
+            DateTime(timezone=True), 
+            server_default=func.now(),
+            nullable=False
+        ))
 
 
 # Shared properties
