@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import PageTitle from '@/components/PageTitle.vue';
 import HoverButton from '@/components/HoverButton.vue';
-import { computed, ref } from 'vue';
+import { ref } from 'vue';
 import { useMyRideStore } from '@/stores/MyRideStore';
 import { useRouter } from 'vue-router';
 import LocationItem from '@/components/LocationItem.vue';
@@ -10,7 +10,6 @@ import ConfirmDeleteModal from '@/components/ConfirmDeleteModal.vue';
 import { useToaster } from '@/composables/useToaster';
 import { useRide } from '@/composables/useRide';
 import InformationItem from '@/components/InformationItem.vue';
-import { checkIfRideIsOver } from '@/services/utils';
 
 // Variables 
 const router = useRouter();
@@ -18,15 +17,6 @@ const myRideStore = useMyRideStore();
 
 const { showToast } = useToaster();
 const { deleteRide, markRideAsCompleted } = useRide();
-
-// check if ride is over based on time
-const rideIsOver = computed(() => {
-  if (!myRideStore.ride) return 
-  return checkIfRideIsOver(myRideStore.ride.arrival_date, myRideStore.ride.arrival_time);
-});
-const pamentIsRequestable = computed(() => {
-  return rideIsOver.value && !myRideStore.ride?.completed
-})
 
 const showDeleteModal = ref<boolean>(false);
 const loading = ref<boolean>(false);

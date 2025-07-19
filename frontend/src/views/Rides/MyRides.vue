@@ -52,7 +52,6 @@ const pastRides = computed<RideGetDto[]>(() =>
         <template v-for="(ride, index) in upcomingRides" :key="ride.id">
           <RideCard 
             :ride="ride"
-            :is-finished="false"
           />
           <hr v-if="index < upcomingRides.length - 1" />
         </template>
@@ -62,7 +61,6 @@ const pastRides = computed<RideGetDto[]>(() =>
         <template v-for="(ride, index) in pastRides" :key="ride.id">
           <RideCard
             :ride="ride"
-            :is-finished="true"
           />
           <hr v-if="index < pastRides.length - 1" />
         </template>

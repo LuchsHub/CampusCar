@@ -18,6 +18,8 @@ const stateInfo = computed(() => {
       return { message: 'Noch nicht akzeptiert', infoTextClass: 'text-warning' , standardTextClass: 'text-neutral-400'}
     case 'accepted':
       return { message: 'Angenommen', infoTextClass: 'text-success', standardTextClass: 'text-neutral-900'}
+    case 'payment not requested yet':
+      return { message: 'Zahlung noch nicht angefordert', infoTextClass: 'text-warning', standardTextClass: 'text-neutral-400'}
     case 'payment outstanding':
       return { message: 'Zahlung ausstehend', infoTextClass: 'text-danger', standardTextClass: 'text-neutral-400'}
     case 'request payment':
@@ -28,7 +30,6 @@ const stateInfo = computed(() => {
       return { message: '', infoTextClass: '', standardTextClass: 'text-neutral-400'}
     default:
       return { message: '', infoTextClass: ''}
-
   }
 })
 
@@ -36,7 +37,7 @@ const goToRideDetailsScreen = () => {
   if (props.ride.type === 'own') {
     myRideStore.setRide(props.ride);
     router.push({ name: 'myRideDetails' });
-  } else if (props.ride.type === 'booked' && ['accepted', 'payment outstanding'].includes(props.ride.state)) {
+  } else if (props.ride.type === 'booked' && ['accepted', 'payment outstanding', 'payment not requested yet'].includes(props.ride.state)) {
     myRideStore.setBookedRide(props.ride);
     router.push({ name: 'myBookedRideDetails' });
   }else if (props.ride.type === 'other'){

@@ -40,7 +40,6 @@ export interface TabSwitcherProps {
 
 export interface RideCardProps {
   ride: RideGetDto
-  isFinished: boolean
 }
 
 export interface LocationItemProps {

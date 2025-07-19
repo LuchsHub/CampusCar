@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import PageTitle from '@/components/PageTitle.vue';
 import HoverButton from '@/components/HoverButton.vue';
-import { ref, computed } from 'vue';
+import { ref } from 'vue';
 import { useMyRideStore } from '@/stores/MyRideStore';
 import { useRouter } from 'vue-router';
 import LocationItem from '@/components/LocationItem.vue';
@@ -10,7 +10,6 @@ import InformationItem from '@/components/InformationItem.vue';
 import { useCodrive } from '@/composables/useCodrive';
 import ConfirmDeleteModal from '@/components/ConfirmDeleteModal.vue';
 import ProfileCard from '@/components/ProfileCard.vue';
-import { checkIfRideIsOver } from '@/services/utils';
 
 // Variables 
 const router = useRouter();
@@ -21,13 +20,6 @@ const { deleteBookedCodrive } = useCodrive();
 
 const loading = ref<boolean>(false);
 const showDeleteModal = ref<boolean>(false);
-const paymentOutstanding = computed(() => {
-  return rideIsOver.value && myRideStore.bookedRide?.completed
-})
-const rideIsOver = computed(() => {
-  if (!myRideStore.bookedRide) return 
-  return checkIfRideIsOver(myRideStore.bookedRide.arrival_date, myRideStore.bookedRide.arrival_time);
-});
 
 if (!myRideStore.bookedRide) {
   router.push({ name: 'myRides' }) // in case there is no ride saved in the store
@@ -94,14 +86,14 @@ const payForCodrive = async () => {
         type=pointCost
         :value=myRideStore.bookedRide?.point_cost
       />
-      <div v-if="rideIsOver && !paymentOutstanding" class="margin-botton-l error-message-container">
+      <div v-if="myRideStore.bookedRide?.state === 'payment not requested yet'" class="margin-botton-l error-message-container">
       <p class="text-danger">Du kannst die Fahrt noch nicht bezahlen, da der Fahrer die Zahlung noch nicht angefordert hat.</p>
     </div>
     </div>
 
-    <HoverButton v-if="myRideStore.bookedRide" :buttons='[
-      rideIsOver 
-      ? {variant: "primary", onClick: payForCodrive, text: "Mitfahrt bezahlen", disabled: !paymentOutstanding, loading: loading}
+    <HoverButton v-if="myRideStore.bookedRide?.state !== 'finished'" :buttons='[
+      myRideStore.bookedRide?.state === "payment outstanding" || myRideStore.bookedRide?.state === "payment not requested yet"
+      ? {variant: "primary", onClick: payForCodrive, text: "Mitfahrt bezahlen", disabled: myRideStore.bookedRide?.state === "payment not requested yet", loading: loading}
       : {variant: "primary", color: "danger", onClick: onRequestDelete, text: "Mitfahrt absagen", loading: loading}]'
     />
   </div>

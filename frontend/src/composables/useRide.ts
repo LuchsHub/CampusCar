@@ -6,7 +6,6 @@ import { useToaster } from '@/composables/useToaster';
 import type { LocationCreateDto } from '../types/Location';
 import type { CodriveGetDto, MyCodriveGet, RequestedCodriveGetDto } from '@/types/Codrive';
 import { useUser } from './useUser';
-import { checkIfRideIsOver } from '@/services/utils';
 
 export function useRide() {
   
@@ -23,12 +22,20 @@ export function useRide() {
     })
   }
 
-  const checkBookedRideState = (accepted: boolean, paid: boolean, arrivalDate: string, arrivalTime: string): RideState => {
+  const checkIfRideIsOver = ( arrival_date: string, arrival_time: string) => {
+    const dateTimeString = `${arrival_date}T${arrival_time}`;
+    const rideEndDate = new Date(dateTimeString);
+    return rideEndDate < new Date();
+}
+
+  const checkBookedRideState = (accepted: boolean, paid: boolean, completed: boolean, arrivalDate: string, arrivalTime: string): RideState => {
     if (!accepted) {
       return "not accepted yet";
     } else if (!checkIfRideIsOver(arrivalDate, arrivalTime)) {
       return "accepted";
-    } else if (!paid) {
+    } else if (!paid && !completed) {
+      return "payment not requested yet";
+    } else if (!paid && completed) {
       return "payment outstanding";
     } else {
       return "finished";
@@ -177,7 +184,7 @@ export function useRide() {
           start_location: codrive.ride.start_location,
           end_location: codrive.ride.end_location,
           codrives: codrive.ride.codrives,
-          state: checkBookedRideState(codrive.accepted, codrive.paid, codrive.ride.arrival_date, codrive.ride.arrival_time),
+          state: checkBookedRideState(codrive.accepted, codrive.paid, codrive.ride.completed ,codrive.ride.arrival_date, codrive.ride.arrival_time),
           completed: codrive.ride.completed,
           point_cost: codrive.point_contribution,
           image: await getProfileImageUrl(codrive.ride.driver.id),
