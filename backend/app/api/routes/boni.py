@@ -15,15 +15,15 @@ from app.models import (
     UserBonusLink,
 )
 
-router = APIRouter(prefix="/boni", tags=["boni"])
+router = APIRouter(prefix="/bonuses", tags=["bonuses"])
 
 
-@router.get("/get-my-boni", response_model=list[Any])
-def get_boni_by_user(
+@router.get("/me", response_model=list[Any])
+def get_my_bonuses(
     session: SessionDep,
     current_user: CurrentUser,
 ) -> Sequence[Any]:
-    """Get boni for current user."""
+    """Get bonuses for current user."""
     query = (
         select(Bonus, UserBonusLink.redemption_time)
         .join_from(Bonus, UserBonusLink)
@@ -40,23 +40,21 @@ def get_boni_by_user(
     return response_data
 
 
-@router.get("/get-all-boni", response_model=list[BonusPublic])
-def get_boni(
+@router.get("/", response_model=list[BonusPublic])
+def get_bonuses(
     session: SessionDep,
 ) -> Sequence[Any]:
-    """Get all boni."""
-    boni = session.exec(select(Bonus)).all()
-    return boni
+    """Get all bonuses."""
+    bonuses = session.exec(select(Bonus)).all()
+    return bonuses
 
 
-@router.post(
-    "/add-new-boni/", response_model=BonusPublic, status_code=status.HTTP_201_CREATED
-)
-def create_boni(
+@router.post("/", response_model=BonusPublic, status_code=status.HTTP_201_CREATED)
+def create_bonus(
     bonus_in: BonusCreate,
     session: SessionDep,
 ) -> Any:
-    """Create a new boni."""
+    """Create a new bonus."""
     bonus = Bonus.model_validate(bonus_in)
 
     session.add(bonus)
@@ -66,27 +64,27 @@ def create_boni(
 
 
 @router.post("/redeem/{bonus_id}", response_model=list[BonusPublic])
-def add_boni_to_current_user(
+def add_bonus_to_current_user(
     bonus_id: uuid.UUID,
     session: SessionDep,
     current_user: CurrentUser,
 ) -> Sequence[Any]:
-    """Assigns bonus for current user."""
+    """Redeem bonus for current user."""
     bonus: Bonus | None = session.get(Bonus, bonus_id)
     if not current_user:
         raise HTTPException(status_code=404, detail="User not found")
     elif not bonus:
         raise HTTPException(status_code=404, detail="Bonus not found")
     elif current_user.points < bonus.cost:
-        raise HTTPException(status_code=401, detail="User has too little money")
+        raise HTTPException(status_code=403, detail="User has too little points")
     else:
         current_user.points = current_user.points - bonus.cost
-        current_user.boni.append(bonus)
+        current_user.bonuses.append(bonus)
 
         session.add(current_user)
         session.commit()
         session.refresh(current_user)
-    return current_user.boni
+    return current_user.bonuses
 
 
 @router.delete("/{bonus_id}", response_model=Message)
