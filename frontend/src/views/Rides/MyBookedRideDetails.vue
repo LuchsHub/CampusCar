@@ -9,6 +9,7 @@ import { useToaster } from '@/composables/useToaster';
 import InformationItem from '@/components/InformationItem.vue';
 import { useCodrive } from '@/composables/useCodrive';
 import ConfirmDeleteModal from '@/components/ConfirmDeleteModal.vue';
+import ProfileCard from '@/components/ProfileCard.vue';
 
 // Variables 
 const router = useRouter();
@@ -54,6 +55,14 @@ const onCancelDelete = () => {
 <template>
   <div class="view-container padding-bottom-hb-1">
     <PageTitle :goBack="true">Meine Mitfahrt</PageTitle>
+    
+    <h2>Fahrer</h2>
+    <ProfileCard v-if="myRideStore.ride"
+      :first_name="myRideStore.ride.driver.first_name"
+      :last_name="myRideStore.ride.driver.last_name"
+      :avg_rating="myRideStore.ride.driver.avg_rating"
+      :profile_picture="myRideStore.ride.image"
+    />
     
     <h2>Fahrtverlauf</h2>
     <div class="component-list">

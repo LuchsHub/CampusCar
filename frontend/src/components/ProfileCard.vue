@@ -54,7 +54,6 @@ const getStarIcons = (value: number) => {
   border-radius: 12px;
   background-color: #f7f5fb;
   gap: 1rem;
-  margin-bottom: 2rem;
   max-width: 600px;
   width: 100%;
 }

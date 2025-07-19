@@ -178,6 +178,7 @@ onMounted(async () => {
     <PageTitle :goBack="true">{{ 'Mitfahrt anfragen' }}</PageTitle>
 
     <!-- Fahrerinfo -->
+    <h2>Fahrer</h2>
     <ProfileCard v-if="driver && ride"
       :first_name="driver.first_name"
       :last_name="driver.last_name"

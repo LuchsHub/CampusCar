@@ -73,6 +73,7 @@ const onRejectCodrive = async () => {
   <div class="view-container padding-bottom-hb-2">
     <PageTitle :goBack="true">Angefragte Mitfahrt</PageTitle>
 
+    <h2>Mitfahrer</h2>
     <ProfileCard v-if="myRideStore.requestedCodrive"
       :first_name="myRideStore.requestedCodrive.first_name"
       :last_name="myRideStore.requestedCodrive.last_name"
