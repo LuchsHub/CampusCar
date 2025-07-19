@@ -1,6 +1,8 @@
 import api from '@/services/api';
 import axios from 'axios';
 import { useToaster } from '@/composables/useToaster';
+import type { EstimatedCostsGet } from '@/types/Codrive';
+import type { LocationCreateDto } from '@/types/Location';
 
 
 export function useCodrive() {
@@ -46,9 +48,28 @@ export function useCodrive() {
     }
   }
 
+  const previewCodriveCost = async (rideId: string, location: LocationCreateDto): Promise<number> => {
+    try {
+        const result = await api.post(
+          `codrives/${rideId}/preview`,
+          {'location': location}
+        );
+        const data: EstimatedCostsGet = result.data
+        return data.point_contribution;
+    } catch (error: unknown) {
+        if (axios.isAxiosError(error)) {
+          showToast('error', 'Fehler beim Berechnen der Kosten.');
+        } else {
+          showDefaultError();
+        }
+        throw error
+      }
+  }
+
   return {
     acceptCodrive,
     rejectCodrive,
     deleteBookedCodrive,
+    previewCodriveCost
   }
 }

@@ -56,6 +56,7 @@ export interface RideGetDto extends Record<string, string | number | number[][] 
   codrives: CodriveGetDto[]
   requested_codrives: RequestedCodriveGetDto[]
   state: "default" | "new request" | "accepted" | "not accepted yet" | "rejected" | "payment outstanding"
+  max_request_distance?: number
   point_reward?: number // reward you get when its your own ride (sum of point_contribution for every accepted codrive)
   point_cost?: number // your cost for a booked ride (point_contribution for your codrive)
   image?: string // user profile picture

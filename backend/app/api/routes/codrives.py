@@ -14,6 +14,7 @@ from app.api.deps import CurrentUser, ORS_Client, SessionDep
 from app.crud import get_or_create_location
 from app.models import (
     Codrive,
+    CodriveCostPreview,
     CodriveCreate,
     CodrivePassenger,
     CodrivePay,
@@ -79,6 +80,121 @@ def get_projection_distance(
 class Projection(TypedDict):
     location: Location
     proj_dist: float
+
+
+@router.post("/{ride_id}/preview", response_model=CodriveCostPreview)
+def preview_codrive_cost(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    ors_client: ORS_Client,
+    ride_id: uuid.UUID,
+    codrive_in: CodriveCreate,
+) -> Any:
+    """
+    Get a preview of the cost (in points) for a potential codrive request.
+    This does not create a codrive request, but performs all preliminary checks.
+    """
+    ride = session.get(
+        Ride,
+        ride_id,
+        options=[
+            selectinload(Ride.driver),  # type: ignore[arg-type]
+            selectinload(Ride.start_location),  # type: ignore[arg-type]
+            selectinload(Ride.end_location),  # type: ignore[arg-type]
+            selectinload(Ride.codrives).options(selectinload(Codrive.location)),  # type: ignore[arg-type]
+        ],
+    )
+    if not ride:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Ride not found"
+        )
+    if not ride.route_geometry:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Ride has no route."
+        )
+    if ride.driver_id == current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Cannot join own ride."
+        )
+
+    german_tz = ZoneInfo("Europe/Berlin")
+    now_in_germany = datetime.datetime.now(german_tz)
+
+    departure_datetime = datetime.datetime.combine(
+        ride.departure_date, ride.departure_time, tzinfo=german_tz
+    )
+    if departure_datetime <= now_in_germany:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Ride is in the past."
+        )
+    if ride.n_codrives + codrive_in.n_passengers > ride.max_n_codrives:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Ride does not have enough free seats for {codrive_in.n_passengers} passengers.",
+        )
+    if session.exec(
+        select(Codrive).where(
+            Codrive.ride_id == ride.id, Codrive.user_id == current_user.id
+        )
+    ).first():
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail="Request already sent."
+        )
+
+    new_pickup_location = get_or_create_location(
+        address=codrive_in.location, session=session, ors_client=ors_client
+    )
+    accepted_codrives = [c for c in ride.codrives if c.accepted]
+
+    all_pickup_locations = (
+        [ride.start_location]
+        + [c.location for c in accepted_codrives]
+        + [new_pickup_location]
+    )
+    projections: list[Projection] = [
+        {
+            "location": loc,
+            "proj_dist": get_projection_distance(
+                (loc.longitude, loc.latitude), ride.route_geometry
+            ),
+        }
+        for loc in all_pickup_locations
+    ]
+    projections.sort(key=lambda x: x["proj_dist"])
+    ordered_pickup_locations = [p["location"] for p in projections]
+
+    final_route_locations = ordered_pickup_locations + [ride.end_location]
+    final_route_coords = [
+        (loc.longitude, loc.latitude) for loc in final_route_locations
+    ]
+    try:
+        final_route_data = ors_client.directions(
+            coordinates=final_route_coords, format="geojson", profile="driving-car"
+        )
+    except openrouteservice.exceptions.ApiError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Could not calculate route for pickup.",
+        )
+
+    summary = final_route_data["features"][0]["properties"]["summary"]
+    added_distance = summary["distance"] - ride.estimated_distance_meters
+    if (
+        ride.max_request_distance is not None
+        and added_distance > ride.max_request_distance
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Detour of {round(added_distance)}m exceeds allowed {round(ride.max_request_distance)}m.",
+        )
+
+    point_contribution = round(added_distance / 100)
+
+    return CodriveCostPreview(
+        point_contribution=point_contribution,
+        added_distance_meters=round(added_distance),
+    )
 
 
 @router.post(

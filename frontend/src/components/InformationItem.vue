@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { InformationItemProps } from '@/types/Props';
-import { UserPlus, Users, DollarSign, Info } from 'lucide-vue-next';
+import { UserPlus, Users, DollarSign, Info, MessageCircle } from 'lucide-vue-next';
 import { computed } from 'vue';
 
 const props = defineProps<InformationItemProps>();
@@ -15,6 +15,8 @@ const stateInfo = computed(() => {
         return {'icon': DollarSign, 'text': 'Vergütung', 'unit': 'Punkte'}
     case 'pointCost':
         return {'icon': DollarSign, 'text': 'Kosten', 'unit': 'Punkte'}
+    case 'message':
+        return {'icon': MessageCircle, 'text': 'Nachricht'}
     default:
         return {'icon': Info}
   }

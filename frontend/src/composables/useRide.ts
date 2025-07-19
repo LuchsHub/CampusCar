@@ -78,6 +78,7 @@ export function useRide() {
           n_available_seats: ride.max_n_codrives - ride.n_codrives,
           codrives: ride.codrives,
           requested_codrives: ride.requested_codrives,
+          max_request_distance: ride.max_request_distance,
           state: "default",
           image: await getProfileImageUrl(ride.driver.id),
       } as RideGetDto)))
@@ -163,6 +164,39 @@ export function useRide() {
     }
   }
 
+  const getRideById = async (rideId: string): Promise<RideGetDto> => {
+    try {
+      const result = await api.get(`/rides/${rideId}`);
+      const ride = result.data;
+      const rideDto: RideGetDto = {
+        id: ride.id,
+        driver: ride.driver,
+        type: "own",
+        departure_time: ride.departure_time,
+        departure_date: ride.departure_date,
+        arrival_time: ride.arrival_time,
+        arrival_date: ride.arrival_date,
+        start_location: ride.start_location,
+        end_location: ride.end_location,
+        route_geometry: ride.route_geometry,
+        n_available_seats: ride.max_n_codrives - ride.n_codrives,
+        codrives: ride.codrives,
+        requested_codrives: ride.requested_codrives,
+        state: ride.requested_codrives.length === 0 ? "default" : "new request",
+        point_reward: ride.codrives
+          .reduce((sum: number, codrive: CodriveGetDto) => sum + codrive.point_contribution, 0)
+      } as RideGetDto
+      return rideDto;
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        showToast('error', 'Fehler beim Abrufen der Fahrt.');
+      } else {
+        showDefaultError();
+      }
+      throw error
+    }
+  }
+
   const deleteRide = async (rideId: string): Promise<void> => {
     try {
       await api.delete(`/rides/${rideId}`);
@@ -181,6 +215,7 @@ export function useRide() {
     postRide,
     getRidesForUser,
     getAllRides,
+    getRideById,
     deleteRide,
     getBookedRidesForUser
   }

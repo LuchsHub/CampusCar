@@ -8,19 +8,23 @@ import { useRouter } from 'vue-router'
 import { useMyRideStore  } from '@/stores/MyRideStore'
 import { useUser } from '@/composables/useUser'
 import { sortLocationItemPropsByTimeAsc } from '@/services/utils'
-import { Star, UserPlus, DollarSign } from 'lucide-vue-next'
 import api from '@/services/api'
 import { useToaster } from '@/composables/useToaster'
+import InformationItem from '@/components/InformationItem.vue'
+import ProfileCard from '@/components/ProfileCard.vue'
+import { useCodrive } from '@/composables/useCodrive'
 
 import type { LocationItemProps } from '@/types/Props'
 
 import type { ValidationSchema } from "@/types/Validation"
 import { validate, required, isValidPostalCode } from '@/services/validation'
+import type { LocationCreateDto } from '@/types/Location'
 
 const router = useRouter()
 const rideStore = useMyRideStore()
 const { showToast } = useToaster()
 const { getCurrentUserLocation } = useUser()
+const { previewCodriveCost } = useCodrive();
 
 const ride = computed(() => rideStore.ride)
 const driver = computed(() => rideStore.ride?.driver)
@@ -70,16 +74,6 @@ const rideLocationItems = computed<LocationItemProps[]>(() => {
   return sortLocationItemPropsByTimeAsc(items)
 })
 
-const getStarIcons = (value: number) => {
-  const stars = []
-  for (let i = 1; i <= 5; i++) {
-    if (value >= i) stars.push({ type: 'full' })
-    else if (value >= i - 0.5) stars.push({ type: 'half' })
-    else stars.push({ type: 'empty' })
-  }
-  return stars
-}
-
 // Mitfahrtanfrage
 const message = ref('')
 const seats = ref<number>(0)
@@ -91,6 +85,7 @@ const validateSeats = () => {
 }
 
 const errors = ref<Record<string, string[]>>({})
+const loading = ref<boolean>(false);
 
 // Location
 const street = ref('')
@@ -98,6 +93,22 @@ const houseNumber = ref('')
 const postalCode = ref('')
 const city = ref('')
 const country = ref('Deutschland')
+const estimatedCost = ref(0);
+
+const calculateEstimatedCost = async () => {
+  if (street.value && houseNumber.value && postalCode.value && city.value && country.value && ride.value) {
+    const result = await previewCodriveCost(ride.value.id, {
+      'country': country.value,
+      'postal_code': postalCode.value,
+      'city': city.value,
+      'street': street.value,
+      'house_number': houseNumber.value,
+    } as LocationCreateDto)
+    estimatedCost.value = result
+  } else {
+    estimatedCost.value = 0;
+  }
+};
 
 // Validaton Schema
 const profileSchema: ValidationSchema = {
@@ -117,6 +128,7 @@ const loadLocation = async () => {
       postalCode.value = location.postal_code?.toString?.() || ''
       city.value = location.city
       country.value = location.country
+      await calculateEstimatedCost();
     }
   } catch {
     showToast('error', 'Fehler beim Laden des Profils')
@@ -164,6 +176,7 @@ const sendCodriveRequest = async () => {
   const fullMessage = message.value
 
   try {
+    loading.value = true;
     await api.post(`/codrives/${ride.value.id}`, {
       location: location,
       message: fullMessage,
@@ -173,46 +186,28 @@ const sendCodriveRequest = async () => {
     router.push('/home')
   } catch {
     showToast('error', 'Anfrage fehlgeschlagen.')
+  } finally {
+    loading.value = false;
   }
 }
 
 onMounted(async () => {
   loadLocation()
-  console.log(driver.value)
 })
 </script>
 
 <template>
   <div class="view-container">
-    <PageTitle :goBack="true">{{ 'Mitfahrt anbieten' }}</PageTitle>
+    <PageTitle :goBack="true">{{ 'Mitfahrt anfragen' }}</PageTitle>
 
     <!-- Fahrerinfo -->
-    <div class="driver-card">
-      <img :src="ride?.image" alt="Profilbild" class="profile-img" />
-      <div class="driver-details">
-        <p v-if="driver">{{ driver.first_name }} {{ driver.last_name }}</p>
-        <div class="rating-stars">
-          <component
-            v-for="(star, index) in getStarIcons(driver?.rating ?? 0)"
-            :key="index"
-            :is="Star"
-            class="star-icon"
-            :style="{
-              fill: star.type === 'full' ? 'black' : star.type === 'half' ? 'url(#half)' : 'none',
-              stroke: 'black'
-            }"
-          />
-          <svg width="0" height="0">
-            <defs>
-              <linearGradient id="half" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="50%" stop-color="black" />
-                <stop offset="50%" stop-color="white" stop-opacity="1" />
-              </linearGradient>
-            </defs>
-          </svg>
-        </div>
-      </div>
-    </div>
+    <h2>Fahrer</h2>
+    <ProfileCard v-if="driver && ride"
+      :first_name="driver.first_name"
+      :last_name="driver.last_name"
+      :avg_rating="driver.rating"
+      :profile_picture="ride.image"
+    />
 
     <h2>Fahrtverlauf</h2>
     <div class="component-list">
@@ -227,31 +222,25 @@ onMounted(async () => {
     </div>
 
     <h2>Informationen</h2>
-    <div class="ride-info">
-      <div class="info-row">
-        <UserPlus class="info-icon" />
-        <div class="info-text">
-          <small class="info-label">Freie Plätze</small>
-          <strong>{{ ride?.n_available_seats }}</strong>
-        </div>
-      </div>
-      <div class="info-row">
-        <DollarSign class="info-icon" />
-        <div class="info-text">
-          <small class="info-label">Kosten</small>
-          <strong>{{ ride?.point_cost }} Punkte</strong>
-        </div>
-      </div>
+    <div class="component-list">
+      <InformationItem v-if="ride?.max_request_distance"
+        type=pointCost
+        :value="estimatedCost"
+      />
+      <InformationItem
+        type=availableSeats
+        :value=ride?.n_available_seats
+      />
     </div>
 
     <div class="mitfahrt-block">
       <h2>Mitfahrt</h2>
 
-      <Input type="text" label="Land" v-model="country" />
-      <Input type="text" label="PLZ" v-model="postalCode" />
-      <Input type="text" label="Stadt" v-model="city" />
-      <Input type="text" label="Straße" v-model="street" />
-      <Input type="text" label="Hausnummer" v-model="houseNumber" />
+      <Input type="text" label="Land" v-model="country" @blur="calculateEstimatedCost"/>
+      <Input type="text" label="PLZ" v-model="postalCode" @blur="calculateEstimatedCost"/>
+      <Input type="text" label="Stadt" v-model="city" @blur="calculateEstimatedCost"/>
+      <Input type="text" label="Straße" v-model="street" @blur="calculateEstimatedCost"/>
+      <Input type="text" label="Hausnummer" v-model="houseNumber" @blur="calculateEstimatedCost"/>
 
       <Input
         type="number"
@@ -297,7 +286,8 @@ onMounted(async () => {
         {
           text: 'Mitfahrt anfragen',
           variant: 'primary',
-          onClick: sendCodriveRequest
+          onClick: sendCodriveRequest,
+          loading: loading
         }
       ]" />
     </div>
@@ -305,48 +295,12 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-.view-container {
-  max-width: 1200px;
-  width: 100%;
-  margin: 0 auto;
-  padding: 2rem;
-  box-sizing: border-box;
+.view-container h2:first-of-type {
+  margin-top: 0;
 }
-.component-list,
 .ride-info,
 .mitfahrt-block {
   width: 100%;
-}
-.driver-card {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  margin: 0 auto;
-  padding: 1rem 1.5rem;
-  border-radius: 12px;
-  background-color: #f7f5fb;
-  gap: 1rem;
-  margin-bottom: 2rem;
-  max-width: 600px;
-  width: 100%;
-}
-.profile-img {
-  width: 56px;
-  height: 56px;
-  border-radius: 9999px;
-  object-fit: cover;
-}
-.driver-details {
-  display: flex;
-  flex-direction: column;
-}
-.name {
-  font-size: 1.1rem;
-}
-.rating-stars {
-  display: flex;
-  gap: 0.25rem;
-  margin-top: 0.25rem;
 }
 .ride-info {
   margin-top: 1.5rem;

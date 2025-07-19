@@ -20,12 +20,14 @@ export interface CodriveGetDto extends Record<string, string | boolean | number 
     n_passengers: number
 }
 
-export interface RequestedCodriveGetDto extends Record<string, string | boolean | number | UserGetDto | LocationGetDto | RouteUpdateGet> {
+export interface RequestedCodriveGetDto extends Record<string, string | boolean | number | UserGetDto | LocationGetDto | RouteUpdateGet | undefined> {
     id: string
     accepted: boolean
     arrival_time: string
     arrival_date: string
     user: UserGetDto
+    avg_rating: number
+    image: string | undefined
     location: LocationGetDto
     route_update: RouteUpdateGet
     point_contribution: number
@@ -46,10 +48,12 @@ export interface CodriverArrivalTimeGet extends Record<string, string | UserGet 
     arrival_time: string
 }
 
-export interface RequestedCodriveDto extends Record<string, string | number | RouteUpdateDto[]> {
+export interface RequestedCodriveDto extends Record<string, string | number | undefined | RouteUpdateDto[]> {
     id: string
     first_name: string
     last_name: string
+    avg_rating: number
+    image: string | undefined
     route_update: RouteUpdateDto[]
     new_departure_date: string
     new_departure_time: string
@@ -65,4 +69,9 @@ export interface RouteUpdateDto extends Record<string, string | LocationGetDto> 
     arrival_date: string
     arrival_time: string
 }
+
+export interface EstimatedCostsGet extends Record<string, number>{
+    point_contribution: number;
+    added_distance_meters: number;
+  }
 

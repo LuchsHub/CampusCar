@@ -3,7 +3,7 @@ import { createToaster } from "@meforma/vue-toaster";
 const toaster = createToaster({
   duration: 2000,
   position: "top",
-  maxToasts: 3,
+  maxToasts: 1,
 });
 
 export function useToaster() {
@@ -15,8 +15,9 @@ export function useToaster() {
       case "error":
         toaster.error(message);
         break;
-      default:
+      case "info":
         toaster.info(message);
+        break;
     }
   };
 

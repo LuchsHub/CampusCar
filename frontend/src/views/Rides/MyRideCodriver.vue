@@ -8,12 +8,15 @@ import HoverButton from '@/components/HoverButton.vue';
 import InformationItem from '@/components/InformationItem.vue';
 import { useCodrive } from '@/composables/useCodrive';
 import { useToaster } from '@/composables/useToaster';
+import ProfileCard from '@/components/ProfileCard.vue';
+import { useRide } from '@/composables/useRide';
 
 // Variables 
 const router = useRouter();
 const myRideStore = useMyRideStore();
 const { acceptCodrive, rejectCodrive } = useCodrive();
-const { showToast } = useToaster()
+const { showToast } = useToaster();
+const { getRideById } = useRide();
 
 const loadingAccept = ref<boolean>(false);
 const loadingReject = ref<boolean>(false);
@@ -25,10 +28,19 @@ if (!myRideStore.ride && !myRideStore.requestedCodrive) {
 const onAcceptCodrive = async () => {
   loadingAccept.value = true;
   try {
-    if (!myRideStore.requestedCodrive) {
-      throw Error('No Codrive is saved in pinia.');
+
+    // check if ride or codrive exist in store
+    if (!myRideStore.requestedCodrive || !myRideStore.ride) {
+      throw Error('No Codrive or Ride is saved in pinia.');
     }
+
     await acceptCodrive(myRideStore.requestedCodrive.id);
+
+    // update ride in store
+    const updatedRide = await getRideById(myRideStore.ride.id);
+    myRideStore.setRide(updatedRide);
+
+    // success
     showToast('success', 'Mitfahrt akzeptiert.');
     router.go(-1);
   } catch (error: unknown) {
@@ -42,10 +54,18 @@ const onAcceptCodrive = async () => {
 const onRejectCodrive = async () => {
   loadingReject.value = true;
   try {
-    if (!myRideStore.requestedCodrive) {
-      throw Error('No Codrive is saved in pinia.');
+    
+    // check 
+    if (!myRideStore.requestedCodrive || !myRideStore.ride) {
+      throw Error('No Codrive or Ride is saved in pinia.');
     }
+
     await rejectCodrive(myRideStore.requestedCodrive.id);
+
+    // fetch new ride and put in store 
+    const updatedRide = await getRideById(myRideStore.ride.id);
+    myRideStore.setRide(updatedRide);
+
     showToast('success', 'Mitfahrt abgelehnt.');
     router.go(-1);
   } catch (error: unknown) {
@@ -59,7 +79,15 @@ const onRejectCodrive = async () => {
 
 <template>
   <div class="view-container padding-bottom-hb-2">
-    <PageTitle :goBack="true">Mitfahrt</PageTitle>
+    <PageTitle :goBack="true">Angefragte Mitfahrt</PageTitle>
+
+    <h2>Mitfahrer</h2>
+    <ProfileCard v-if="myRideStore.requestedCodrive"
+      :first_name="myRideStore.requestedCodrive.first_name"
+      :last_name="myRideStore.requestedCodrive.last_name"
+      :avg_rating="myRideStore.requestedCodrive.avg_rating"
+      :profile_picture="myRideStore.requestedCodrive.image"
+    />
     
     <h2>Neuer Fahrtverlauf</h2>
     <div class="component-list">
@@ -82,6 +110,10 @@ const onRejectCodrive = async () => {
       <InformationItem
         type=pointReward
         :value=myRideStore.requestedCodrive?.point_contribution
+      />
+      <InformationItem
+        type=message
+        :value=myRideStore.requestedCodrive?.message
       />
     </div>
 
