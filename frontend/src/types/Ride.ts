@@ -21,7 +21,7 @@ export interface RideCreateComplete extends Record<string, string | number | Loc
 }
 
 // backend representation which is returned via api
-export interface RideGet extends Record<string, string | number | LocationGetDto | number[][] | RequestedCodriveGetDto[] | CodriveGetDto[] | UserGet>{
+export interface RideGet extends Record<string, string | number | LocationGetDto | number[][] | RequestedCodriveGetDto[] | CodriveGetDto[] | UserGet | boolean>{
   id: string
   driver: UserGet
   car_id: string
@@ -38,10 +38,13 @@ export interface RideGet extends Record<string, string | number | LocationGetDto
   codrives: CodriveGetDto[]
   requested_codrives: RequestedCodriveGetDto[]
   estimated_duration_seconds: number,
-  estimated_distance_meters: number
+  estimated_distance_meters: number,
+  completed: boolean,
 }
 
-export interface RideGetDto extends Record<string, string | number | number[][] | LocationGetDto | RequestedCodriveGetDto[] | CodriveGetDto[] | boolean | undefined | UserGet> {
+export type RideState = "default" | "new request" | "accepted" | "not accepted yet" | "request payment" | "payment requested" | "payment outstanding" | "finished";
+
+export interface RideGetDto extends Record<string, string | number | number[][] | LocationGetDto | RequestedCodriveGetDto[] | CodriveGetDto[] | boolean | undefined | UserGet | RideState> {
   id: string
   codrive_id?: string // to reference booked codrive on a ride. only necessary when type = "booked"
   type: "own" | "booked" | "other" // other = another user posted the ride
@@ -55,10 +58,11 @@ export interface RideGetDto extends Record<string, string | number | number[][] 
   n_available_seats: number
   codrives: CodriveGetDto[]
   requested_codrives: RequestedCodriveGetDto[]
-  state: "default" | "new request" | "accepted" | "not accepted yet" | "rejected" | "payment outstanding"
+  state: RideState
+  driver: UserGet
+  completed: boolean,
   max_request_distance?: number
   point_reward?: number // reward you get when its your own ride (sum of point_contribution for every accepted codrive)
   point_cost?: number // your cost for a booked ride (point_contribution for your codrive)
   image?: string // user profile picture
-  driver: UserGet
 }

@@ -41,8 +41,6 @@ export const useMyRideStore = defineStore("myRide", () => {
   const requestedCodriveCardItems = computed<CodriveCardProps[]>(() => {
     if (!ride.value) { return []; }
   
-    console.log("neue codrive card items")
-    console.log(ride);
     // accepted codrives
     let accepted: CodriveCardProps[] = ride.value.codrives.map((codrive: CodriveGetDto) => ({
       codrive: codrive,

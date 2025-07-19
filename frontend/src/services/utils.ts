@@ -35,3 +35,9 @@ export const sortCodriveCardPropsByTimeAsc = (items: CodriveCardProps[]): Codriv
         return aDate.getTime() - bDate.getTime();
       });
 }
+
+export const checkIfRideIsOver = ( arrival_date: string, arrival_time: string) => {
+    const dateTimeString = `${arrival_date}T${arrival_time}`;
+    const rideEndDate = new Date(dateTimeString);
+    return rideEndDate < new Date();
+}

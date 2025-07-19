@@ -27,19 +27,17 @@ const sortedRides: ComputedRef<RideGetDto[]> = computed(() => {
   return sortRidesByDateAsc([...userOwnRides.value, ...userBookedRides.value]);
 });
 
-const now = () => new Date();
-
 const upcomingRides = computed<RideGetDto[]>(() =>
   sortedRides.value.filter(ride => {
     const rideDate = new Date(`${ride.departure_date}T${ride.departure_time}`);
-    return rideDate >= now();
+    return rideDate >= new Date();
   })
 );
 
 const pastRides = computed<RideGetDto[]>(() =>
   sortedRides.value.filter(ride => {
     const rideDate = new Date(`${ride.departure_date}T${ride.departure_time}`);
-    return rideDate < now();
+    return rideDate < new Date();
   })
 );
 </script>
@@ -52,7 +50,10 @@ const pastRides = computed<RideGetDto[]>(() =>
       
     <div v-if="activeTab === 'Bevorstehend'" class="width-100">
         <template v-for="(ride, index) in upcomingRides" :key="ride.id">
-          <RideCard :ride="ride"/>
+          <RideCard 
+            :ride="ride"
+            :is-finished="false"
+          />
           <hr v-if="index < upcomingRides.length - 1" />
         </template>
       </div>
@@ -61,8 +62,7 @@ const pastRides = computed<RideGetDto[]>(() =>
         <template v-for="(ride, index) in pastRides" :key="ride.id">
           <RideCard
             :ride="ride"
-            type="own"
-            state="accepted"
+            :is-finished="true"
           />
           <hr v-if="index < pastRides.length - 1" />
         </template>
