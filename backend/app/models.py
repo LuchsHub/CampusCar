@@ -15,7 +15,7 @@ class UserBonusLink(SQLModel, table=True):
             DateTime(timezone=True),
             # Use text() to pass the raw SQL for setting the timezone
             server_default=text("TIMEZONE('Europe/Berlin', now())"),
-            nullable=False
+            nullable=False,
         )
     )
 
