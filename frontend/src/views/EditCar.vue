@@ -166,6 +166,8 @@ const onCancelDelete = () => {
   </div>
   <ConfirmDeleteModal
     :open="showDeleteModal"
+    subject="Auto"
+    :requiresTextConfirmation="false"
     @confirm="onConfirmDelete"
     @cancel="onCancelDelete"
   />

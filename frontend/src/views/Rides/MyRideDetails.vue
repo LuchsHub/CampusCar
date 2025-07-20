@@ -125,6 +125,8 @@ const onRequestPayment = async () => {
   </div>
   <ConfirmDeleteModal
     :open="showDeleteModal"
+    subject="Fahrt"
+    :requiresTextConfirmation="false"
     @confirm="onConfirmDelete"
     @cancel="onCancelDelete"
   />

@@ -80,6 +80,12 @@ export interface RatingModalProps {
   cost: number
 }
 
+export interface ConfirmDeleteModalProps {
+  open: boolean
+  subject: string
+  requiresTextConfirmation: boolean
+}
+
 export interface BonusCardProps {
   bonus: BonusGet
   isRedeemed: boolean
