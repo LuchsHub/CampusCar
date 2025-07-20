@@ -70,10 +70,13 @@ def delete_car(
         raise HTTPException(status_code=404, detail="Car not found")
 
     if db_car.owner_id != current_user.id and not current_user.is_superuser:
-         raise HTTPException(status_code=403, detail="Not authorized")
+        raise HTTPException(status_code=403, detail="Not authorized")
 
     if db_car.rides:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Cannot delete a car that is involved in a ride.")
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Cannot delete a car that is involved in a ride.",
+        )
 
     session.delete(db_car)
     session.commit()
