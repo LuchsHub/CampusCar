@@ -3,7 +3,7 @@ import Input from '@/components/Input.vue';
 import Button from '@/components/Button.vue';
 import HoverButton from '@/components/HoverButton.vue';
 import PageTitle from '@/components/PageTitle.vue';
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { validate, required, largerThan, smallerThan } from '@/services/validation'
 import { useRide } from '@/composables/useRide';
 import { useLocation } from '@/composables/useLocation';
@@ -38,6 +38,31 @@ const loading = ref<boolean>(false);
 const errorsRideCreate = ref<Record<string, string[]>>({})
 const errorsStartLocation = ref<Record<string, string[]>>({})
 const errorsEndLocation = ref<Record<string, string[]>>({})
+
+const arrivalInLessThanOneHour = computed(() => {
+
+  if (!rideCreate.arrival_date || !rideCreate.arrival_time) return false;
+
+  // create datestrings
+  const arrivalDateTimeString = `${rideCreate.arrival_date}T${rideCreate.arrival_time}`;
+  const arrivalDateTime = new Date(arrivalDateTimeString);
+  const now = new Date();
+
+  // difference in ms
+  const diffMs = arrivalDateTime.getTime() - now.getTime();
+  return diffMs < 60 * 60 * 1000;
+});
+
+const arrivalIsInPast = computed(() => {
+  if (!rideCreate.arrival_date || !rideCreate.arrival_time) return false;
+
+  // create datestrings
+  const arrivalDateTimeString = `${rideCreate.arrival_date}T${rideCreate.arrival_time}`;
+  const arrivalDateTime = new Date(arrivalDateTimeString);
+  const now = new Date();
+
+  return arrivalDateTime < now;
+});
 
 // fetch data async from backend when component gets loaded
 onMounted(async () => {
@@ -129,14 +154,30 @@ const addStop = ():void => {
       <p class="text-danger">Du hast noch kein Führerschein hinterlegt. Füge zunächst einen Führerschein zu deinem Profil hinzu bevor du eine Fahrt erstellst.</p>
     </div>
 
-    <h2>Abfahrt</h2>
+    <h2>Fahrtinformationen</h2>
     <div class="form-container">
       <Input 
         type="date" 
-        label="Datum" 
+        label="Ankunftstag" 
         v-model="rideCreate.arrival_date"
         :error="errorsRideCreate.arrival_date?.[0]"
       />
+      <Input 
+        type="time" 
+        label="Ankunftszeit" 
+        v-model="rideCreate.arrival_time"
+        :error="errorsRideCreate.arrival_time?.[0]"
+      />
+      <div v-if="arrivalIsInPast" class="margin-botton-l error-message-container">
+        <p class="text-danger">Die Ankunft darf nicht in der Vergangenheit liegen.</p>
+      </div>
+      <div v-else-if="arrivalInLessThanOneHour" class="margin-botton-l error-message-container">
+        <p class="text-danger">Die Ankunft ist in weniger als einer Stunde. Unter Umständen führt dies zu Problemen beim Erstellen der Fahrt.</p>
+      </div>
+    </div>
+    
+    <h2>Abfahrtsort</h2>
+    <div class="form-container">
       <Input 
         type="text" 
         label="Land" 
@@ -173,14 +214,8 @@ const addStop = ():void => {
     <h2>Zwischenstopps</h2>
     <Button variant="secondary" :onClick="addStop">Zwischenstopp hinzufügen</Button>
     
-    <h2>Ankunft</h2>
+    <h2>Ankunftsort</h2>
     <div class="form-container">
-      <Input 
-        type="time" 
-        label="Uhrzeit" 
-        v-model="rideCreate.arrival_time"
-        :error="errorsRideCreate.arrival_time?.[0]"
-      />
       <Input 
         type="text" 
         label="Land" 
@@ -247,7 +282,7 @@ const addStop = ():void => {
         <hr v-if="index < userCars.length - 1" />
       </template>
     </div>
-    <HoverButton :buttons="[{variant: 'primary', text: 'Fahrt erstellen', onClick: createRide, loading: loading, disabled: !hasLicense || userCars.length === 0}]"/>
+    <HoverButton :buttons="[{variant: 'primary', text: 'Fahrt erstellen', onClick: createRide, loading: loading, disabled: !hasLicense || userCars.length === 0 || arrivalIsInPast}]"/>
   </div>
 </template>
 

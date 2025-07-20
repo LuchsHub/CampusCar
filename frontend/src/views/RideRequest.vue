@@ -197,7 +197,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="view-container">
+  <div class="view-container padding-bottom-hb-1">
     <PageTitle :goBack="true">{{ 'Mitfahrt anfragen' }}</PageTitle>
 
     <!-- Fahrerinfo -->
@@ -221,46 +221,38 @@ onMounted(async () => {
       />
     </div>
 
-    <h2>Informationen</h2>
-    <div class="component-list">
-      <InformationItem v-if="ride?.max_request_distance"
-        type=pointCost
-        :value="(estimatedCost/100).toFixed(2)"
-      />
-      <InformationItem
-        type=availableSeats
-        :value=ride?.n_available_seats
-      />
-    </div>
-
-    <div class="mitfahrt-block">
-      <h2>Mitfahrt</h2>
-
+    <h2>Abholort</h2>
+    
+    <div class="form-container">
       <Input type="text" label="Land" v-model="country" @blur="calculateEstimatedCost"/>
       <Input type="text" label="PLZ" v-model="postalCode" @blur="calculateEstimatedCost"/>
       <Input type="text" label="Stadt" v-model="city" @blur="calculateEstimatedCost"/>
       <Input type="text" label="Straße" v-model="street" @blur="calculateEstimatedCost"/>
       <Input type="text" label="Hausnummer" v-model="houseNumber" @blur="calculateEstimatedCost"/>
+      
+    </div>
 
+    <h2>Mitfahrt Optionen</h2>
+    <div class="form-container">
       <Input
-        type="number"
-        label="Anzahl Plätze"
-        v-model.number="seats"
-        :max="ride?.n_available_seats"
-        min="1"
-        required
-        placeholder="Plätze anfragen"
-        @input="validateSeats"
-        @change="validateSeats"
+      type="number"
+      label="Anzahl Plätze"
+      v-model.number="seats"
+      :max="ride?.n_available_seats"
+      min="1"
+      required
+      placeholder="Plätze anfragen"
+      @input="validateSeats"
+      @change="validateSeats"
       />
-
+      
       <Input
         type="text"
         label="Nachricht (optional)"
         v-model="message"
         placeholder="Schreib dem Fahrer z.B. wo du zusteigst oder warum du mitfahren möchtest..."
       />
-
+  
       <!-- Wiederholte Mitfahrt Checkbox -->
       <div class="repeat-block">
         <label class="repeat-checkbox">
@@ -268,7 +260,7 @@ onMounted(async () => {
           <span>Wiederholte Mitfahrt</span>
           <span class="info-icon" title="Diese Fahrt wird regelmäßig angeboten"/>
         </label>
-
+  
         <div v-if="isRecurring" class="weekday-toggle">
           <div
             v-for="day in weekdays"
@@ -281,16 +273,29 @@ onMounted(async () => {
           </div>
         </div>
       </div>
-
-      <HoverButton :buttons="[
-        {
-          text: 'Mitfahrt anfragen',
-          variant: 'primary',
-          onClick: sendCodriveRequest,
-          loading: loading
-        }
-      ]" />
     </div>
+
+
+    <h2>Fahrtinformationen</h2>
+    <div class="component-list">
+      <InformationItem v-if="ride?.max_request_distance"
+        type=pointCost
+        :value="(estimatedCost/100).toFixed(2)"
+      />
+      <InformationItem
+        type=availableSeats
+        :value=ride?.n_available_seats
+      />
+    </div>
+
+    <HoverButton :buttons="[
+      {
+        text: 'Mitfahrt anfragen',
+        variant: 'primary',
+        onClick: sendCodriveRequest,
+        loading: loading
+      }
+    ]" />
   </div>
 </template>
 
@@ -298,8 +303,7 @@ onMounted(async () => {
 .view-container h2:first-of-type {
   margin-top: 0;
 }
-.ride-info,
-.mitfahrt-block {
+.ride-info {
   width: 100%;
 }
 .ride-info {
@@ -326,22 +330,10 @@ onMounted(async () => {
   font-size: 0.75rem;
   color: var(--color-neutral-500);
 }
-.mitfahrt-block {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  margin-top: 2rem;
-}
-.mitfahrt-block::after {
-  content: '';
-  display: block;
-  height: 6rem;
-}
 .repeat-block {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  margin-top: 2rem;
 }
 .repeat-checkbox {
   display: flex;
