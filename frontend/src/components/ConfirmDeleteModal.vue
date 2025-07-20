@@ -38,10 +38,12 @@ const onConfirm = () => {
         />
       </div>
 
-      <div class="modal-actions">
+      <div class="modal-actions margin-botton-l">
         <Button variant="primary" color="danger" :disabled="props.requiresTextConfirmation && input !== 'löschen'" :onClick=onConfirm>{{ ["Mitfahrt"].includes(props.subject) ? "Absagen" : "löschen" }}</Button>
         <Button variant="tertiary" :onClick=onCancel>Abbrechen</Button>
       </div>
+
+      <p v-if="['Auto'].includes(props.subject)" class="text-s text-neutral-400">*Bereits in einer Fahrt verwendete Autos können nicht gelöscht werden.</p>
 
     </div>
   </div>

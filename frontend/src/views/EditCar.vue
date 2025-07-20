@@ -48,8 +48,8 @@ const schema: ValidationSchema = {
   model: [required('Modell')],
   n_seats: [
     required('Anzahl Sitzplätze'),
-    largerThan(1, 'Mögliche Anzahl Sitze: 2–20'),
-    smallerThan(21, 'Mögliche Anzahl Sitze: 2–20'),
+    largerThan(1, 'Mögliche Anzahl Sitze: 2-20'),
+    smallerThan(21, 'Mögliche Anzahl Sitze: 2-20'),
   ],
   color: [required('Farbe')],
 }
@@ -105,7 +105,6 @@ const onConfirmDelete = async () => {
   loading.value = true;
   await deleteCar(carId)
   loading.value = false;
-  showToast('success', 'Auto gelöscht.')
   router.push('/profile/edit')
 }
 

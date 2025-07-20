@@ -38,10 +38,15 @@ const tryRegisterUser = async (): Promise<void> => {
     return
   }
   
-  loading.value = true;
-  await registerUser(userRegister);
-  loading.value = false;
-  router.push('/signup/address');
+  try {
+    loading.value = true;
+    await registerUser(userRegister);
+    router.push('/signup/address');
+  } catch (error: unknown) {
+    console.log(error);
+  } finally {
+    loading.value = false;
+  }
 }
 </script>
 

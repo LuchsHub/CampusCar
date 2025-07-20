@@ -78,7 +78,7 @@ const tryUpdateUserLocation = async (): Promise<void> => {
       </div>
       
       <HoverButton :buttons='[
-        {variant: "primary", text: "Nächster Schritt", onClick: tryUpdateUserLocation},
+        {variant: "primary", text: "Nächster Schritt", onClick: tryUpdateUserLocation, loading: loading},
         {variant: "tertiary", text: "Später", to: "/signup/car"}]'
       />
     </div>
