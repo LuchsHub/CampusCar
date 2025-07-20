@@ -318,6 +318,7 @@ class CodrivePassenger(SQLModel):
     arrival_time: datetime.time
     point_contribution: int
     n_passengers: int
+    paid: bool
 
 
 class CodriveRequestPublic(SQLModel):
