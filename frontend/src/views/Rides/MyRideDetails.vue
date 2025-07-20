@@ -1,77 +1,91 @@
 <script setup lang="ts">
 import PageTitle from '@/components/PageTitle.vue';
 import HoverButton from '@/components/HoverButton.vue';
-import type { ButtonProps, CodriveCardProps } from '@/types/Props';
-import { ref, computed } from 'vue';
-import type { RideGetDto } from '@/types/Ride';
-import { useRideStore } from '@/stores/RideStore';
+import { ref } from 'vue';
+import { useMyRideStore } from '@/stores/MyRideStore';
 import { useRouter } from 'vue-router';
-import type { LocationItemProps } from '@/types/Props';
 import LocationItem from '@/components/LocationItem.vue';
-import { sortLocationItemPropsByTimeAsc, sortCodriveCardPropsByTimeAsc } from '@/services/utils';
 import CodriveCard from '@/components/CodriveCard.vue';
-import type { CodriveGetDto } from '@/types/Codrive';
+import ConfirmDeleteModal from '@/components/ConfirmDeleteModal.vue';
+import { useToaster } from '@/composables/useToaster';
+import { useRide } from '@/composables/useRide';
+import InformationItem from '@/components/InformationItem.vue';
 
 // Variables 
 const router = useRouter();
-const rideStore = useRideStore();
-const ride = ref<RideGetDto | null>();
-const rideLocationItems = computed<LocationItemProps[]>(() => {
-  if (!ride.value) {return [];} 
-  let items: LocationItemProps[] = [
-    {
-      'location': ride.value.start_location, 
-      'arrival_time': ride.value.departure_time,
-      'arrival_date': ride.value.departure_date
-    },
-    ...ride.value.codrives.map(codrive => ({ 
-      'location': codrive.location, 
-      'arrival_time': codrive.arrival_time,
-      'user': codrive.user,
-    })),
-    {
-      'location': ride.value.end_location, 
-      'arrival_time': ride.value.arrival_time,
-      'arrival_date': ride.value.arrival_date
-    }
-  ];
-  return sortLocationItemPropsByTimeAsc(items);
-}); 
+const myRideStore = useMyRideStore();
 
-const codriveCardItems = computed<CodriveCardProps[]>(() => {
-  if (!ride.value) { return []; }
-  let accepted: CodriveCardProps[] = ride.value.codrives.map((codrive: CodriveGetDto) => ({
-    codrive: codrive,
-    codrive_accepted: true
-  } as CodriveCardProps));
-  accepted = sortCodriveCardPropsByTimeAsc(accepted); 
-  const notAccepted: CodriveCardProps[] = ride.value.requested_codrives.map((codrive: CodriveGetDto) => ({
-    codrive: codrive,
-    codrive_accepted: false
-  } as CodriveCardProps));
-  return [...accepted, ...notAccepted];
-});
+const { showToast } = useToaster();
+const { deleteRide, markRideAsCompleted, getRideById } = useRide();
 
-if (!rideStore.ride) {
+const showDeleteModal = ref<boolean>(false);
+const loading = ref<boolean>(false);
+
+if (!myRideStore.ride) {
   router.push({ name: 'myRides' }) // in case there is no ride saved in the store
-} else {
-  ride.value = rideStore.ride;
 }
 
-const hoverButtons: ButtonProps[] = [
-    {variant: "secondary", text: "Bearbeiten"},
-    {variant: "primary", color: "danger", text: "Löschen"},
-]
+// Delete
+const onRequestDelete = () => {
+  showDeleteModal.value = true
+}
+
+const onConfirmDelete = async () => {
+  showDeleteModal.value = false
+  loading.value = true;
+  try {
+    if (myRideStore.ride?.id) {
+      await deleteRide(myRideStore.ride?.id);
+      myRideStore.removeRide();
+
+    } else {
+      throw new Error('No ride ID found for deletion.');
+    }
+    showToast('success', 'Fahrt gelöscht.')
+    router.push('/my_rides')
+  }
+  catch (error: unknown) {
+    console.log(error);
+  }
+  finally {
+    loading.value = false;
+  }
+}
+
+const onCancelDelete = () => {
+  showDeleteModal.value = false
+}
+
+// request payment
+const onRequestPayment = async () => {
+  try {
+
+    if (!myRideStore.ride) throw Error("Ride is not available in pinia");
+
+    loading.value = true;
+    await markRideAsCompleted(myRideStore.ride.id);
+
+    const updatedRide = await getRideById(myRideStore.ride.id);
+    myRideStore.setRide(updatedRide);
+
+    showToast('success', 'Zahlung angefordert');
+    router.go(-1);
+  } catch (error: unknown) {
+    console.log(error);
+  } finally {
+    loading.value = false
+  }
+}
 </script>
 
 <template>
-  <div class="view-container" :class="`padding-bottom-hb-${hoverButtons.length}`">
+  <div class="view-container " :class="{'padding-bottom-hb-1': myRideStore.ride?.state !== 'payment requested (driver)'}">
     <PageTitle :goBack="true">Meine Fahrt</PageTitle>
     
     <h2>Fahrtverlauf</h2>
     <div class="component-list">
       <LocationItem
-        v-for="item in rideLocationItems"
+        v-for="item in myRideStore.rideLocationItems"
         :location="item.location"
         :arrival_time="item.arrival_time"
         :arrival_date="item.arrival_date"
@@ -80,29 +94,46 @@ const hoverButtons: ButtonProps[] = [
     </div>
     
     <h2>Mitfahrer</h2>
-    <HoverButton :buttons="hoverButtons"/>
     <div class="component-list">
-      <CodriveCard
-        v-for="(item, idx) in codriveCardItems"
-        :codrive_accepted="item.codrive_accepted"
-        :codrive="item.codrive"
-        :seat_no="idx+1"
+      <CodriveCard 
+      v-if="myRideStore.ride"
+      v-for="(item, idx) in myRideStore.requestedCodriveCardItems"
+      :ride_state="item.ride_state"
+      :codrive="item.codrive"
+      :requested_codrive="item.requested_codrive"
+      :seat_no="idx+1"
       />
     </div>
+    
+    <h2>Informationen</h2>
+    <div class="component-list">
+      <InformationItem v-if="myRideStore.ride && !(['request payment (driver)', 'payment requested (driver)'].includes(myRideStore.ride.state))"
+        type=availableSeats
+        :value=myRideStore.ride?.n_available_seats
+      />
+      <InformationItem
+        type=pointReward
+        :value=myRideStore.ride?.point_reward
+      />
+    </div>
+
+    <HoverButton v-if="myRideStore.ride?.state !== 'payment requested (driver)'" :buttons='[
+      myRideStore.ride?.state === "request payment (driver)"
+        ? {variant: "primary", text: "Zahlung anfordern", onClick: onRequestPayment, loading: loading} 
+        : {variant: "primary", color: "danger", text: "Löschen", onClick: onRequestDelete, loading: loading}]'
+    />
   </div>
+  <ConfirmDeleteModal
+    :open="showDeleteModal"
+    subject="Fahrt"
+    :requiresTextConfirmation="false"
+    @confirm="onConfirmDelete"
+    @cancel="onCancelDelete"
+  />
 </template>
 
 <style scoped>
 .view-container h2:first-of-type {
   margin-top: 0;
-}
-
-.component-list {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-items: flex-start;
-  width: 100%;
-  gap: var(--horizontal-gap)
 }
 </style>

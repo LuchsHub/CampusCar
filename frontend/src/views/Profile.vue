@@ -8,15 +8,17 @@ import PageTitle from '@/components/PageTitle.vue'
 import { useToaster } from '@/composables/useToaster'
 import ConfirmDeleteModal from '@/components/ConfirmDeleteModal.vue'
 import { useUser } from '@/composables/useUser'
+import { useAuthStore } from '@/stores/AuthStore'
 
 // Lucide Icons
 import {
   Settings, Wallet, Lock, Shield,
-  LogOut, Trash2, ChevronRight, Star
+  LogOut, Trash2, ChevronRight, Star, TicketCheck
 } from 'lucide-vue-next'
 
 const router = useRouter()
 const auth = useAuth()
+const authStore = useAuthStore();
 const { deleteAccount } = useAccount()
 const { showToast } = useToaster()
 const { getProfileImageUrl } = useUser()
@@ -33,10 +35,10 @@ const loadUser = async () => {
     firstName.value = user.first_name
     lastName.value = user.last_name
 
-    const imageUrl = await getProfileImageUrl()
+    const imageUrl = await getProfileImageUrl(authStore.userId)
     profileImage.value = imageUrl ?? ""
 
-    rating.value = user.rating ?? 0
+    rating.value = user.avg_rating ?? 0
   } catch {
     showToast('error', 'Fehler beim Laden des Profils')
   }
@@ -67,19 +69,25 @@ const actions = [
     icon: Wallet,
     isComponent: true,
     text: 'Guthaben aufladen',
-    onClick: () => console.log('Guthaben aufladen')
+    onClick: () => router.push('/profile/balance')
+  },
+  {
+    icon: TicketCheck,
+    isComponent: true,
+    text: 'Prämien',
+    onClick: () => router.push('/profile/bonus/redeem')
   },
   {
     icon: Lock,
     isComponent: true,
     text: 'Sicherheit',
-    onClick: () => console.log('Sicherheit')
+    onClick: () => showToast('info', 'Dieses Feature ist nicht implementiert.')
   },
   {
     icon: Shield,
     isComponent: true,
     text: 'Datenschutz',
-    onClick: () => console.log('Datenschutz')
+    onClick: () => showToast('info', 'Dieses Feature ist nicht implementiert.')
   }
 ]
 
@@ -110,9 +118,9 @@ onMounted(() => {
     <PageTitle>Profil</PageTitle>
 
     <div class="profile-header">
-      <img :src="profileImage" class="profile-image" />
-      <h2 class="user-name">{{ firstName }} {{ lastName }}</h2>
-      <div class="rating-stars">
+      <img :src="profileImage" class="profile-image margin-botton-l" />
+      <p class="text-xl text-bold margin-botton-l">{{ firstName }} {{ lastName }}</p>
+      <div class="rating-stars margin-botton-l">
         <component
             v-for="(star, index) in getStarIcons(rating)"
             :key="index"
@@ -167,6 +175,8 @@ onMounted(() => {
     </div>
     <ConfirmDeleteModal
       :open="showDeleteConfirm"
+      subject="Konto"
+      :requiresTextConfirmation="true"
       @cancel="showDeleteConfirm = false"
       @confirm="deleteAccount"
     />
@@ -190,29 +200,21 @@ onMounted(() => {
 }
 
 .profile-image {
-  width: 96px;
-  height: 96px;
+  width: var(--profile-picture-md-dim);
+  height: var(--profile-picture-md-dim);
   border-radius: 9999px;
   object-fit: cover;
-  margin-bottom: 0.5rem;
-}
-
-.user-name {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--color-neutral-900);
 }
 
 .rating-stars {
   display: flex;
   gap: 0.25rem;
-  margin-top: 0.25rem;
 }
 
 .star-icon {
-  height: 28px;
-  width: 28px;
-  stroke-width: 1.5;
+  height: var(--icon-md);
+  width: var(--icon-md);
+  stroke-width: var(--line-width-m);
 }
 
 .action-list {

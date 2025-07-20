@@ -28,6 +28,7 @@ const { getUserCarsData, updateCar, deleteCar } = useCar()
 const { showToast } = useToaster()
 
 const showDeleteModal = ref(false)
+const loading = ref(false);
 
 // Car state
 const carEdit = ref({
@@ -47,8 +48,8 @@ const schema: ValidationSchema = {
   model: [required('Modell')],
   n_seats: [
     required('Anzahl Sitzplätze'),
-    largerThan(1, 'Mögliche Anzahl Sitze: 2–20'),
-    smallerThan(21, 'Mögliche Anzahl Sitze: 2–20'),
+    largerThan(1, 'Mögliche Anzahl Sitze: 2-20'),
+    smallerThan(21, 'Mögliche Anzahl Sitze: 2-20'),
   ],
   color: [required('Farbe')],
 }
@@ -87,7 +88,9 @@ const tryUpdateCar = async () => {
     return
   }
 
+  loading.value = true;
   await updateCar(carId, carEdit.value)
+  loading.value = false;
   showToast('success', 'Auto gespeichert.')
   router.push('/profile/edit')
 }
@@ -99,8 +102,9 @@ const onRequestDelete = () => {
 
 const onConfirmDelete = async () => {
   showDeleteModal.value = false
+  loading.value = true;
   await deleteCar(carId)
-  showToast('success', 'Auto gelöscht.')
+  loading.value = false;
   router.push('/profile/edit')
 }
 
@@ -111,7 +115,7 @@ const onCancelDelete = () => {
 </script>
 
 <template>
-  <div class="view-container">
+  <div class="view-container padding-bottom-hb-1">
     <PageTitle :goBack="true">Auto bearbeiten</PageTitle>
 
     <div class="form-container">
@@ -154,26 +158,21 @@ const onCancelDelete = () => {
 
     <HoverButton
       :buttons="[
-        { variant: 'primary', text: 'Speichern', onClick: tryUpdateCar },
-        { variant: 'primary', text: 'Löschen', onClick: onRequestDelete , color: 'danger' },
+        { variant: 'primary', text: 'Speichern', onClick: tryUpdateCar, loading: loading },
+        { variant: 'primary', text: 'Löschen', onClick: onRequestDelete , color: 'danger', loading: loading },
       ]"
     />
   </div>
   <ConfirmDeleteModal
     :open="showDeleteModal"
+    subject="Auto"
+    :requiresTextConfirmation="false"
     @confirm="onConfirmDelete"
     @cancel="onCancelDelete"
   />
 </template>
 
 <style scoped>
-.view-container {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-  padding: 0 1rem 4rem;
-}
-
 .form-container {
   display: flex;
   flex-direction: column;

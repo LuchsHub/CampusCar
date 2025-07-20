@@ -4,6 +4,8 @@ import { useRouter } from 'vue-router'
 import { useUser } from '@/composables/useUser'
 import { useToaster } from '@/composables/useToaster'
 import { useCar } from '@/composables/useCar'
+import { Check } from 'lucide-vue-next';
+import { useAuthStore } from '@/stores/AuthStore'
 
 import PageTitle from '@/components/PageTitle.vue'
 import Input from '@/components/Input.vue'
@@ -16,6 +18,7 @@ import { validate, required, isValidEmail, isTHBEmail, isValidPostalCode } from 
 import type { ValidationSchema } from "@/types/Validation"
 
 const router = useRouter()
+const authStore = useAuthStore();
 const { getUserMe, getCurrentUserLocation, postUpdateUserData, uploadProfileImage, getProfileImageUrl } = useUser()
 const { getUserCarsData } = useCar()
 const { showToast } = useToaster()
@@ -57,6 +60,7 @@ const profileSchema: ValidationSchema = {
 }
 
 const errors = ref<Record<string, string[]>>({})
+const loading = ref(false)
 
 const handleCarSelect = (car: CarGet) => {
   router.push(`/profile/edit-car/${car.id}`)
@@ -116,7 +120,7 @@ const loadUserData = async () => {
       country.value = location.country
     }
 
-    const imgUrl = await getProfileImageUrl()
+    const imgUrl = await getProfileImageUrl(authStore.userId)
     profileImage.value = imgUrl ?? ""
 
     userCars.value = await getUserCarsData()
@@ -127,6 +131,7 @@ const loadUserData = async () => {
 }
 
 const saveProfile = async () => {
+  loading.value = true
   const values = {
     firstName: firstName.value,
     lastName: lastName.value,
@@ -143,6 +148,7 @@ const saveProfile = async () => {
   if (Object.keys(result).length > 0) {
     errors.value = result
     showToast('error', 'Bitte überprüfe deine Eingaben.')
+    loading.value = false
     return
   }
 
@@ -174,6 +180,7 @@ const saveProfile = async () => {
   }
 
   router.push('/profile')
+  loading.value = false
 }
 
 onMounted(() => {
@@ -183,7 +190,7 @@ onMounted(() => {
 
 
 <template>
-  <div class="view-container">
+  <div class="view-container padding-bottom-hb-1">
     <PageTitle :goBack="true">Profil bearbeiten</PageTitle>
 
     <div class="profile-picture-section">
@@ -218,15 +225,19 @@ onMounted(() => {
     </div>
 
     <div class="form-container">
-      <h2>Auto</h2>
+      <h2>{{ userCars.length > 1 ? "Autos" : "Auto" }}</h2>
       <div
         v-for="car in userCars"
         :key="car.id"
-        class="car-entry"
+        class="car-item-container"
         @click="() => handleCarSelect(car)"
       >
-        <p class="car-license">{{ car.license_plate }}</p>
-        <p class="car-model">{{ car.brand }} {{ car.model }} | {{ car.n_seats }} Sitzplätze</p>
+        <p class="text-s text-neutral-400">{{ car.license_plate }}</p>
+        <div class="car-info-container">
+          <p class="text-md text-neutral-900">
+            {{ car.brand }} {{ car.model }} | {{ car.n_seats }} Sitzplätze
+          </p>
+        </div>
       </div>
       <Button variant="secondary" @click="addCar">Auto hinzufügen</Button>
     </div>
@@ -242,24 +253,20 @@ onMounted(() => {
         />
       </div>
       <div v-else class="license-info">
-        ✅ Führerschein hinterlegt
+        <component :is="Check" class="icon-md text-primary"/>
+        <p class="margin-left-md">
+          Führerschein hinterlegt
+        </p>
       </div>
     </div>
 
     <div class="form-container">
-      <HoverButton :buttons="[{ variant: 'primary', text: 'Speichern', onClick: saveProfile }]" />
+      <HoverButton :buttons="[{ variant: 'primary', text: 'Speichern', onClick: saveProfile, loading: loading }]" />
     </div>
   </div>
 </template>
 
 <style scoped>
-.view-container {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-  padding: 0 1rem 4rem;
-}
-
 .profile-picture-section {
   display: flex;
   flex-direction: column;
@@ -270,8 +277,8 @@ onMounted(() => {
 }
 
 .profile-picture {
-  width: 100px;
-  height: 100px;
+  width: var(--profile-picture-l-dim);
+  height: var(--profile-picture-l-dim);
   border-radius: 50%;
   object-fit: cover;
 }
@@ -294,7 +301,24 @@ onMounted(() => {
   color: var(--color-support-info-500);
 }
 
+.car-item-container {
+  width: 100%;
+  padding: var(--container-padding-vertical) var(--container-padding-horizontal);
+  background-color: var(--color-neutral-100);
+  display: flex;
+  flex-direction: column;
+  border-left: var(--line-width-m) solid var(--color-neutral-400);
+}
+
+.car-info-container {
+  display: flex;
+  flex-direction: row;
+}
+
 .license-info {
-  font-weight: bold;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
 }
 </style>

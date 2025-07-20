@@ -2,7 +2,6 @@
 import Input from '@/components/Input.vue'
 import HoverButton from '@/components/HoverButton.vue'
 import PageTitle from '@/components/PageTitle.vue'
-import type { ButtonProps } from '@/types/Props'
 import { ref } from 'vue'
 import { useCar } from '@/composables/useCar'
 import router from '@/router'
@@ -15,6 +14,7 @@ import {
   isValidLicensePlate
 } from '@/services/validation'
 import type { ValidationSchema } from '@/types/Validation'
+const loading = ref(false);
 
 // Car logic
 const { getEmptyCarCreate, createCar } = useCar()
@@ -39,18 +39,17 @@ const tryCreateCar = async (): Promise<void> => {
   errors.value = validate(carCreate as Record<string, string>, carCreateValidationSchema)
   if (Object.keys(errors.value).length > 0) return
 
+  loading.value = true;
   await createCar(carCreate)
+  loading.value = false;
   router.push('/profile/edit') // Ziel nach dem Anlegen
 }
 
 // Buttons
-const buttons: ButtonProps[] = [
-  { variant: 'primary', text: 'Speichern', onClick: tryCreateCar }
-]
 </script>
 
 <template>
-  <div class="view-container">
+  <div class="view-container padding-bottom-hb-1">
     <PageTitle :goBack="true">Auto hinzufügen</PageTitle>
 
     <div class="form-container">
@@ -93,18 +92,11 @@ const buttons: ButtonProps[] = [
       />
     </div>
 
-    <HoverButton :buttons="buttons" />
+    <HoverButton :buttons="[{ variant: 'primary', text: 'Speichern', onClick: tryCreateCar, loading: loading}]" />
   </div>
 </template>
 
 <style scoped>
-.view-container {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-  padding: 0 1rem 4rem;
-}
-
 .form-container {
   display: flex;
   flex-direction: column;

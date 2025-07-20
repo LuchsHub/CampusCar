@@ -9,15 +9,22 @@ import Signup_2_Car from '@/views/Auth/Signup_2_Car.vue';
 import Signup_3_DriversLicense from '@/views/Auth/Signup_3_DriversLicense.vue';
 
 import Home from '@/views/Home.vue';
+import RideRequest from '@/views/RideRequest.vue';
 
 import MyRides from '@/views/Rides/MyRides.vue';
 import MyRideDetails from '@/views/Rides/MyRideDetails.vue';
+import MyRideCodriver from '@/views/Rides/MyRideCodriver.vue';
+import MyBookedRideDetails from '@/views/Rides/MyBookedRideDetails.vue';
 import CreateRide from '@/views/Rides/CreateRide.vue';
 
 import Profile from '@/views/Profile.vue';
 import ProfileEdit from '@/views/ProfileEdit.vue';
 import AddCar from '@/views/AddCar.vue';
 import EditCar from '@/views/EditCar.vue';
+
+import ChargeBalance from '@/views/ChargeBalance.vue';
+
+import RedeemBonus from '@/views/RedeemBonus.vue';
 
 import Styles from '@/views/Styles.vue';
 
@@ -82,6 +89,13 @@ const routes: RouteRecordRaw[] = [
     component: Home,
     beforeEnter: requireAuthentication(),
   },
+  //Request Ride
+  {
+    path: '/home/ride-request',
+    name: 'RideRequest',
+    component: RideRequest,
+    beforeEnter: requireAuthentication(),
+  },
   
   // Meine Fahrten
   {
@@ -91,9 +105,21 @@ const routes: RouteRecordRaw[] = [
     beforeEnter: requireAuthentication(),
   },
   {
+    path: '/booked_ride/details',
+    name: 'myBookedRideDetails',
+    component: MyBookedRideDetails,
+    beforeEnter: requireAuthentication(),
+  },
+  {
     path: '/my_ride/details',
     name: 'myRideDetails',
     component: MyRideDetails,
+    beforeEnter: requireAuthentication(),
+  },
+  {
+    path: '/my_ride/details/codriver',
+    name: 'myRideCodriver',
+    component: MyRideCodriver,
     beforeEnter: requireAuthentication(),
   },
   {
@@ -129,6 +155,18 @@ const routes: RouteRecordRaw[] = [
     path: '/profile/edit-car/:id',
     name: 'EditCar',
     component: EditCar,
+    beforeEnter: requireAuthentication(),
+  },
+  {
+    path: '/profile/balance',
+    name: 'ChargeBalance',
+    component: ChargeBalance,
+    beforeEnter: requireAuthentication(),
+  },
+  {
+    path: '/profile/bonus/redeem',
+    name: 'RedeemBonus',
+    component: RedeemBonus,
     beforeEnter: requireAuthentication(),
   },
 

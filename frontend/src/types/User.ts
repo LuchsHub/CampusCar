@@ -22,7 +22,7 @@ export interface UserUpdate extends Record<string, string | boolean | LocationCr
   has_license?: boolean
 }
 
-export interface UserGet extends Record<string, string | boolean | LocationGetDto | null> {
+export interface UserGet extends Record<string, string | boolean | LocationGetDto | number | null> {
   id: string
   email: string
   is_active: boolean
@@ -31,7 +31,11 @@ export interface UserGet extends Record<string, string | boolean | LocationGetDt
   last_name: string
   user_name: string
   has_license: boolean
+  avg_rating: number
   location: LocationGetDto | null
+  rating: number
+  cash: number
+  points: number
 }
 
 export interface CurrentUser {
@@ -41,5 +45,11 @@ export interface CurrentUser {
   last_name: string
   email: string
   avatar_url?: string
-  rating: number
+  avg_rating: number
+}
+
+export interface CodriverDto extends Record<string, string | number> {
+  first_name: string
+  last_name: string
+  avg_rating: number
 }

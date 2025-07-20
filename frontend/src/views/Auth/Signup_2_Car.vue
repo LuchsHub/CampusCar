@@ -2,7 +2,6 @@
 import Input from '@/components/Input.vue';
 import HoverButton from '@/components/HoverButton.vue';
 import PageTitle from '@/components/PageTitle.vue';
-import type { ButtonProps } from '@/types/Props';
 import { ref } from 'vue';
 import { required, validate, smallerThan, largerThan, isValidLicensePlate } from '@/services/validation'
 import type { ValidationSchema } from '@/types/Validation';
@@ -24,6 +23,7 @@ const carCreateValidationSchema: ValidationSchema = {
   color: [required('Farbe')],
 }
 const errors = ref<Record<string, string[]>>({})
+const loading = ref<boolean>(false);
 
 
 // functions
@@ -34,16 +34,11 @@ const tryCreateCar = async (): Promise<void> => {
     return
   }
 
+  loading.value = true;
   await createCar(carCreate);
+  loading.value = false;
   router.push('/signup/drivers_license');
 }
-
-// components
-const hoverButtons: ButtonProps[] = [
-  {variant: "primary", text: "Nächster Schritt", onClick: tryCreateCar},
-  {variant: "tertiary", text: "Später", to: "/signup/drivers_license"},
-]
-
 </script>
 
 <template>
@@ -76,7 +71,7 @@ const hoverButtons: ButtonProps[] = [
       />
       <Input 
         type="number"
-        label="Anzahl Sitzplätze" 
+        label="Anzahl Sitzplätze (inkl. Fahrer)" 
         v-model="carCreate.n_seats"
         :min="2"
         :max="20"
@@ -90,6 +85,9 @@ const hoverButtons: ButtonProps[] = [
       />
     </div>
 
-    <HoverButton :buttons="hoverButtons"/>
+    <HoverButton :buttons='[
+      {variant: "primary", text: "Nächster Schritt", onClick: tryCreateCar, loading: loading},
+      {variant: "tertiary", text: "Später", to: "/signup/drivers_license"}]'
+    />
   </div>
 </template>

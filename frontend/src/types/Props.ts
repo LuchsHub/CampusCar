@@ -1,17 +1,20 @@
+import type { BonusGet } from "./Bonus"
 import type { CarGet } from "./Car"
-import type { CodriveGetDto } from "./Codrive"
+import type { CodriveGetDto, RequestedCodriveGetDto } from "./Codrive"
 import type { LocationGetDto } from "./Location"
-import type { RideGetDto } from "./Ride"
+import type { RideGetDto, RideState } from "./Ride"
 
 export interface PageTitleProps {
   goBack?: boolean
 }
 export interface ButtonProps {
   variant: 'primary' | 'secondary' | 'tertiary'
+  disabled?: boolean
   color?: 'danger'
   to?: string 
   text?: string
   onClick?: () => void
+  loading?: boolean;
 }
 
 export interface HoverButtonProps {
@@ -44,15 +47,48 @@ export interface LocationItemProps {
   location: LocationGetDto
   arrival_time: string
   arrival_date?: string
+  updated_arrival_time?: string
   user?: {
     first_name: string
     last_name: string
+    id?: string
   }
 }
 
-// TODO: maybe you can make the attributes a bit more fine-grained. I dont think we need every attribute of Codrive
 export interface CodriveCardProps { 
-  codrive_accepted: boolean
-  codrive: CodriveGetDto
+  codrive?: CodriveGetDto
+  requested_codrive?: RequestedCodriveGetDto
   seat_no?: number
+  ride_state?: RideState
+}
+
+export interface InformationItemProps {
+  type: "availableSeats" | "bookedSeats" | "pointReward" | "pointCost" | "message"
+  value: string | number | undefined
+}
+
+export interface ProfileCardProps {
+  profile_picture: string | undefined
+  first_name: string
+  last_name: string
+  avg_rating: number
+}
+
+export interface RatingModalProps {
+  open: boolean
+  driver_first_name: string
+  cost: number
+}
+
+export interface ConfirmDeleteModalProps {
+  open: boolean
+  subject: string
+  requiresTextConfirmation: boolean
+}
+
+export interface BonusCardProps {
+  bonus: BonusGet
+  isRedeemed: boolean
+  selected?: boolean
+  count?: number
 }

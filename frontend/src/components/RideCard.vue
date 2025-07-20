@@ -3,12 +3,12 @@ import type { RideCardProps } from '@/types/Props';
 import { computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { Users, Car } from 'lucide-vue-next';
-import { useRideStore } from '@/stores/RideStore';
+import { useMyRideStore } from '@/stores/MyRideStore';
 import { formatTime, formatDate } from '@/services/utils';
 
 const props = defineProps<RideCardProps>();
 const router = useRouter();
-const rideStore = useRideStore();
+const myRideStore = useMyRideStore();
 
 const stateInfo = computed(() => {
   switch (props.ride.state) {
@@ -18,18 +18,32 @@ const stateInfo = computed(() => {
       return { message: 'Noch nicht akzeptiert', infoTextClass: 'text-warning' , standardTextClass: 'text-neutral-400'}
     case 'accepted':
       return { message: 'Angenommen', infoTextClass: 'text-success', standardTextClass: 'text-neutral-900'}
-    case 'rejected':
-      return { message: 'Abgelehnt', infoTextClass: 'text-danger', standardTextClass: 'text-neutral-400 text-strikethrough'}
-    case 'payment outstanding':
+    case 'payment not requested yet (codriver)':
+      return { message: 'Zahlung noch nicht angefordert', infoTextClass: 'text-warning', standardTextClass: 'text-neutral-400'}
+    case 'payment outstanding (codriver)':
       return { message: 'Zahlung ausstehend', infoTextClass: 'text-danger', standardTextClass: 'text-neutral-400'}
+    case 'request payment (driver)':
+      return { message: 'Jetzt Zahlung anfordern', infoTextClass: 'text-info', standardTextClass: 'text-neutral-400'}
+    case 'payment requested (driver)':
+      return { message: '', infoTextClass: '', standardTextClass: 'text-neutral-400'}
+    case 'finished':
+      return { message: '', infoTextClass: '', standardTextClass: 'text-neutral-400'}
     default:
       return { message: '', infoTextClass: ''}
   }
 })
 
 const goToRideDetailsScreen = () => {
-  rideStore.setRide(props.ride);
-  router.push({ name: 'myRideDetails' });
+  if (props.ride.type === 'own') {
+    myRideStore.setRide(props.ride);
+    router.push({ name: 'myRideDetails' });
+  } else if (props.ride.type === 'booked' && ['accepted', 'payment outstanding (codriver)', 'payment not requested yet (codriver)'].includes(props.ride.state)) {
+    myRideStore.setBookedRide(props.ride);
+    router.push({ name: 'myBookedRideDetails' });
+  }else if (props.ride.type === 'other'){
+    myRideStore.setRide(props.ride);
+    router.push({ name: 'RideRequest' });
+  }
 }
 </script>
 
@@ -41,7 +55,7 @@ const goToRideDetailsScreen = () => {
 
   <!-- display either icon if type="own" | "booked" or image if type="other" -->
   <img v-if="props.ride.type === 'other'" :src="props.ride.image" alt="Profilbild" class="profile-picture"/>
-  <component v-else-if="props.ride.type === 'own'" :is="Car" class="icon-xl" :class="stateInfo.standardTextClass" />
+  <component v-else-if="props.ride.type === 'own'" :is="Car" class="icon-xl" :class="stateInfo.standardTextClass"/>
   <component v-else :is="Users" class="icon-xl" :class="stateInfo.standardTextClass" />
 
   <div class="ride-card-content">
@@ -56,11 +70,11 @@ const goToRideDetailsScreen = () => {
     <p v-if="props.ride.type === 'other'" class="text-s text-bold">
       {{ props.ride.n_available_seats }} Plätze frei
     </p>
-    <p v-else-if="props.ride.type === 'own'" class="text-s text-bold">
+    <p v-else-if="props.ride.type === 'own'" class="text-s text-bold" :class="stateInfo.standardTextClass">
       + {{ props.ride.point_reward }} Punkte
     </p>
-    <p v-else-if="props.ride.type === 'booked' && props.ride.state === 'accepted'" class="text-s text-bold">
-      - {{ props.ride.point_cost }} Punkte
+    <p v-else-if="props.ride.type === 'booked' && ['accepted', 'payment outstanding (codriver)', 'payment not requested yet (codriver)', 'finished'].includes(props.ride.state)" class="text-s text-bold" :class="stateInfo.standardTextClass">
+      - {{ (Number(props.ride.point_cost)/100).toFixed(2) }} €
     </p>
 
     <!-- Display custom message depending on state of the ride -->

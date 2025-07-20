@@ -40,6 +40,8 @@
   --nav-min-height: 85px; /* minimal height of the bottom tab navigation bar */
   --hover-button-nav-margin: 40px;
   --hover-button-width-percentage: 80;
+  --toast-margin-top: 40px;
+  --toast-max-width: 80%;
 
   /* Font */
   --text-line-height: 0.85;
@@ -48,6 +50,8 @@
   --font-weight-semibold: 500;
   --font-weight-bold: 600;
 
+  --font-size-xxl: 52px;
+  --font-size-xl: 26px;
   --font-size-l: 20px;
   --font-size-md: 18px;
   --font-size-s: 16px;
@@ -145,10 +149,21 @@ body {
   width: 100%;
 }
 
+/* container for input fields */
 .form-container {
   width: 100%;
   display: flex;
   flex-direction: column;
+  gap: var(--horizontal-gap)
+}
+
+/* Container for left-aligned items */
+.component-list {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  width: 100%;
   gap: var(--horizontal-gap)
 }
 
@@ -216,6 +231,12 @@ a {
 }
 
 /* Text font sizes */
+.text-xxl {
+  font-size: var(--font-size-xxl)
+}
+.text-xl {
+  font-size: var(--font-size-xl)
+}
 .text-l {
   font-size: var(--font-size-l)
 }
@@ -271,10 +292,16 @@ a {
   color: var(--color-support-positive-500)
 }
 
+.center-text {
+  margin-left: auto;
+  margin-right: auto;
+}
+
 /* ICONS */
 .icon-xl {
   height: var(--icon-xl);
   width: var(--icon-xl);
+  min-width: var(--icon-xl);
 }
 .icon-l {
   height: var(--icon-md);
@@ -283,10 +310,12 @@ a {
 .icon-s {
   height: var(--icon-s);
   width: var(--icon-s);
+  min-width: var(--icon-s);
 }
 .icon-xs {
   height: var(--icon-xs);
   width: var(--icon-xs);
+  min-width: var(--icon-xs);
 }
 
 .icon-info {
@@ -309,6 +338,12 @@ a {
 .margin-top-s {
   margin-top: 5px;
 }
+.margin-top-m {
+  margin-top: 10px;
+}
+.margin-top-l {
+  margin-top: 20px;
+}
 
 /* LEFT */
 .margin-left-s {
@@ -324,14 +359,46 @@ a {
 }
 
 /* BOTTOM */
-.margin-botton-s {
+.margin-bottom-s {
   margin-bottom: 5px;
 }
 
-.margin-botton-md {
+.margin-bottom-md {
   margin-bottom: 10px;
 }
 
 .margin-botton-l {
   margin-bottom: 20px;
+}
+.margin-bottom-xl {
+  margin-bottom: 40px;
+}
+.margin-bottom-xxl {
+  margin-bottom: 80px;
+}
+
+.v--default-css .c-toast {
+  padding: var(--button-padding-vertical) var(--button-padding-horizontal);
+  font-family: Author;
+  font-size: var(--font-size-md);
+  color: var(--color-neutral-100);
+  margin: var(--toast-margin-top) 0 0 0;
+  font-weight: var(--font-weight-normal);
+  line-height: var(--text-line-height);
+  max-width: var(--toast-max-width);
+}
+
+.v--default-css .c-toast--success {
+  background-color: var(--color-support-positive-500);
+  box-shadow: 0 1px 10px var(--color-support-positive-500-transparent);
+}
+
+.v--default-css .c-toast--info {
+  background-color: var(--color-support-info-500);
+  box-shadow: 0 1px 10px var(--color-support-info-500-transparent);
+}
+
+.v--default-css .c-toast--error {
+  background-color: var(--color-support-danger-500);
+  box-shadow: 0 1px 10px var(--color-support-danger-500-transparent);
 }
