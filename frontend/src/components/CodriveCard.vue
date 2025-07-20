@@ -8,9 +8,6 @@ const props = defineProps<CodriveCardProps>();
 const myRideStore = useMyRideStore();
 
 const goToMyRideCodriverScreen = async () => {
-  if (!props.codrive && !props.requested_codrive) {
-    return;
-  }
 
   if (!props.requested_codrive) {
     return;
@@ -28,8 +25,11 @@ const goToMyRideCodriverScreen = async () => {
   @click="goToMyRideCodriverScreen"
 >
     <div class="codrive-card-content">
-        <p class="text-neutral-400" :class="{'text-info': props.requested_codrive}">Platz {{ props.seat_no }}</p>
-        <p v-if="props.codrive" class="text-md">{{ props.codrive.user.first_name }} {{ props.codrive?.user.last_name }}</p>
+        <p class="text-neutral-400" :class="{'text-info': props.requested_codrive}">Mitfahrer:in {{ props.seat_no }}</p>
+        <div v-if="props.codrive" class="codrive-passenger-container">
+          <p class="text-md">{{ props.codrive.user.first_name }} {{ props.codrive?.user.last_name }}</p>
+          <p class="text-s text-semibold">{{ props.codrive?.n_passengers }} {{ props.codrive?.n_passengers > 1 ? "Plätze" : "Platz" }}</p>
+        </div>
         <p v-else-if="props.requested_codrive" class="text-md">Anfrage ausstehend </p>
         <p v-else class="text-md">-</p>
     </div>
@@ -57,6 +57,13 @@ const goToMyRideCodriverScreen = async () => {
     flex-direction: column;
     justify-content: flex-start;
     align-items: flex-start;
+  }
+
+  .codrive-passenger-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    width: 100%;
   }
 
   .new-request-container{
