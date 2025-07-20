@@ -34,9 +34,9 @@ export function useRide() {
     } else if (!checkIfRideIsOver(arrivalDate, arrivalTime)) {
       return "accepted";
     } else if (!paid && !completed) {
-      return "payment not requested yet";
+      return "payment not requested yet (codriver)";
     } else if (!paid && completed) {
-      return "payment outstanding";
+      return "payment outstanding (codriver)";
     } else {
       return "finished";
     }
@@ -46,9 +46,9 @@ export function useRide() {
     if (requestedCodrives.length > 0) {
       return "new request";
     } else if (checkIfRideIsOver(arrivalDate, arrivalTime) && !completed) {
-      return "request payment";
+      return "request payment (driver)";
     } else if (checkIfRideIsOver(arrivalDate, arrivalTime) && completed) {
-      return "payment requested";
+      return "payment requested (driver)";
     } else {
       return "default"
     }
@@ -268,6 +268,7 @@ export function useRide() {
     getRideById,
     deleteRide,
     getBookedRidesForUser,
-    markRideAsCompleted
+    markRideAsCompleted,
+    checkIfRideIsOver
   }
 }

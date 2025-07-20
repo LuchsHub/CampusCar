@@ -42,7 +42,7 @@ export interface RideGet extends Record<string, string | number | LocationGetDto
   completed: boolean,
 }
 
-export type RideState = "default" | "new request" | "accepted" | "not accepted yet" | "request payment" | "payment not requested yet" | "payment requested" | "payment outstanding" | "finished";
+export type RideState = "default" | "new request" | "accepted" | "not accepted yet" | "request payment (driver)" | "payment not requested yet (codriver)" | "payment requested (driver)" | "payment outstanding (codriver)" | "finished";
 
 export interface RideGetDto extends Record<string, string | number | number[][] | LocationGetDto | RequestedCodriveGetDto[] | CodriveGetDto[] | boolean | undefined | UserGet | RideState> {
   id: string

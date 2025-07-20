@@ -106,14 +106,14 @@ const onCancelRating = () => {
         type=pointCost
         :value=(Number(myRideStore.bookedRide?.point_cost)/100).toFixed(2)
       />
-      <div v-if="myRideStore.bookedRide?.state === 'payment not requested yet'" class="margin-botton-l error-message-container">
+      <div v-if="myRideStore.bookedRide?.state === 'payment not requested yet (codriver)'" class="margin-botton-l error-message-container">
       <p class="text-danger">Du kannst die Fahrt noch nicht bezahlen, da der Fahrer die Zahlung noch nicht angefordert hat.</p>
     </div>
     </div>
 
-    <HoverButton v-if="myRideStore.bookedRide?.state !== 'finished'" :buttons='[
-      myRideStore.bookedRide?.state === "payment outstanding" || myRideStore.bookedRide?.state === "payment not requested yet"
-      ? {variant: "primary", onClick: onRequestPayment, text: "Mitfahrt bezahlen", disabled: myRideStore.bookedRide?.state === "payment not requested yet", loading: loading}
+    <HoverButton v-if="myRideStore.bookedRide && myRideStore.bookedRide.state !== 'finished'" :buttons='[
+      ["payment outstanding (codriver)", "payment not requested yet (codriver)"].includes(myRideStore.bookedRide.state)
+      ? {variant: "primary", onClick: onRequestPayment, text: "Mitfahrt bezahlen", disabled: myRideStore.bookedRide?.state === "payment not requested yet (codriver)", loading: loading}
       : {variant: "primary", color: "danger", onClick: onRequestDelete, text: "Mitfahrt absagen", loading: loading}]'
     />
   </div>
