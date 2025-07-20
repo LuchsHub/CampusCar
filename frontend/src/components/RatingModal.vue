@@ -91,5 +91,6 @@ const getStarIcons = () => {
 .modal-actions {
   display: flex;
   flex-direction: column;
+  gap: var(--horizontal-gap);
 }
 </style>

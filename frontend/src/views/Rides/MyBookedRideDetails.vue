@@ -132,6 +132,8 @@ const onCancelRating = () => {
   </div>
   <ConfirmDeleteModal
     :open="showDeleteModal"
+    subject="Mitfahrt"
+    :requiresTextConfirmation="false"
     @confirm="onConfirmCodriveDelete"
     @cancel="onCancelDelete"
   />

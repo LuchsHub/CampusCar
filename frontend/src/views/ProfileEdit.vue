@@ -225,15 +225,19 @@ onMounted(() => {
     </div>
 
     <div class="form-container">
-      <h2>Auto</h2>
+      <h2>{{ userCars.length > 1 ? "Autos" : "Auto" }}</h2>
       <div
         v-for="car in userCars"
         :key="car.id"
-        class="car-entry"
+        class="car-item-container"
         @click="() => handleCarSelect(car)"
       >
-        <p class="car-license">{{ car.license_plate }}</p>
-        <p class="car-model">{{ car.brand }} {{ car.model }} | {{ car.n_seats }} Sitzplätze</p>
+        <p class="text-s text-neutral-400">{{ car.license_plate }}</p>
+        <div class="car-info-container">
+          <p class="text-md text-neutral-900">
+            {{ car.brand }} {{ car.model }} | {{ car.n_seats }} Sitzplätze
+          </p>
+        </div>
       </div>
       <Button variant="secondary" @click="addCar">Auto hinzufügen</Button>
     </div>
@@ -295,6 +299,20 @@ onMounted(() => {
 
 .text-info {
   color: var(--color-support-info-500);
+}
+
+.car-item-container {
+  width: 100%;
+  padding: var(--container-padding-vertical) var(--container-padding-horizontal);
+  background-color: var(--color-neutral-100);
+  display: flex;
+  flex-direction: column;
+  border-left: var(--line-width-m) solid var(--color-neutral-400);
+}
+
+.car-info-container {
+  display: flex;
+  flex-direction: row;
 }
 
 .license-info {

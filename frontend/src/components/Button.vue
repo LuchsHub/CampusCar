@@ -7,9 +7,10 @@
     const buttonClasses = computed(() => {
       const classes = ['button']
       classes.push(`button-${props.variant}`) // Add variant class
-      classes.push(`button-${props.color}`) // Add color class
       if (props.disabled) {
         classes.push('button-disabled')
+      } else {
+        classes.push(`button-${props.color}`) // Add color class
       }
       return classes.join(' ')
     })

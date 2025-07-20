@@ -175,6 +175,8 @@ onMounted(() => {
     </div>
     <ConfirmDeleteModal
       :open="showDeleteConfirm"
+      subject="Konto"
+      :requiresTextConfirmation="true"
       @cancel="showDeleteConfirm = false"
       @confirm="deleteAccount"
     />

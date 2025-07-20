@@ -31,26 +31,26 @@ const driver = computed(() => rideStore.ride?.driver)
 
 if (!ride.value) router.push({ name: 'home' })
 
-const isRecurring = ref(false)
-const selectedDays = ref<string[]>([])
+// const isRecurring = ref(false)
+// const selectedDays = ref<string[]>([])
 
-const weekdays = [
-  { key: 'mo', label: 'Mo' },
-  { key: 'di', label: 'Di' },
-  { key: 'mi', label: 'Mi' },
-  { key: 'do', label: 'Do' },
-  { key: 'fr', label: 'Fr' },
-  { key: 'sa', label: 'Sa' },
-  { key: 'so', label: 'So' }
-]
+// const weekdays = [
+//   { key: 'mo', label: 'Mo' },
+//   { key: 'di', label: 'Di' },
+//   { key: 'mi', label: 'Mi' },
+//   { key: 'do', label: 'Do' },
+//   { key: 'fr', label: 'Fr' },
+//   { key: 'sa', label: 'Sa' },
+//   { key: 'so', label: 'So' }
+// ]
 
-function toggleDay(dayKey: string) {
-  if (selectedDays.value.includes(dayKey)) {
-    selectedDays.value = selectedDays.value.filter(d => d !== dayKey)
-  } else {
-    selectedDays.value.push(dayKey)
-  }
-}
+// function toggleDay(dayKey: string) {
+//   if (selectedDays.value.includes(dayKey)) {
+//     selectedDays.value = selectedDays.value.filter(d => d !== dayKey)
+//   } else {
+//     selectedDays.value.push(dayKey)
+//   }
+// }
 
 const rideLocationItems = computed<LocationItemProps[]>(() => {
   if (!ride.value) return []
@@ -254,7 +254,7 @@ onMounted(async () => {
       />
   
       <!-- Wiederholte Mitfahrt Checkbox -->
-      <div class="repeat-block">
+      <!-- <div class="repeat-block">
         <label class="repeat-checkbox">
           <input type="checkbox" v-model="isRecurring" />
           <span>Wiederholte Mitfahrt</span>
@@ -272,7 +272,7 @@ onMounted(async () => {
             <span>{{ day.label }}</span>
           </div>
         </div>
-      </div>
+      </div> -->
     </div>
 
 
