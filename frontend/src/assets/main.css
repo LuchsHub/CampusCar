@@ -292,6 +292,11 @@ a {
   color: var(--color-support-positive-500)
 }
 
+.center-text {
+  margin-left: auto;
+  margin-right: auto;
+}
+
 /* ICONS */
 .icon-xl {
   height: var(--icon-xl);

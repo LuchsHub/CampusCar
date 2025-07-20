@@ -73,10 +73,3 @@ const onChargeBalance = async () => {
     />
   </div>
 </template>
-
-<style scoped>
-.center-text {
-  margin-left: auto;
-  margin-right: auto;
-}
-</style>

@@ -16,7 +16,7 @@ const router = useRouter();
 const myRideStore = useMyRideStore();
 
 const { showToast } = useToaster();
-const { deleteRide, markRideAsCompleted } = useRide();
+const { deleteRide, markRideAsCompleted, getRideById } = useRide();
 
 const showDeleteModal = ref<boolean>(false);
 const loading = ref<boolean>(false);
@@ -63,9 +63,13 @@ const onRequestPayment = async () => {
     if (!myRideStore.ride) throw Error("Ride is not available in pinia");
 
     loading.value = true;
-    await markRideAsCompleted(myRideStore.ride?.id);
+    await markRideAsCompleted(myRideStore.ride.id);
 
-    showToast('success', 'Zahlung angefordert')
+    const updatedRide = await getRideById(myRideStore.ride.id);
+    myRideStore.setRide(updatedRide);
+
+    showToast('success', 'Zahlung angefordert');
+    router.go(-1);
   } catch (error: unknown) {
     console.log(error);
   } finally {
