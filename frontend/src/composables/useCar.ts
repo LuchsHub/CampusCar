@@ -79,7 +79,11 @@ export function useCar() {
       showToast('success', 'Auto wurde gelöscht.')
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
-        showToast('error', 'Fehler beim Löschen des Autos.')
+        if (error.response?.status === 409) {
+          showToast('error', 'Dieses Auto wird bereits in einer Fahrt verwendet.');
+        } else {
+          showToast('error', 'Fehler beim Löschen des Autos.');
+        }
       } else {
         showDefaultError()
       }
