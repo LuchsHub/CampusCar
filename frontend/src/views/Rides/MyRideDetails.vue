@@ -91,8 +91,10 @@ const onRequestPayment = async () => {
     
     <h2>Mitfahrer</h2>
     <div class="component-list">
-      <CodriveCard
+      <CodriveCard 
+      v-if="myRideStore.ride"
       v-for="(item, idx) in myRideStore.requestedCodriveCardItems"
+      :ride_state="item.ride_state"
       :codrive="item.codrive"
       :requested_codrive="item.requested_codrive"
       :seat_no="idx+1"

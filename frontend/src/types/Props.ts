@@ -1,7 +1,7 @@
 import type { CarGet } from "./Car"
 import type { CodriveGetDto, RequestedCodriveGetDto } from "./Codrive"
 import type { LocationGetDto } from "./Location"
-import type { RideGetDto } from "./Ride"
+import type { RideGetDto, RideState } from "./Ride"
 
 export interface PageTitleProps {
   goBack?: boolean
@@ -58,6 +58,7 @@ export interface CodriveCardProps {
   codrive?: CodriveGetDto
   requested_codrive?: RequestedCodriveGetDto
   seat_no?: number
+  ride_state?: RideState
 }
 
 export interface InformationItemProps {

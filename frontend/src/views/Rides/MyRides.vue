@@ -29,14 +29,14 @@ const sortedRides: ComputedRef<RideGetDto[]> = computed(() => {
 
 const upcomingRides = computed<RideGetDto[]>(() =>
   sortedRides.value.filter(ride => {
-    const rideDate = new Date(`${ride.departure_date}T${ride.departure_time}`);
+    const rideDate = new Date(`${ride.arrival_date}T${ride.arrival_time}`);
     return rideDate >= new Date();
   })
 );
 
 const pastRides = computed<RideGetDto[]>(() =>
   sortedRides.value.filter(ride => {
-    const rideDate = new Date(`${ride.departure_date}T${ride.departure_time}`);
+    const rideDate = new Date(`${ride.arrival_date}T${ride.arrival_time}`);
     return rideDate < new Date();
   })
 );
