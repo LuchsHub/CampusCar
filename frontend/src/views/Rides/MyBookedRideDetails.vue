@@ -104,7 +104,7 @@ const onCancelRating = () => {
     <div class="component-list">
       <InformationItem
         type=pointCost
-        :value=myRideStore.bookedRide?.point_cost
+        :value=(Number(myRideStore.bookedRide?.point_cost)/100).toFixed(2)
       />
       <div v-if="myRideStore.bookedRide?.state === 'payment not requested yet'" class="margin-botton-l error-message-container">
       <p class="text-danger">Du kannst die Fahrt noch nicht bezahlen, da der Fahrer die Zahlung noch nicht angefordert hat.</p>

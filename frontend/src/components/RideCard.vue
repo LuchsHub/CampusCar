@@ -74,7 +74,7 @@ const goToRideDetailsScreen = () => {
       + {{ props.ride.point_reward }} Punkte
     </p>
     <p v-else-if="props.ride.type === 'booked' && ['accepted', 'payment outstanding', 'payment not requested yet', 'finished'].includes(props.ride.state)" class="text-s text-bold" :class="stateInfo.standardTextClass">
-      - {{ props.ride.point_cost }} Punkte
+      - {{ (Number(props.ride.point_cost)/100).toFixed(2) }} €
     </p>
 
     <!-- Display custom message depending on state of the ride -->

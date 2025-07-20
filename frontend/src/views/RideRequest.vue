@@ -225,7 +225,7 @@ onMounted(async () => {
     <div class="component-list">
       <InformationItem v-if="ride?.max_request_distance"
         type=pointCost
-        :value="estimatedCost"
+        :value="(estimatedCost/100).toFixed(2)"
       />
       <InformationItem
         type=availableSeats
