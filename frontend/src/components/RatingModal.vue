@@ -2,11 +2,9 @@
 import { ref } from 'vue'
 import Button from './Button.vue'
 import { Star } from 'lucide-vue-next'
+import type { RatingModalProps } from '@/types/Props';
 
-
-defineProps<{
-  open: boolean
-}>()
+const props = defineProps<RatingModalProps>()
 
 const emit = defineEmits(['cancel', 'confirm'])
 const onCancel = () => {
@@ -31,11 +29,11 @@ const getStarIcons = () => {
 </script>
 
 <template>
-  <div v-if="open" class="modal-backdrop">
+  <div v-if="props.open" class="modal-backdrop">
     <div class="modal-container">
       <p class="text-xl text-semibold margin-botton-l">Bewertung</p>
       <p class="text-md margin-bottom-xl">
-        Wie war deine Erfahrung mit Name?
+        Wie war deine Erfahrung mit {{ props.driver_first_name }}?
       </p>
 
       <div class="star-row margin-bottom-xl">
@@ -50,7 +48,7 @@ const getStarIcons = () => {
       </div>
 
       <div class="modal-actions">
-        <Button variant="primary" :onClick=onConfirm>Bezahlen</Button>
+        <Button variant="primary" :onClick=onConfirm>Bezahlen ({{ (props.cost/100).toFixed(2) }}€)</Button>
         <Button variant="tertiary" :onClick=onCancel>Abbrechen</Button>
       </div>
     </div>

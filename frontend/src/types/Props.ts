@@ -71,3 +71,9 @@ export interface ProfileCardProps {
   last_name: string
   avg_rating: number
 }
+
+export interface RatingModalProps {
+  open: boolean
+  driver_first_name: string
+  cost: number
+}
