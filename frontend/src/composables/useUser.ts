@@ -178,6 +178,17 @@ export function useUser() {
     }
   }
 
+  const getUserPoints = async (): Promise<number> => {
+    try {
+      const user = await getUserMe();
+      return user.points;
+    } catch (error: unknown) {
+      showToast('error', 'Fehler beim Abrufen der Punkte.');
+      console.log(error);
+      return 0
+    }
+  }
+
 
   return {
     getEmptyUserLogin,
@@ -193,6 +204,7 @@ export function useUser() {
     getProfileImageUrl,
     checkUserHasLicense,
     getUserBalance,
-    chargeUserBalance
+    chargeUserBalance,
+    getUserPoints
   }
 }

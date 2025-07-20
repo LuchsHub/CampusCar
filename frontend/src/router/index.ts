@@ -21,7 +21,10 @@ import Profile from '@/views/Profile.vue';
 import ProfileEdit from '@/views/ProfileEdit.vue';
 import AddCar from '@/views/AddCar.vue';
 import EditCar from '@/views/EditCar.vue';
+
 import ChargeBalance from '@/views/ChargeBalance.vue';
+
+import RedeemBonus from '@/views/RedeemBonus.vue';
 
 import Styles from '@/views/Styles.vue';
 
@@ -158,6 +161,12 @@ const routes: RouteRecordRaw[] = [
     path: '/profile/balance',
     name: 'ChargeBalance',
     component: ChargeBalance,
+    beforeEnter: requireAuthentication(),
+  },
+  {
+    path: '/profile/bonus/redeem',
+    name: 'RedeemBonus',
+    component: RedeemBonus,
     beforeEnter: requireAuthentication(),
   },
 

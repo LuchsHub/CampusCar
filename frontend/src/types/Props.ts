@@ -1,3 +1,4 @@
+import type { BonusGet } from "./Bonus"
 import type { CarGet } from "./Car"
 import type { CodriveGetDto, RequestedCodriveGetDto } from "./Codrive"
 import type { LocationGetDto } from "./Location"
@@ -77,4 +78,11 @@ export interface RatingModalProps {
   open: boolean
   driver_first_name: string
   cost: number
+}
+
+export interface BonusCardProps {
+  bonus: BonusGet
+  isRedeemed: boolean
+  selected?: boolean
+  count?: number
 }
