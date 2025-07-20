@@ -16,7 +16,7 @@ const router = useRouter();
 const myRideStore = useMyRideStore();
 
 const { showToast } = useToaster();
-const { deleteRide, markRideAsCompleted } = useRide();
+const { deleteRide, markRideAsCompleted, getRideById } = useRide();
 
 const showDeleteModal = ref<boolean>(false);
 const loading = ref<boolean>(false);
@@ -63,9 +63,13 @@ const onRequestPayment = async () => {
     if (!myRideStore.ride) throw Error("Ride is not available in pinia");
 
     loading.value = true;
-    await markRideAsCompleted(myRideStore.ride?.id);
+    await markRideAsCompleted(myRideStore.ride.id);
 
-    showToast('success', 'Zahlung angefordert')
+    const updatedRide = await getRideById(myRideStore.ride.id);
+    myRideStore.setRide(updatedRide);
+
+    showToast('success', 'Zahlung angefordert');
+    router.go(-1);
   } catch (error: unknown) {
     console.log(error);
   } finally {
@@ -75,7 +79,7 @@ const onRequestPayment = async () => {
 </script>
 
 <template>
-  <div class="view-container " :class="{'padding-bottom-hb-1': myRideStore.ride?.state !== 'payment requested'}">
+  <div class="view-container " :class="{'padding-bottom-hb-1': myRideStore.ride?.state !== 'payment requested (driver)'}">
     <PageTitle :goBack="true">Meine Fahrt</PageTitle>
     
     <h2>Fahrtverlauf</h2>
@@ -91,8 +95,10 @@ const onRequestPayment = async () => {
     
     <h2>Mitfahrer</h2>
     <div class="component-list">
-      <CodriveCard
+      <CodriveCard 
+      v-if="myRideStore.ride"
       v-for="(item, idx) in myRideStore.requestedCodriveCardItems"
+      :ride_state="item.ride_state"
       :codrive="item.codrive"
       :requested_codrive="item.requested_codrive"
       :seat_no="idx+1"
@@ -101,7 +107,7 @@ const onRequestPayment = async () => {
     
     <h2>Informationen</h2>
     <div class="component-list">
-      <InformationItem
+      <InformationItem v-if="myRideStore.ride && !(['request payment (driver)', 'payment requested (driver)'].includes(myRideStore.ride.state))"
         type=availableSeats
         :value=myRideStore.ride?.n_available_seats
       />
@@ -111,8 +117,8 @@ const onRequestPayment = async () => {
       />
     </div>
 
-    <HoverButton v-if="myRideStore.ride?.state !== 'payment requested'" :buttons='[
-      myRideStore.ride?.state === "request payment"
+    <HoverButton v-if="myRideStore.ride?.state !== 'payment requested (driver)'" :buttons='[
+      myRideStore.ride?.state === "request payment (driver)"
         ? {variant: "primary", text: "Zahlung anfordern", onClick: onRequestPayment, loading: loading} 
         : {variant: "primary", color: "danger", text: "Löschen", onClick: onRequestDelete, loading: loading}]'
     />

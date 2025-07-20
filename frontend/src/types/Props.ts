@@ -1,7 +1,8 @@
+import type { BonusGet } from "./Bonus"
 import type { CarGet } from "./Car"
 import type { CodriveGetDto, RequestedCodriveGetDto } from "./Codrive"
 import type { LocationGetDto } from "./Location"
-import type { RideGetDto } from "./Ride"
+import type { RideGetDto, RideState } from "./Ride"
 
 export interface PageTitleProps {
   goBack?: boolean
@@ -58,6 +59,7 @@ export interface CodriveCardProps {
   codrive?: CodriveGetDto
   requested_codrive?: RequestedCodriveGetDto
   seat_no?: number
+  ride_state?: RideState
 }
 
 export interface InformationItemProps {
@@ -70,4 +72,17 @@ export interface ProfileCardProps {
   first_name: string
   last_name: string
   avg_rating: number
+}
+
+export interface RatingModalProps {
+  open: boolean
+  driver_first_name: string
+  cost: number
+}
+
+export interface BonusCardProps {
+  bonus: BonusGet
+  isRedeemed: boolean
+  selected?: boolean
+  count?: number
 }

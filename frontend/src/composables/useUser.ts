@@ -156,6 +156,39 @@ export function useUser() {
     }
   }
 
+  const getUserBalance = async (): Promise<number> => {
+    try {
+      const user = await getUserMe();
+      return user.cash;
+    } catch (error: unknown) {
+      showToast('error', 'Fehler beim Abrufen des Guthabens.');
+      console.log(error);
+      return 0
+    }
+  }
+
+  const chargeUserBalance = async (charges: number): Promise<number> => {
+    try {
+      const result = await api.post(`users/charge?charges=${charges}`);
+      const user: UserGet = result.data
+      return user.cash;
+    } catch (error: unknown) {
+      showDefaultError();
+      throw error;
+    }
+  }
+
+  const getUserPoints = async (): Promise<number> => {
+    try {
+      const user = await getUserMe();
+      return user.points;
+    } catch (error: unknown) {
+      showToast('error', 'Fehler beim Abrufen der Punkte.');
+      console.log(error);
+      return 0
+    }
+  }
+
 
   return {
     getEmptyUserLogin,
@@ -169,6 +202,9 @@ export function useUser() {
     postUpdateUserData,
     uploadProfileImage,
     getProfileImageUrl,
-    checkUserHasLicense
+    checkUserHasLicense,
+    getUserBalance,
+    chargeUserBalance,
+    getUserPoints
   }
 }

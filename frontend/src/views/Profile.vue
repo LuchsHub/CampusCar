@@ -13,7 +13,7 @@ import { useAuthStore } from '@/stores/AuthStore'
 // Lucide Icons
 import {
   Settings, Wallet, Lock, Shield,
-  LogOut, Trash2, ChevronRight, Star
+  LogOut, Trash2, ChevronRight, Star, TicketCheck
 } from 'lucide-vue-next'
 
 const router = useRouter()
@@ -69,19 +69,25 @@ const actions = [
     icon: Wallet,
     isComponent: true,
     text: 'Guthaben aufladen',
-    onClick: () => console.log('Guthaben aufladen')
+    onClick: () => router.push('/profile/balance')
+  },
+  {
+    icon: TicketCheck,
+    isComponent: true,
+    text: 'Prämien',
+    onClick: () => router.push('/profile/bonus/redeem')
   },
   {
     icon: Lock,
     isComponent: true,
     text: 'Sicherheit',
-    onClick: () => console.log('Sicherheit')
+    onClick: () => showToast('info', 'Dieses Feature ist nicht implementiert.')
   },
   {
     icon: Shield,
     isComponent: true,
     text: 'Datenschutz',
-    onClick: () => console.log('Datenschutz')
+    onClick: () => showToast('info', 'Dieses Feature ist nicht implementiert.')
   }
 ]
 

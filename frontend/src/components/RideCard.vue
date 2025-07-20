@@ -18,13 +18,13 @@ const stateInfo = computed(() => {
       return { message: 'Noch nicht akzeptiert', infoTextClass: 'text-warning' , standardTextClass: 'text-neutral-400'}
     case 'accepted':
       return { message: 'Angenommen', infoTextClass: 'text-success', standardTextClass: 'text-neutral-900'}
-    case 'payment not requested yet':
+    case 'payment not requested yet (codriver)':
       return { message: 'Zahlung noch nicht angefordert', infoTextClass: 'text-warning', standardTextClass: 'text-neutral-400'}
-    case 'payment outstanding':
+    case 'payment outstanding (codriver)':
       return { message: 'Zahlung ausstehend', infoTextClass: 'text-danger', standardTextClass: 'text-neutral-400'}
-    case 'request payment':
+    case 'request payment (driver)':
       return { message: 'Jetzt Zahlung anfordern', infoTextClass: 'text-info', standardTextClass: 'text-neutral-400'}
-    case 'payment requested':
+    case 'payment requested (driver)':
       return { message: '', infoTextClass: '', standardTextClass: 'text-neutral-400'}
     case 'finished':
       return { message: '', infoTextClass: '', standardTextClass: 'text-neutral-400'}
@@ -37,7 +37,7 @@ const goToRideDetailsScreen = () => {
   if (props.ride.type === 'own') {
     myRideStore.setRide(props.ride);
     router.push({ name: 'myRideDetails' });
-  } else if (props.ride.type === 'booked' && ['accepted', 'payment outstanding', 'payment not requested yet'].includes(props.ride.state)) {
+  } else if (props.ride.type === 'booked' && ['accepted', 'payment outstanding (codriver)', 'payment not requested yet (codriver)'].includes(props.ride.state)) {
     myRideStore.setBookedRide(props.ride);
     router.push({ name: 'myBookedRideDetails' });
   }else if (props.ride.type === 'other'){
@@ -73,8 +73,8 @@ const goToRideDetailsScreen = () => {
     <p v-else-if="props.ride.type === 'own'" class="text-s text-bold" :class="stateInfo.standardTextClass">
       + {{ props.ride.point_reward }} Punkte
     </p>
-    <p v-else-if="props.ride.type === 'booked' && ['accepted', 'payment outstanding', 'payment not requested yet', 'finished'].includes(props.ride.state)" class="text-s text-bold" :class="stateInfo.standardTextClass">
-      - {{ props.ride.point_cost }} Punkte
+    <p v-else-if="props.ride.type === 'booked' && ['accepted', 'payment outstanding (codriver)', 'payment not requested yet (codriver)', 'finished'].includes(props.ride.state)" class="text-s text-bold" :class="stateInfo.standardTextClass">
+      - {{ (Number(props.ride.point_cost)/100).toFixed(2) }} €
     </p>
 
     <!-- Display custom message depending on state of the ride -->

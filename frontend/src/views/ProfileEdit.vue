@@ -190,7 +190,7 @@ onMounted(() => {
 
 
 <template>
-  <div class="view-container">
+  <div class="view-container padding-bottom-hb-1">
     <PageTitle :goBack="true">Profil bearbeiten</PageTitle>
 
     <div class="profile-picture-section">

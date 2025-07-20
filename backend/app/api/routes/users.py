@@ -274,3 +274,23 @@ def delete_user(
     session.delete(user)
     session.commit()
     return Message(message="User deleted successfully")
+
+
+@router.post("/charge", response_model=UserPublic)
+def post_charges(session: SessionDep, current_user: CurrentUser, charges: float) -> Any:
+    """
+    Charge user's balance.
+    """
+    if not current_user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    if charges < 0:
+        raise HTTPException(status_code=400, detail="Negative charges")
+
+    current_user.cash = current_user.cash + charges
+
+    session.add(current_user)
+    session.commit()
+    session.refresh(current_user)
+
+    return current_user

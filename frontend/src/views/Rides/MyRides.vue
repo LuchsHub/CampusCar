@@ -29,14 +29,14 @@ const sortedRides: ComputedRef<RideGetDto[]> = computed(() => {
 
 const upcomingRides = computed<RideGetDto[]>(() =>
   sortedRides.value.filter(ride => {
-    const rideDate = new Date(`${ride.departure_date}T${ride.departure_time}`);
+    const rideDate = new Date(`${ride.arrival_date}T${ride.arrival_time}`);
     return rideDate >= new Date();
   })
 );
 
 const pastRides = computed<RideGetDto[]>(() =>
   sortedRides.value.filter(ride => {
-    const rideDate = new Date(`${ride.departure_date}T${ride.departure_time}`);
+    const rideDate = new Date(`${ride.arrival_date}T${ride.arrival_time}`);
     return rideDate < new Date();
   })
 );
@@ -55,15 +55,17 @@ const pastRides = computed<RideGetDto[]>(() =>
           />
           <hr v-if="index < upcomingRides.length - 1" />
         </template>
+        <p v-if="upcomingRides.length === 0" class="text-semibold">Du hast im Moment keine anstehenden Fahrten.</p>
       </div>
-    
+      
       <div v-else class="width-100">
         <template v-for="(ride, index) in pastRides" :key="ride.id">
           <RideCard
-            :ride="ride"
+          :ride="ride"
           />
           <hr v-if="index < pastRides.length - 1" />
         </template>
+        <p v-if="pastRides.length === 0" class="text-semibold">Du hast noch keine vergangenen Fahrten.</p>
       </div>
     <HoverButton :buttons='[{variant: "primary", text: "Fahrt anbieten", to: "create_ride"}]'/>
   </div>

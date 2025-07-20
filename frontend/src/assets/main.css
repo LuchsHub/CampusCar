@@ -50,6 +50,7 @@
   --font-weight-semibold: 500;
   --font-weight-bold: 600;
 
+  --font-size-xxl: 52px;
   --font-size-xl: 26px;
   --font-size-l: 20px;
   --font-size-md: 18px;
@@ -230,6 +231,9 @@ a {
 }
 
 /* Text font sizes */
+.text-xxl {
+  font-size: var(--font-size-xxl)
+}
 .text-xl {
   font-size: var(--font-size-xl)
 }
@@ -288,6 +292,11 @@ a {
   color: var(--color-support-positive-500)
 }
 
+.center-text {
+  margin-left: auto;
+  margin-right: auto;
+}
+
 /* ICONS */
 .icon-xl {
   height: var(--icon-xl);
@@ -329,6 +338,12 @@ a {
 .margin-top-s {
   margin-top: 5px;
 }
+.margin-top-m {
+  margin-top: 10px;
+}
+.margin-top-l {
+  margin-top: 20px;
+}
 
 /* LEFT */
 .margin-left-s {
@@ -357,6 +372,9 @@ a {
 }
 .margin-bottom-xl {
   margin-bottom: 40px;
+}
+.margin-bottom-xxl {
+  margin-bottom: 80px;
 }
 
 .v--default-css .c-toast {

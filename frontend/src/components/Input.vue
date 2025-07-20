@@ -38,6 +38,7 @@ const handleInput = (event: Event) => {
         @input="handleInput"
         @blur="onBlur"
         :class="{ 'input-error': !!props.error }"
+        :min="['date'].includes(props.type) ? new Date().toISOString().split('T')[0] : undefined"
       />
       <label>{{ props.label }}</label>
     </div>

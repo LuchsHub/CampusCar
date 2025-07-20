@@ -34,6 +34,8 @@ export interface UserGet extends Record<string, string | boolean | LocationGetDt
   avg_rating: number
   location: LocationGetDto | null
   rating: number
+  cash: number
+  points: number
 }
 
 export interface CurrentUser {

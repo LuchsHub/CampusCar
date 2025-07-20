@@ -14,7 +14,7 @@ const stateInfo = computed(() => {
     case 'pointReward':
         return {'icon': DollarSign, 'text': 'Vergütung', 'unit': 'Punkte'}
     case 'pointCost':
-        return {'icon': DollarSign, 'text': 'Kosten', 'unit': 'Punkte'}
+        return {'icon': DollarSign, 'text': 'Kosten', 'unit': '€'}
     case 'message':
         return {'icon': MessageCircle, 'text': 'Nachricht'}
     default:

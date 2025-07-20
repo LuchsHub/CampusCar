@@ -18,6 +18,7 @@ export interface CodriveGetDto extends Record<string, string | boolean | number 
     location: LocationGetDto
     point_contribution: number
     n_passengers: number
+    paid: boolean
 }
 
 export interface RequestedCodriveGetDto extends Record<string, string | boolean | number | UserGetDto | LocationGetDto | RouteUpdateGet | undefined> {

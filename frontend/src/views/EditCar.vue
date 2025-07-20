@@ -116,7 +116,7 @@ const onCancelDelete = () => {
 </script>
 
 <template>
-  <div class="view-container">
+  <div class="view-container padding-bottom-hb-1">
     <PageTitle :goBack="true">Auto bearbeiten</PageTitle>
 
     <div class="form-container">
@@ -172,13 +172,6 @@ const onCancelDelete = () => {
 </template>
 
 <style scoped>
-.view-container {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-  padding: 0 1rem 4rem;
-}
-
 .form-container {
   display: flex;
   flex-direction: column;

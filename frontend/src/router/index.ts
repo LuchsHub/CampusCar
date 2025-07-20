@@ -22,6 +22,10 @@ import ProfileEdit from '@/views/ProfileEdit.vue';
 import AddCar from '@/views/AddCar.vue';
 import EditCar from '@/views/EditCar.vue';
 
+import ChargeBalance from '@/views/ChargeBalance.vue';
+
+import RedeemBonus from '@/views/RedeemBonus.vue';
+
 import Styles from '@/views/Styles.vue';
 
 import NotFound from '@/views/Misc/NotFound.vue';
@@ -151,6 +155,18 @@ const routes: RouteRecordRaw[] = [
     path: '/profile/edit-car/:id',
     name: 'EditCar',
     component: EditCar,
+    beforeEnter: requireAuthentication(),
+  },
+  {
+    path: '/profile/balance',
+    name: 'ChargeBalance',
+    component: ChargeBalance,
+    beforeEnter: requireAuthentication(),
+  },
+  {
+    path: '/profile/bonus/redeem',
+    name: 'RedeemBonus',
+    component: RedeemBonus,
     beforeEnter: requireAuthentication(),
   },
 

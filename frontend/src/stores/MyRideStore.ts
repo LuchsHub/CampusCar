@@ -6,9 +6,11 @@ import type { RideGetDto } from "@/types/Ride";
 import type { RequestedCodriveGetDto, RouteUpdateDto, CodriverArrivalTimeGet, RequestedCodriveDto, CodriveGetDto } from "@/types/Codrive";
 import type { LocationItemProps, CodriveCardProps } from "@/types/Props";
 import { useUser } from "@/composables/useUser";
+import { useRide } from "@/composables/useRide";
 
 export const useMyRideStore = defineStore("myRide", () => {
   const { getProfileImageUrl } = useUser();
+  const { checkIfRideIsOver } = useRide();
   const ride = ref<RideGetDto | null>();
 
   // for displaying ride locations in "Meine Fahrt" screen
@@ -44,19 +46,23 @@ export const useMyRideStore = defineStore("myRide", () => {
     // accepted codrives
     let accepted: CodriveCardProps[] = ride.value.codrives.map((codrive: CodriveGetDto) => ({
       codrive: codrive,
+      ride_state: ride.value?.state
     } as CodriveCardProps));
     accepted = sortCodriveCardPropsByTimeAsc(accepted); 
-
+    
     // not yet accepted codrives
     let requested: CodriveCardProps[] = ride.value.requested_codrives.map((codrive: RequestedCodriveGetDto) => ({
       requested_codrive: codrive,
+      ride_state: ride.value?.state
     } as CodriveCardProps));
     requested = sortCodriveCardPropsByTimeAsc(requested);
     
-    // fill the rest with empty codrives
-    const empty = Array.from( {length: ride.value.n_available_seats}, () => ({} as CodriveCardProps)) // empty 
+    // fill the rest with empty codrives (only if ride is NOT over)
+    let empty: CodriveCardProps[] = []
+    if (!checkIfRideIsOver(ride.value.arrival_date, ride.value.arrival_time)) {
+      empty = Array.from( {length: ride.value.n_available_seats}, () => ({} as CodriveCardProps)) // empty 
+    }
     
-
     return [...accepted, ...requested, ...empty];
   });
 
