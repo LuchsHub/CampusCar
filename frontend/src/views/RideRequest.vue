@@ -13,6 +13,7 @@ import { useToaster } from '@/composables/useToaster'
 import InformationItem from '@/components/InformationItem.vue'
 import ProfileCard from '@/components/ProfileCard.vue'
 import { useCodrive } from '@/composables/useCodrive'
+import axios from 'axios'
 
 import type { LocationItemProps } from '@/types/Props'
 
@@ -80,6 +81,7 @@ const seats = ref<number>(0)
 
 const errors = ref<Record<string, string[]>>({})
 const locationError = ref<boolean>(false);
+const codriveExceedsLengthError = ref<boolean>(false);
 const loading = ref<boolean>(false);
 
 // Location
@@ -103,9 +105,14 @@ const calculateEstimatedCost = async () => {
       } as LocationCreateDto)
       estimatedCost.value = result
       locationError.value = false;
+      codriveExceedsLengthError.value = false;
     } catch (error: unknown) {
+      if (axios.isAxiosError(error) && error.response?.data.detail.includes('exceeds')) {
+        codriveExceedsLengthError.value = true;
+      } else {
+        locationError.value = true;
+      }
       console.log(error);
-      locationError.value = true;
       estimatedCost.value = 0;
     } finally {
       loading.value = false;
@@ -113,7 +120,6 @@ const calculateEstimatedCost = async () => {
   } else {
     estimatedCost.value = 0;
   } 
-
 };
 
 // Validaton Schema
@@ -229,7 +235,10 @@ onMounted(async () => {
       <Input type="text" label="Stadt" v-model="city" @blur="calculateEstimatedCost" :error="errors.city?.[0]"/>
       <Input type="text" label="Land" v-model="country" @blur="calculateEstimatedCost" :error="errors.country?.[0]"/>
       <div v-if="locationError" class="margin-botton-l error-message-container">
-        <p class="text-danger">Ungültiger Abholort. Bitte prüfe deine Adresseingabe auf Fehler. Möglicherweise akzeptiert der Fahrer keine Umwege dieser Länge.</p>
+        <p class="text-danger">Ungültiger Abholort. Bitte prüfe deine Adresseingabe auf Fehler.</p>
+      </div>
+      <div v-else-if="codriveExceedsLengthError" class="margin-botton-l error-message-container">
+        <p class="text-danger">Der Fahrer akzeptiert keine Umwege dieser Länge.</p>
       </div>
     </div>
 
