@@ -3,34 +3,32 @@ import Map from '../components/Map.vue'
 import SearchBar from '../components/SearchBar.vue'
 import BottomSheet from '../components/BottomSheet.vue'
 import { ref, computed, onMounted } from 'vue'
-import type { RideGetDto } from '../types/Ride' // removed import for RideDto because of linting
+import type { RideGetDto } from '../types/Ride'
 import { useRide } from '@/composables/useRide'
-import RideCardSelectable from '@/components/RideCardSelectable.vue';
+import RideCardSelectable from '@/components/RideCardSelectable.vue'
 import type { UserGet } from '@/types/User'
 import { useUser } from '@/composables/useUser'
-import { useMyRideStore } from '@/stores/MyRideStore';
-import { useRouter } from 'vue-router';
+import { useMyRideStore } from '@/stores/MyRideStore'
+import { useRouter } from 'vue-router'
 
-const { getAllRidesWithMaxDistance } = useRide();
+const { getAllRidesWithMaxDistance } = useRide()
 const { getUserMe } = useUser()
 const searchQuery = ref('')
 const rides = ref<RideGetDto[]>([])
 const sheetY = ref(0)
 const currentUser = ref<UserGet | null>(null)
-const selectedRideId = ref<string | null>(null);
-const lastClickedRideId = ref<string | null>(null);
-const myRideStore = useMyRideStore();
-const router = useRouter();
+const selectedRideId = ref<string | null>(null)
+const lastClickedRideId = ref<string | null>(null)
+const myRideStore = useMyRideStore()
+const router = useRouter()
 
-const filteredRides = computed(() => {
+// Filter + Sortierung kombiniert
+const filteredAndSortedRides = computed(() => {
   const now = new Date()
   const query = searchQuery.value.toLowerCase()
 
-  return rides.value.filter((ride) => {
-    // Combine date & time
+  const filtered = rides.value.filter((ride) => {
     const departureDateTime = new Date(`${ride.departure_date}T${ride.departure_time}`)
-
-    // Normalize search fields
     const street = ride.end_location.street?.toLowerCase() || ''
     const city = ride.end_location.city?.toLowerCase() || ''
     const postalCode = ride.end_location.postal_code?.toString().toLowerCase() || ''
@@ -42,23 +40,32 @@ const filteredRides = computed(() => {
       (street.includes(query) || city.includes(query) || postalCode.includes(query))
     )
   })
+
+  if (selectedRideId.value) {
+    const selected = filtered.find(r => r.id === selectedRideId.value)
+    const others = filtered.filter(r => r.id !== selectedRideId.value)
+    return selected ? [selected, ...others] : filtered
+  }
+
+  return filtered
 })
 
+// Klickverhalten
 const handleRideSelect = (rideId: string) => {
   if (rideId === lastClickedRideId.value) {
-    const ride = filteredRides.value.find((r) => r.id === rideId);
+    const ride = filteredAndSortedRides.value.find((r) => r.id === rideId)
     if (ride) {
-      myRideStore.setRide(ride);
-      router.push({ name: 'RideRequest' });
+      myRideStore.setRide(ride)
+      router.push({ name: 'RideRequest' })
     }
   } else {
-    selectedRideId.value = rideId;
-    lastClickedRideId.value = rideId;
+    selectedRideId.value = rideId
+    lastClickedRideId.value = rideId
   }
-};
+}
 
-onMounted( async () => {
-  rides.value = await getAllRidesWithMaxDistance(30);
+onMounted(async () => {
+  rides.value = await getAllRidesWithMaxDistance(30)
   currentUser.value = await getUserMe()
 })
 </script>
@@ -66,15 +73,23 @@ onMounted( async () => {
 <template>
   <div class="view-container">
     <div class="map-container" :style="{ height: `${sheetY}px` }">
-      <Map :rides="filteredRides" :selectedRideId="selectedRideId" :bottomSheetHeight="sheetY"/>
+      <Map
+        :rides="filteredAndSortedRides"
+        :selectedRideId="selectedRideId"
+        :bottomSheetHeight="sheetY"
+      />
     </div>
 
     <BottomSheet v-model="sheetY">
       <SearchBar v-model:query="searchQuery" />
       <div class="ride-list">
-        <template v-for="(ride, index) in filteredRides" :key="ride.id">
-          <RideCardSelectable :ride="ride" @rideSelected="handleRideSelect"/>
-          <hr v-if="index < filteredRides.length - 1" />
+        <template v-for="(ride, index) in filteredAndSortedRides" :key="ride.id">
+          <RideCardSelectable
+            :ride="ride"
+            :selected="ride.id === selectedRideId"
+            @rideSelected="handleRideSelect"
+          />
+          <hr v-if="index < filteredAndSortedRides.length - 1" />
         </template>
       </div>
     </BottomSheet>

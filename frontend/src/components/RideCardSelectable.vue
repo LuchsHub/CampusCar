@@ -2,7 +2,7 @@
 import type { RideCardProps } from '@/types/Props';
 import { formatDate, formatTime } from '@/services/utils';
 
-const props = defineProps<RideCardProps>();
+const props = defineProps<RideCardProps & { selected: boolean }>();
 const emit = defineEmits(['rideSelected']);
 
 const handleClick = () => {
@@ -11,7 +11,7 @@ const handleClick = () => {
 </script>
 
 <template>
-  <div class="ride-card-container" @click="handleClick">
+  <div class="ride-card-container" :class="{ selected: props.selected }" @click="handleClick">
     <component :is="'Users'" class="icon-xl text-neutral-400" />
     <div class="ride-card-content">
       <p class="text-s text-neutral-400">
@@ -36,5 +36,17 @@ const handleClick = () => {
   display: flex;
   flex-direction: column;
   gap: 5px;
+}
+.ride-card-container {
+  display: flex;
+  gap: 20px;
+  padding: 1rem 0;
+  cursor: pointer;
+  border-left: 4px solid transparent;
+  transition: all 0.2s ease;
+}
+.ride-card-container.selected {
+  border-left: 4px solid var(--color-primary-500);
+  background-color: var(--color-neutral-100);
 }
 </style>
