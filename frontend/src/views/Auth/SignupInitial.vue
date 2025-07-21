@@ -51,7 +51,7 @@ const tryRegisterUser = async (): Promise<void> => {
 </script>
 
 <template>
-  <div class="view-container">
+  <div class="view-container padding-bottom-hb-2">
 
     <PageTitle>Registrieren</PageTitle>
 
