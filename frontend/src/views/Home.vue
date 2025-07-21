@@ -18,16 +18,22 @@ const currentUser = ref<UserGet | null>(null)
 
 const filteredRides = computed(() => {
   const now = new Date()
+  const query = searchQuery.value.toLowerCase()
 
   return rides.value.filter((ride) => {
     // Combine date & time
     const departureDateTime = new Date(`${ride.departure_date}T${ride.departure_time}`)
 
+    // Normalize search fields
+    const street = ride.end_location.street?.toLowerCase() || ''
+    const city = ride.end_location.city?.toLowerCase() || ''
+    const postalCode = ride.end_location.postal_code?.toString().toLowerCase() || ''
+
     return (
       ride.type === 'other' &&
       ride.driver.id !== currentUser.value?.id &&
       departureDateTime > now &&
-      ride.end_location.city.toLowerCase().includes(searchQuery.value.toLowerCase())
+      (street.includes(query) || city.includes(query) || postalCode.includes(query))
     )
   })
 })
