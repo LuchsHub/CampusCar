@@ -12,7 +12,17 @@ const handleClick = () => {
 
 <template>
   <div class="ride-card-container" :class="{ selected: props.selected }" @click="handleClick">
-    <component :is="'Users'" class="icon-xl text-neutral-400" />
+    <img
+      v-if="props.ride.type === 'other'"
+      :src="props.ride.image"
+      alt="Profilbild"
+      class="profile-picture"
+    />
+    <component
+      v-else
+      :is="'Users'"
+      class="icon-xl text-neutral-400"
+    />
     <div class="ride-card-content">
       <p class="text-s text-neutral-400">
         {{ formatDate(props.ride.departure_date) }} | {{ formatTime(props.ride.departure_time) }}
@@ -48,5 +58,10 @@ const handleClick = () => {
 .ride-card-container.selected {
   border-left: 4px solid var(--color-primary-500);
   background-color: var(--color-neutral-100);
+}
+.profile-picture {
+  width: var(--profile-picture-s-dim); 
+  height: var(--profile-picture-s-dim); 
+  border-radius: 9999px;
 }
 </style>
