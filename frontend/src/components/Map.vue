@@ -13,6 +13,8 @@ import { useMyRideStore } from '@/stores/MyRideStore'
 import api from '@/services/api'
 import { useToaster } from '@/composables/useToaster'
 import { useUserLocationStore } from '@/stores/UserLocationStore'
+import userIconUrl from '@/assets/icons/user/user_neutral_900.svg'
+import goalIconUrl from '@/assets/icons/goal/goal_neutral_900.svg'
 
 const mapContainer = ref<HTMLElement | null>(null)
 let map: L.Map | null = null
@@ -38,6 +40,20 @@ const props = defineProps<{
   selectedRideId?: string | null
   bottomSheetHeight?: number
 }>()
+
+const userIcon = L.icon({
+  iconUrl: userIconUrl,
+  iconSize: [32, 32], // ggf. anpassen
+  iconAnchor: [16, 32],
+  popupAnchor: [0, -32]
+})
+
+const goalIcon = L.icon({
+  iconUrl: goalIconUrl,
+  iconSize: [32, 32],
+  iconAnchor: [16, 32],
+  popupAnchor: [0, -32]
+})
 
 const loadFullRideAndGoToRequest = async (rideId: string) => {
   try {
@@ -75,7 +91,10 @@ function renderRides() {
       map.removeLayer(routePolyline)
     }
 
-    routePolyline = L.polyline(latLngs, { color: 'blue', weight: 5 }).addTo(map)
+    routePolyline = L.polyline(latLngs, {
+      color: getPrimaryColor(),
+      weight: 5
+    }).addTo(map)
 
     routePolyline.on('click', () => {
       loadFullRideAndGoToRequest(ride.id)
@@ -89,10 +108,19 @@ function renderRides() {
     const end: L.LatLngExpression = [ride.end_location.latitude, ride.end_location.longitude]
 
     const startMarker = L.marker(start).addTo(map!).bindPopup('Startpunkt').on('click', () => handleRideClick(ride))
-    const endMarker = L.marker(end).addTo(map!).bindPopup('Zielpunkt').on('click', () => handleRideClick(ride))
+
+    const endMarker = L.marker(end, { icon: goalIcon })
+      .addTo(map!)
+      .bindPopup('Zielpunkt')
+      .on('click', () => handleRideClick(ride))
 
     rideMarkers.push(startMarker, endMarker)
   })
+}
+
+function getPrimaryColor(): string {
+  const style = getComputedStyle(document.documentElement)
+  return style.getPropertyValue('--color-neutral-900')?.trim() || '#3b82f6' // fallback blau
 }
 
 // 📍 Nutzerstandort ermitteln und Karte initialisieren
@@ -116,7 +144,7 @@ onMounted(async () => {
   }
 
   if (map) {
-    userMarker = L.marker(latlng).addTo(map).bindPopup('Dein Standort')
+    userMarker = L.marker(latlng, { icon: userIcon }).addTo(map).bindPopup('Dein Standort')
     map.setView(latlng, 13)
     setTimeout(() => map?.invalidateSize(), 100)
     renderRides()
@@ -140,7 +168,10 @@ watch(
       if (routePolyline) {
         map.removeLayer(routePolyline);
       }
-      routePolyline = L.polyline(latLngs, { color: 'blue', weight: 5 }).addTo(map);
+      routePolyline = L.polyline(latLngs, {
+        color: getPrimaryColor(),
+        weight: 5
+      }).addTo(map)
       map.fitBounds(routePolyline.getBounds(), {
         paddingTopLeft: [50, 0], // links + oben (etwas mehr oben hilft oft!)
         paddingBottomRight: [50, (props.bottomSheetHeight ?? 300) + 80], // unten mehr Abstand
