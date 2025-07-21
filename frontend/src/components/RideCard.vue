@@ -62,7 +62,7 @@ const goToRideDetailsScreen = () => {
     <p class="text-s text-neutral-400">{{ formatDate(props.ride.departure_date) }} | {{ formatTime(props.ride.departure_time) }}</p>
     <div class="car-info-container">
       <p class="text-md" :class="stateInfo.standardTextClass">
-          {{ props.ride.end_location.street }}, {{ props.ride.end_location.postal_code }} {{ props.ride.end_location.city }}
+          {{ props.ride.end_location.street }} {{ props.ride.end_location.house_number }} <br/> {{ props.ride.end_location.postal_code }} {{ props.ride.end_location.city }}
       </p>
     </div>
 

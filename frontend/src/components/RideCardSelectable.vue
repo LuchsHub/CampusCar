@@ -28,7 +28,7 @@ const handleClick = () => {
         {{ formatDate(props.ride.departure_date) }} | {{ formatTime(props.ride.departure_time) }}
       </p>
       <p class="text-md text-neutral-900">
-        {{ props.ride.end_location.street }}, {{ props.ride.end_location.postal_code }} {{ props.ride.end_location.city }}
+        {{ props.ride.end_location.street }} {{ props.ride.end_location.house_number }} <br/> {{ props.ride.end_location.postal_code }} {{ props.ride.end_location.city }}
       </p>
       <p class="text-s text-bold">{{ props.ride.n_available_seats }} Plätze frei</p>
     </div>
@@ -38,9 +38,12 @@ const handleClick = () => {
 <style scoped>
 .ride-card-container {
   display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
   gap: 20px;
-  padding: 1rem 0;
   cursor: pointer;
+  padding: 1rem 0
 }
 .ride-card-content {
   display: flex;

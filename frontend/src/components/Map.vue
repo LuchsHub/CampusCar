@@ -10,7 +10,6 @@ import { ref, onMounted, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import L from 'leaflet'
 import { useMyRideStore } from '@/stores/MyRideStore'
-import api from '@/services/api'
 import { useToaster } from '@/composables/useToaster'
 import { useUserLocationStore } from '@/stores/UserLocationStore'
 import userIconUrl from '@/assets/icons_new/user.svg'
@@ -18,10 +17,11 @@ import startDefaultIconUrl from '@/assets/icons_new/start_default.svg'
 import startActiveIconUrl from '@/assets/icons_new/start_active.svg'
 import goalDefaultIconUrl from '@/assets/icons_new/goal_default.svg'
 import goalActiveIconUrl from '@/assets/icons_new/goal_active.svg'
+import type { RideGetDto } from '@/types/Ride'
 
 const mapContainer = ref<HTMLElement | null>(null)
 let map: L.Map | null = null
-let userMarker: L.Marker | null = null
+const userMarker = ref<L.Marker | null>(null)
 let routePolyline: L.Polyline | null = null
 
 const rideMarkers: L.Marker[] = []
@@ -46,6 +46,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
+  // eslint-disable-next-line no-unused-vars
   (e: 'update:selectedRideId', id: string): void
 }>()
 
@@ -86,8 +87,8 @@ const goalActiveIcon = L.icon({
 
 const loadFullRideAndGoToRequest = async (rideId: string) => {
   try {
-    const response = await api.get(`/rides/${rideId}`)
-    myRideStore.setRide(response.data)
+    const ride = props.rides.find(ride => ride.id === rideId);
+    myRideStore.setRide(ride as unknown as RideGetDto);
     router.push({ name: 'RideRequest' })
   } catch {
     showToast('error', 'Fehler beim Laden der Fahrt')
@@ -185,7 +186,7 @@ onMounted(async () => {
   }
 
   if (map) {
-    userMarker = L.marker(latlng, { icon: userIcon }).addTo(map).bindPopup('Dein Standort')
+    userMarker.value = L.marker(latlng, { icon: userIcon }).addTo(map).bindPopup('Dein Standort')
     map.setView(latlng, 13)
     setTimeout(() => map?.invalidateSize(), 100)
     renderRides()

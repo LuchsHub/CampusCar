@@ -142,6 +142,8 @@ export function useRide() {
     const currentUser = await getUserMe()
     const currentUserId = currentUser?.id
 
+    console.log(result.data.data);
+
     const rideGetDtos: RideGetDto[] = await Promise.all(
       result.data.data.map(async (ride: RideGet) => {
         const isInCodrive = currentUserId
@@ -165,7 +167,7 @@ export function useRide() {
           max_request_distance: typeof ride.max_request_distance === 'number'
             ? ride.max_request_distance
             : Number(ride.max_request_distance),
-          state: isInCodrive ? 'not visible' : 'default',
+          state: isInCodrive ? 'not visible' : 'visible',
           completed: ride.completed,
           image: (await getProfileImageUrl(ride.driver.id)) ?? ''
         }
@@ -190,9 +192,10 @@ export function useRide() {
     codrives: CodriveGetDto[],
     requestedCodrives: RequestedCodriveGetDto[]
   ): boolean => {
+    console.log(requestedCodrives);
     return (
-      codrives.some((c) => typeof c.codriver === 'object' && c.codriver?.id === userId) ||
-      requestedCodrives.some((r) => typeof r.codriver === 'object' && r.codriver?.id === userId)
+      codrives.some((c) => c.user?.id === userId) ||
+      requestedCodrives.some((r) => r.user?.id === userId)
     )
   }
 

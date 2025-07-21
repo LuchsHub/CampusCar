@@ -37,16 +37,10 @@ const filteredAndSortedRides = computed(() => {
       ride.type === 'other' &&
       ride.driver.id !== currentUser.value?.id &&
       departureDateTime > now &&
-      (ride.state === 'visible') &&
+      (ride.state === 'visible') && 
       (street.includes(query) || city.includes(query) || postalCode.includes(query))
     )
   })
-
-  if (selectedRideId.value) {
-    const selected = filtered.find(r => r.id === selectedRideId.value)
-    const others = filtered.filter(r => r.id !== selectedRideId.value)
-    return selected ? [selected, ...others] : filtered
-  }
 
   return filtered
 })
