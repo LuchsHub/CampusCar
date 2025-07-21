@@ -46,12 +46,6 @@ const tryUpdateUserLocation = async (): Promise<void> => {
     <div class="form-container">
       <Input 
         type="text" 
-        label="Land" 
-        v-model="locationCreate.country"
-        :error="errors.country?.[0]"
-      />
-      <Input 
-        type="text" 
         label="Straße" 
         v-model="locationCreate.street"
         :error="errors.street?.[0]"
@@ -61,12 +55,6 @@ const tryUpdateUserLocation = async (): Promise<void> => {
         label="Hausnummer" 
         v-model="locationCreate.house_number"
         :error="errors.house_number?.[0]"
-        />
-      <Input 
-        type="text" 
-        label="Stadt" 
-        v-model="locationCreate.city"
-        :error="errors.city?.[0]"
       />
       <Input 
         type="number" 
@@ -74,6 +62,18 @@ const tryUpdateUserLocation = async (): Promise<void> => {
         v-model="locationCreate.postal_code"
         :error="errors.postal_code?.[0]"
         :maxLength="5"
+      />
+      <Input 
+        type="text" 
+        label="Stadt" 
+        v-model="locationCreate.city"
+        :error="errors.city?.[0]"
+      />
+      <Input 
+        type="text" 
+        label="Land" 
+        v-model="locationCreate.country"
+        :error="errors.country?.[0]"
       />
       </div>
       
