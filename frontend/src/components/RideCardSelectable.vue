@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import type { RideCardProps } from '@/types/Props';
+import { formatDate, formatTime } from '@/services/utils';
 
 const props = defineProps<RideCardProps>();
 const emit = defineEmits(['rideSelected']);
 
-// wird vom Elternkomponente verwaltet
 const handleClick = () => {
-  emit('rideSelected', props.ride.id); // signalisiert Klick
+  emit('rideSelected', props.ride.id);
 };
 </script>
 
@@ -14,11 +14,13 @@ const handleClick = () => {
   <div class="ride-card-container" @click="handleClick">
     <component :is="'Users'" class="icon-xl text-neutral-400" />
     <div class="ride-card-content">
-      <p class="text-s text-neutral-400">{{ ride.departure_date }} | {{ ride.departure_time }}</p>
-      <p class="text-md text-neutral-900">
-        {{ ride.end_location.street }}, {{ ride.end_location.postal_code }} {{ ride.end_location.city }}
+      <p class="text-s text-neutral-400">
+        {{ formatDate(props.ride.departure_date) }} | {{ formatTime(props.ride.departure_time) }}
       </p>
-      <p class="text-s text-bold">{{ ride.n_available_seats }} Plätze frei</p>
+      <p class="text-md text-neutral-900">
+        {{ props.ride.end_location.street }}, {{ props.ride.end_location.postal_code }} {{ props.ride.end_location.city }}
+      </p>
+      <p class="text-s text-bold">{{ props.ride.n_available_seats }} Plätze frei</p>
     </div>
   </div>
 </template>
