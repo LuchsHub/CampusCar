@@ -26,7 +26,6 @@ const filteredRides = computed(() =>
   })
 )
 
-
 onMounted( async () => {
   rides.value = await getAllRides();
   currentUser.value = await getUserMe()
@@ -36,7 +35,7 @@ onMounted( async () => {
 <template>
   <div class="view-container">
     <div class="map-container" :style="{ height: `${sheetY}px` }">
-      <Map />
+      <Map :rides="filteredRides" />
     </div>
 
     <BottomSheet v-model="sheetY">
