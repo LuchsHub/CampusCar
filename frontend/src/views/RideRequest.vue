@@ -17,7 +17,7 @@ import { useCodrive } from '@/composables/useCodrive'
 import type { LocationItemProps } from '@/types/Props'
 
 import type { ValidationSchema } from "@/types/Validation"
-import { validate, required, isValidPostalCode } from '@/services/validation'
+import { validate, required, isValidPostalCode, largerThan, smallerThan } from '@/services/validation'
 import type { LocationCreateDto } from '@/types/Location'
 
 const router = useRouter()
@@ -78,13 +78,8 @@ const rideLocationItems = computed<LocationItemProps[]>(() => {
 const message = ref('')
 const seats = ref<number>(0)
 
-const validateSeats = () => {
-  const maxSeats = ride.value?.n_available_seats ?? 1
-  if (seats.value < 1) seats.value = 1
-  if (seats.value > maxSeats) seats.value = maxSeats
-}
-
 const errors = ref<Record<string, string[]>>({})
+const locationError = ref<boolean>(false);
 const loading = ref<boolean>(false);
 
 // Location
@@ -97,26 +92,38 @@ const estimatedCost = ref(0);
 
 const calculateEstimatedCost = async () => {
   if (street.value && houseNumber.value && postalCode.value && city.value && country.value && ride.value) {
-    const result = await previewCodriveCost(ride.value.id, {
-      'country': country.value,
-      'postal_code': postalCode.value,
-      'city': city.value,
-      'street': street.value,
-      'house_number': houseNumber.value,
-    } as LocationCreateDto)
-    estimatedCost.value = result
+    try {
+      loading.value = true;
+      const result = await previewCodriveCost(ride.value.id, {
+        'country': country.value,
+        'postal_code': postalCode.value,
+        'city': city.value,
+        'street': street.value,
+        'house_number': houseNumber.value,
+      } as LocationCreateDto)
+      estimatedCost.value = result
+      locationError.value = false;
+    } catch (error: unknown) {
+      console.log(error);
+      locationError.value = true;
+      estimatedCost.value = 0;
+    } finally {
+      loading.value = false;
+    }
   } else {
     estimatedCost.value = 0;
-  }
+  } 
+
 };
 
 // Validaton Schema
-const profileSchema: ValidationSchema = {
+const codriveValidationSchema: ValidationSchema = {
   country: [required('Land')],
+  postalCode: [required('PLZ'), isValidPostalCode()],
+  city: [required('Stadt')],
   street: [required('Straße')],
   houseNumber: [required('Hausnummer')],
-  city: [required('Stadt')],
-  postalCode: [required('PLZ'), isValidPostalCode()],
+  seats: [required('Anz. Plätze'), largerThan(0, 'Anz. Plätze muss größer als 0 sein.'), ...(ride.value ? [smallerThan(ride.value.n_available_seats+1, 'Zu viele Sitzplätze.')] : [])]
 }
 
 const loadLocation = async () => {
@@ -144,13 +151,11 @@ const sendCodriveRequest = async () => {
     houseNumber: houseNumber.value,
     city: city.value,
     postalCode: postalCode.value,
+    seats: seats.value.toString(),
   }
 
-  const result = validate(values, profileSchema)
-
-  if (Object.keys(result).length > 0) {
-    errors.value = result
-    showToast('error', 'Bitte überprüfe deine Eingaben.')
+  errors.value = validate(values as Record<string, string>, codriveValidationSchema)
+  if (Object.keys(errors.value).length > 0) {
     return
   }
 
@@ -164,12 +169,6 @@ const sendCodriveRequest = async () => {
 
   if (!location) {
     showToast('error', 'Kein Standort im Profil gefunden.')
-    return
-  }
-
-  const maxSeats = ride.value.n_available_seats
-  if (!seats.value || seats.value < 1 || seats.value > maxSeats) {
-    showToast('error', `Bitte eine gültige Platzanzahl angeben (1–${maxSeats}).`)
     return
   }
 
@@ -224,12 +223,14 @@ onMounted(async () => {
     <h2>Abholort</h2>
     
     <div class="form-container">
-      <Input type="text" label="Land" v-model="country" @blur="calculateEstimatedCost"/>
-      <Input type="text" label="PLZ" v-model="postalCode" @blur="calculateEstimatedCost"/>
-      <Input type="text" label="Stadt" v-model="city" @blur="calculateEstimatedCost"/>
-      <Input type="text" label="Straße" v-model="street" @blur="calculateEstimatedCost"/>
-      <Input type="text" label="Hausnummer" v-model="houseNumber" @blur="calculateEstimatedCost"/>
-      
+      <Input type="text" label="Land" v-model="country" @blur="calculateEstimatedCost" :error="errors.country?.[0]"/>
+      <Input type="text" label="PLZ" v-model="postalCode" :maxLength="5" @blur="calculateEstimatedCost" :error="errors.postalCode?.[0]"/>
+      <Input type="text" label="Stadt" v-model="city" @blur="calculateEstimatedCost" :error="errors.city?.[0]"/>
+      <Input type="text" label="Straße" v-model="street" @blur="calculateEstimatedCost" :error="errors.street?.[0]"/>
+      <Input type="text" label="Hausnummer" v-model="houseNumber" @blur="calculateEstimatedCost" :error="errors.houseNumber?.[0]"/>
+      <div v-if="locationError" class="margin-botton-l error-message-container">
+        <p class="text-danger">Ungültiger Abholort. Bitte prüfe deine Adresseingabe auf Fehler. Möglicherweise akzeptiert der Fahrer keine Umwege dieser Länge.</p>
+      </div>
     </div>
 
     <h2>Mitfahrt Optionen</h2>
@@ -242,8 +243,7 @@ onMounted(async () => {
       min="1"
       required
       placeholder="Plätze anfragen"
-      @input="validateSeats"
-      @change="validateSeats"
+      :error="errors.seats?.[0]"
       />
       
       <Input
@@ -293,7 +293,8 @@ onMounted(async () => {
         text: 'Mitfahrt anfragen',
         variant: 'primary',
         onClick: sendCodriveRequest,
-        loading: loading
+        loading: loading,
+        disabled: ride?.n_available_seats === 0 || locationError
       }
     ]" />
   </div>

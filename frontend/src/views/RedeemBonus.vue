@@ -93,8 +93,8 @@ const onRedeemBonus = async () => {
       <p v-if="allBonuses.length === 0" class="text-semibold">Momentan sind keine Prämien verfügbar. Versuche es später nochmal.</p>
       <div v-if="!userHasEnoughPoints && selectedBonus" class="margin-botton-l error-message-container">
         <p class="text-danger">Du hast nicht genügend Punkte, um diese Prämie zu erwerben. Erstelle mehr Fahrten, um mehr Punkte zu sammeln!</p>
-    </div>
-    </div>
+      </div>
+    </div>  
       
     <div v-else class="width-100 component-list">
       <template v-for="(bonus, _) in userBonusesWithCount" :key="bonus.id">

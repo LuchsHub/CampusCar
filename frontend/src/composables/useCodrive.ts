@@ -49,21 +49,12 @@ export function useCodrive() {
   }
 
   const previewCodriveCost = async (rideId: string, location: LocationCreateDto): Promise<number> => {
-    try {
-        const result = await api.post(
-          `codrives/${rideId}/preview`,
-          {'location': location}
-        );
-        const data: EstimatedCostsGet = result.data
-        return data.point_contribution;
-    } catch (error: unknown) {
-        if (axios.isAxiosError(error)) {
-          showToast('error', 'Fehler beim Berechnen der Kosten.');
-        } else {
-          showDefaultError();
-        }
-        throw error
-      }
+    const result = await api.post(
+      `codrives/${rideId}/preview`,
+      {'location': location}
+    );
+    const data: EstimatedCostsGet = result.data
+    return data.point_contribution;
   }
 
   const payForCodrive = async (codriveId: string, rating: number): Promise<void> => {
