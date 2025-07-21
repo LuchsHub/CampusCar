@@ -75,7 +75,7 @@ onMounted(async () => {
     <div class="map-container" :style="{ height: `${sheetY}px` }">
       <Map
         :rides="filteredAndSortedRides"
-        :selectedRideId="selectedRideId"
+        v-model:selectedRideId="selectedRideId"
         :bottomSheetHeight="sheetY"
       />
     </div>

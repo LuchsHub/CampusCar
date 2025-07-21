@@ -45,6 +45,10 @@ const props = defineProps<{
   bottomSheetHeight?: number
 }>()
 
+const emit = defineEmits<{
+  (e: 'update:selectedRideId', id: string): void
+}>()
+
 const userIcon = L.icon({
   iconUrl: userIconUrl,
   iconSize: [32, 32], // ggf. anpassen
@@ -111,6 +115,7 @@ function renderRides() {
 
   lastClickedRideId.value = ride.id
   selectedRideIdLocal.value = ride.id
+  emit('update:selectedRideId', ride.id)
 
   // Zuerst Marker neu rendern (ohne Route)
   renderRides()
