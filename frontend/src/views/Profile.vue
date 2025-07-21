@@ -3,7 +3,6 @@ import { useAuth } from '@/composables/useAuth'
 import { ref, onMounted } from 'vue'
 import { fetchCurrentUser } from '../services/user'
 import { useRouter } from 'vue-router'
-import { useAccount } from '@/composables/useAccount'
 import PageTitle from '@/components/PageTitle.vue'
 import { useToaster } from '@/composables/useToaster'
 import ConfirmDeleteModal from '@/components/ConfirmDeleteModal.vue'
@@ -19,7 +18,6 @@ import {
 const router = useRouter()
 const auth = useAuth()
 const authStore = useAuthStore();
-const { deleteAccount } = useAccount()
 const { showToast } = useToaster()
 const { getProfileImageUrl } = useUser()
 
@@ -42,6 +40,10 @@ const loadUser = async () => {
   } catch {
     showToast('error', 'Fehler beim Laden des Profils')
   }
+}
+
+const deleteUser = () => {
+  showToast('info', 'Dieses Feature ist noch nicht implementiert.');
 }
 
 const getStarIcons = (value: number) => {
@@ -178,7 +180,7 @@ onMounted(() => {
       subject="Konto"
       :requiresTextConfirmation="true"
       @cancel="showDeleteConfirm = false"
-      @confirm="deleteAccount"
+      @confirm="deleteUser"
     />
   </div>
 </template>

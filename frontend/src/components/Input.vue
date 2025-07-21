@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { InputProps } from '../types/Props'
+import { ref } from 'vue';
 
 const props = withDefaults(defineProps<InputProps & { error?: string }>(), {
   placeholder: '-',
@@ -25,18 +26,32 @@ const handleInput = (event: Event) => {
   
   emit('update:modelValue', value)
 }
+
+const inputRef = ref<HTMLInputElement | null>(null);
+
+// make sure, input is always visible
+function onFocus(event: FocusEvent) {
+  setTimeout(() => {
+    (inputRef.value ?? event.target as HTMLElement).scrollIntoView({
+      behavior: 'smooth',
+      block: 'center'
+    });
+  }, 300);
+}
 </script>
 
 <template>
   <div>
     <div class="input-container">
       <input
+        ref=inputRef
         :type="props.type"
         :placeholder="props.placeholder"
         :value="props.modelValue"
         :maxlength="props.maxLength"
         @input="handleInput"
         @blur="onBlur"
+        @focus="onFocus"
         :class="{ 'input-error': !!props.error }"
         :min="['date'].includes(props.type) ? new Date().toISOString().split('T')[0] : undefined"
       />

@@ -17,7 +17,7 @@ import { useCar } from '@/composables/useCar';
 import CarSelect from '@/components/CarSelect.vue';
 
 const { getEmptyRideCreate, postRide } = useRide();
-const { getLocationCreateValidationSchema, getEmptyLocationCreate } = useLocation();
+const { getLocationCreateValidationSchema, getEmptyLocationCreate, getTHBLocationCreate } = useLocation();
 const { getCurrentUserLocation, checkUserHasLicense } = useUser();
 const { showToast } = useToaster();
 const { getUserCarsData } = useCar();
@@ -25,7 +25,7 @@ const { getUserCarsData } = useCar();
 // Variables 
 const rideCreate: RideCreateBase = getEmptyRideCreate(); 
 const rideCreateStartLocation: LocationCreateDto = getEmptyLocationCreate();
-const rideCreateEndLocation: LocationCreateDto = getEmptyLocationCreate();
+const rideCreateEndLocation: LocationCreateDto = getTHBLocationCreate();
 const userCars = ref<CarGet[]>([]);
 const selectedCar = ref<CarGet | null>(null);
 const hasLicense = ref<boolean>(true);

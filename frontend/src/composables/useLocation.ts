@@ -15,6 +15,16 @@ export function useLocation() {
         house_number: "",
     })
   }
+  
+  const getTHBLocationCreate = (): LocationCreateDto => {
+    return reactive<LocationCreateDto>({
+        country: "Deutschland",
+        postal_code: "14770",
+        city: "Brandenburg an der Havel",
+        street: "Magdeburger Str.",
+        house_number: "50",
+    })
+  }
 
   const getLocationCreateValidationSchema = (): ValidationSchema => {
     return {
@@ -30,5 +40,6 @@ export function useLocation() {
   return {
     getEmptyLocationCreate,
     getLocationCreateValidationSchema,
+    getTHBLocationCreate
   }
 }
