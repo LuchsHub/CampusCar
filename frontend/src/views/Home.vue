@@ -37,6 +37,7 @@ const filteredAndSortedRides = computed(() => {
       ride.type === 'other' &&
       ride.driver.id !== currentUser.value?.id &&
       departureDateTime > now &&
+      (ride.state === 'visible') &&
       (street.includes(query) || city.includes(query) || postalCode.includes(query))
     )
   })

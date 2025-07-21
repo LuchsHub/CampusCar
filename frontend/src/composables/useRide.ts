@@ -10,7 +10,7 @@ import { useUser } from './useUser';
 export function useRide() {
   
   const { showDefaultError, showToast } = useToaster()
-  const { getProfileImageUrl } = useUser();
+  const { getProfileImageUrl, getUserMe } = useUser();
 
   const getEmptyRideCreate = (): RideCreateBase => {
     return reactive<RideCreateBase>({
@@ -123,7 +123,9 @@ export function useRide() {
     }
   }
 
-  const getAllRidesWithMaxDistance = async (maxDistanceKm: number = 30): Promise<RideGetDto[]> => {
+  const getAllRidesWithMaxDistance = async (
+  maxDistanceKm: number = 30
+): Promise<RideGetDto[]> => {
   try {
     const result = await api.get('/rides', {
       params: {
@@ -133,15 +135,23 @@ export function useRide() {
       },
     })
 
-    if (result.data.data.length === 0) { // idk why it is result.data.data but otherwise it wont work
-        return []
-      }
+    if (!result.data.data || result.data.data.length === 0) {
+      return []
+    }
 
-      const rideGetDtos: RideGetDto[] = await Promise.all(
-        result.data.data.map(async (ride: RideGet) => ({
+    const currentUser = await getUserMe()
+    const currentUserId = currentUser?.id
+
+    const rideGetDtos: RideGetDto[] = await Promise.all(
+      result.data.data.map(async (ride: RideGet) => {
+        const isInCodrive = currentUserId
+          ? isUserInCodrivesOrRequests(currentUserId, ride.codrives, ride.requested_codrives)
+          : false
+
+        const rideDto: RideGetDto = {
           id: ride.id,
           driver: ride.driver,
-          type: "other",
+          type: 'other',
           departure_time: ride.departure_time,
           departure_date: ride.departure_date,
           arrival_time: ride.arrival_time,
@@ -152,19 +162,38 @@ export function useRide() {
           n_available_seats: ride.max_n_codrives - ride.n_codrives,
           codrives: ride.codrives,
           requested_codrives: ride.requested_codrives,
-          max_request_distance: ride.max_request_distance,
-          state: "default",
-          image: await getProfileImageUrl(ride.driver.id),
-      } as RideGetDto)))
-      return rideGetDtos;
-    } catch (error: unknown) {
-      if (axios.isAxiosError(error)) {
-        showToast('error', 'Fehler beim Abrufen der Fahrten.');
-      } else {
-        showDefaultError();
-      }
-      throw error
+          max_request_distance: typeof ride.max_request_distance === 'number'
+            ? ride.max_request_distance
+            : Number(ride.max_request_distance),
+          state: isInCodrive ? 'not visible' : 'default',
+          completed: ride.completed,
+          image: (await getProfileImageUrl(ride.driver.id)) ?? ''
+        }
+
+        return rideDto
+      })
+    )
+
+    return rideGetDtos
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      showToast('error', 'Fehler beim Abrufen der Fahrten.')
+    } else {
+      showDefaultError()
     }
+    throw error
+  }
+}
+
+  const isUserInCodrivesOrRequests = (
+    userId: string,
+    codrives: CodriveGetDto[],
+    requestedCodrives: RequestedCodriveGetDto[]
+  ): boolean => {
+    return (
+      codrives.some((c) => typeof c.codriver === 'object' && c.codriver?.id === userId) ||
+      requestedCodrives.some((r) => typeof r.codriver === 'object' && r.codriver?.id === userId)
+    )
   }
 
   const getRidesForUser = async (): Promise<RideGetDto[]> => {
