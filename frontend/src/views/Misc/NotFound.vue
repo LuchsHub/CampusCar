@@ -2,20 +2,30 @@
 import PageTitle from '@/components/PageTitle.vue';
 import HoverButton from '@/components/HoverButton.vue';
 import type { ButtonProps } from '@/types/Props';
+import { useRouter } from 'vue-router';
+import { useAuthStore } from '@/stores/AuthStore';
+
+const router = useRouter();
+const authStore = useAuthStore();
 
 const hoverButtons: ButtonProps[] = [
-  {variant: "primary", color: "danger", text: "Echsenmenschen?"},
+  {variant: "primary", text: authStore.userAuthenticated ? 'Zur Startseite' : 'Zum Login'},
 ]
+
+const navigateToDifferentPage = () => {
+  if (authStore.userAuthenticated) {
+    router.push('/home');
+  } else {
+    router.push('/login');
+  }
+}
 </script>
 
 <template>
   <div class="view-container">
     <PageTitle :goBack="true">404</PageTitle>
     <h2>Diese Seite existiert nicht.</h2>
-    <p>Oder haben die Echsenmenschen aus der Hohlerde sie verschwinden lassen?</p>
-    <a href="https://www.youtube.com/watch?v=xvFZjo5PgG0&list=RDxvFZjo5PgG0&start_radio=1" class="pointer" target="_blank">
-      <HoverButton :buttons="hoverButtons"/>
-    </a>
+    <HoverButton :buttons="hoverButtons" :onclick="navigateToDifferentPage"/>
   </div>
 </template>
 
