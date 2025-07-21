@@ -142,7 +142,7 @@ const onCancelDelete = () => {
       />
       <Input
         type="number"
-        label="Anzahl Sitzplätze"
+        label="Anzahl Sitzplätze (inkl. Fahrer)"
         v-model="carEdit.n_seats"
         :min="2"
         :max="20"
