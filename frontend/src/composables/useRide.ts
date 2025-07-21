@@ -123,6 +123,50 @@ export function useRide() {
     }
   }
 
+  const getAllRidesWithMaxDistance = async (maxDistanceKm: number = 30): Promise<RideGetDto[]> => {
+  try {
+    const result = await api.get('/rides', {
+      params: {
+        offset: 0,
+        limit: 100,
+        max_distance_km: maxDistanceKm,
+      },
+    })
+
+    if (result.data.data.length === 0) { // idk why it is result.data.data but otherwise it wont work
+        return []
+      }
+
+      const rideGetDtos: RideGetDto[] = await Promise.all(
+        result.data.data.map(async (ride: RideGet) => ({
+          id: ride.id,
+          driver: ride.driver,
+          type: "other",
+          departure_time: ride.departure_time,
+          departure_date: ride.departure_date,
+          arrival_time: ride.arrival_time,
+          arrival_date: ride.arrival_date,
+          start_location: ride.start_location,
+          end_location: ride.end_location,
+          route_geometry: ride.route_geometry,
+          n_available_seats: ride.max_n_codrives - ride.n_codrives,
+          codrives: ride.codrives,
+          requested_codrives: ride.requested_codrives,
+          max_request_distance: ride.max_request_distance,
+          state: "default",
+          image: await getProfileImageUrl(ride.driver.id),
+      } as RideGetDto)))
+      return rideGetDtos;
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        showToast('error', 'Fehler beim Abrufen der Fahrten.');
+      } else {
+        showDefaultError();
+      }
+      throw error
+    }
+  }
+
   const getRidesForUser = async (): Promise<RideGetDto[]> => {
     try {
       const result = await api.get(`/rides/me`);
@@ -269,6 +313,7 @@ export function useRide() {
     deleteRide,
     getBookedRidesForUser,
     markRideAsCompleted,
-    checkIfRideIsOver
+    checkIfRideIsOver,
+    getAllRidesWithMaxDistance 
   }
 }

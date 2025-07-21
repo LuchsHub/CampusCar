@@ -9,25 +9,31 @@ import RideCard from '@/components/RideCard.vue'
 import type { UserGet } from '@/types/User'
 import { useUser } from '@/composables/useUser'
 
-const { getAllRides } = useRide();
+const { getAllRidesWithMaxDistance } = useRide();
 const { getUserMe } = useUser()
 const searchQuery = ref('')
 const rides = ref<RideGetDto[]>([])
 const sheetY = ref(0)
 const currentUser = ref<UserGet | null>(null)
 
-const filteredRides = computed(() =>
-  rides.value.filter((ride) => {
+const filteredRides = computed(() => {
+  const now = new Date()
+
+  return rides.value.filter((ride) => {
+    // Combine date & time
+    const departureDateTime = new Date(`${ride.departure_date}T${ride.departure_time}`)
+
     return (
       ride.type === 'other' &&
       ride.driver.id !== currentUser.value?.id &&
+      departureDateTime > now &&
       ride.end_location.city.toLowerCase().includes(searchQuery.value.toLowerCase())
     )
   })
-)
+})
 
 onMounted( async () => {
-  rides.value = await getAllRides();
+  rides.value = await getAllRidesWithMaxDistance(30);
   currentUser.value = await getUserMe()
 })
 </script>
