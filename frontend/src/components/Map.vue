@@ -13,8 +13,11 @@ import { useMyRideStore } from '@/stores/MyRideStore'
 import api from '@/services/api'
 import { useToaster } from '@/composables/useToaster'
 import { useUserLocationStore } from '@/stores/UserLocationStore'
-import userIconUrl from '@/assets/icons/user/user_neutral_900.svg'
-import goalIconUrl from '@/assets/icons/goal/goal_neutral_900.svg'
+import userIconUrl from '@/assets/icons_new/user.svg'
+import startDefaultIconUrl from '@/assets/icons_new/start_default.svg'
+import startActiveIconUrl from '@/assets/icons_new/start_active.svg'
+import goalDefaultIconUrl from '@/assets/icons_new/goal_default.svg'
+import goalActiveIconUrl from '@/assets/icons_new/goal_active.svg'
 
 const mapContainer = ref<HTMLElement | null>(null)
 let map: L.Map | null = null
@@ -24,6 +27,7 @@ let routePolyline: L.Polyline | null = null
 const rideMarkers: L.Marker[] = []
 const isLoading = ref(true)
 const lastClickedRideId = ref<string | null>(null)
+const selectedRideIdLocal = ref<string | null>(null)
 
 const myRideStore = useMyRideStore()
 const router = useRouter()
@@ -48,8 +52,29 @@ const userIcon = L.icon({
   popupAnchor: [0, -32]
 })
 
-const goalIcon = L.icon({
-  iconUrl: goalIconUrl,
+const startDefaultIcon = L.icon({
+  iconUrl: startDefaultIconUrl,
+  iconSize: [32, 32],
+  iconAnchor: [16, 32],
+  popupAnchor: [0, -32]
+})
+
+const startActiveIcon = L.icon({
+  iconUrl: startActiveIconUrl,
+  iconSize: [32, 32],
+  iconAnchor: [16, 32],
+  popupAnchor: [0, -32]
+})
+
+const goalDefaultIcon = L.icon({
+  iconUrl: goalDefaultIconUrl,
+  iconSize: [32, 32],
+  iconAnchor: [16, 32],
+  popupAnchor: [0, -32]
+})
+
+const goalActiveIcon = L.icon({
+  iconUrl: goalActiveIconUrl,
   iconSize: [32, 32],
   iconAnchor: [16, 32],
   popupAnchor: [0, -32]
@@ -77,50 +102,61 @@ function renderRides() {
   }
 
   const handleRideClick = (ride: typeof props.rides[number]) => {
-    if (!map) return
+  if (!map) return
 
-    if (String(lastClickedRideId.value) === String(ride.id)) {
-      loadFullRideAndGoToRequest(ride.id)
-      return
-    }
-
-    lastClickedRideId.value = ride.id
-
-    const latLngs = ride.route_geometry.map(([lng, lat]) => [lat, lng]) as [number, number][]
-    if (routePolyline) {
-      map.removeLayer(routePolyline)
-    }
-
-    routePolyline = L.polyline(latLngs, {
-      color: getPrimaryColor(),
-      weight: 5
-    }).addTo(map)
-
-    routePolyline.on('click', () => {
-      loadFullRideAndGoToRequest(ride.id)
-    })
-
-    map.fitBounds(routePolyline.getBounds(), { padding: [50, 50] })
+  if (String(lastClickedRideId.value) === String(ride.id)) {
+    loadFullRideAndGoToRequest(ride.id)
+    return
   }
 
-  props.rides.forEach((ride) => {
-    const start: L.LatLngExpression = [ride.start_location.latitude, ride.start_location.longitude]
-    const end: L.LatLngExpression = [ride.end_location.latitude, ride.end_location.longitude]
+  lastClickedRideId.value = ride.id
+  selectedRideIdLocal.value = ride.id
 
-    const startMarker = L.marker(start).addTo(map!).bindPopup('Startpunkt').on('click', () => handleRideClick(ride))
+  // Zuerst Marker neu rendern (ohne Route)
+  renderRides()
 
-    const endMarker = L.marker(end, { icon: goalIcon })
-      .addTo(map!)
-      .bindPopup('Zielpunkt')
-      .on('click', () => handleRideClick(ride))
+  // Dann Route neu setzen
+  const latLngs = ride.route_geometry.map(([lng, lat]) => [lat, lng]) as [number, number][]
+  if (routePolyline) {
+    map.removeLayer(routePolyline)
+  }
 
-    rideMarkers.push(startMarker, endMarker)
+  routePolyline = L.polyline(latLngs, {
+    color: getPrimaryColorActive(),
+    weight: 5
+  }).addTo(map)
+
+  routePolyline.on('click', () => {
+    loadFullRideAndGoToRequest(ride.id)
   })
+
+  map.fitBounds(routePolyline.getBounds(), { padding: [50, 50] })
 }
 
-function getPrimaryColor(): string {
+  props.rides.forEach((ride) => {
+  const start: L.LatLngExpression = [ride.start_location.latitude, ride.start_location.longitude]
+  const end: L.LatLngExpression = [ride.end_location.latitude, ride.end_location.longitude]
+
+  const isSelected = selectedRideIdLocal.value === ride.id
+
+  const startMarker = L.marker(start, { icon: isSelected ? startActiveIcon : startDefaultIcon })
+    .addTo(map!)
+    .bindPopup('Startpunkt')
+    .on('click', () => handleRideClick(ride))
+
+  const endMarker = L.marker(end, { icon: isSelected ? goalActiveIcon : goalDefaultIcon })
+    .addTo(map!)
+    .bindPopup('Zielpunkt')
+    .on('click', () => handleRideClick(ride))
+
+  rideMarkers.push(startMarker, endMarker)
+})
+
+}
+
+function getPrimaryColorActive(): string {
   const style = getComputedStyle(document.documentElement)
-  return style.getPropertyValue('--color-neutral-900')?.trim() || '#3b82f6' // fallback blau
+  return style.getPropertyValue('--color-primary-500')?.trim() || '#3b82f6' // fallback
 }
 
 // 📍 Nutzerstandort ermitteln und Karte initialisieren
@@ -162,21 +198,28 @@ watch(
   () => props.selectedRideId,
   (newId) => {
     if (!newId || !map) return;
+
     const ride = props.rides.find(r => r.id === newId);
-    if (ride) {
-      const latLngs = ride.route_geometry.map(([lng, lat]) => [lat, lng]) as [number, number][];
-      if (routePolyline) {
-        map.removeLayer(routePolyline);
-      }
-      routePolyline = L.polyline(latLngs, {
-        color: getPrimaryColor(),
-        weight: 5
-      }).addTo(map)
-      map.fitBounds(routePolyline.getBounds(), {
-        paddingTopLeft: [50, 0], // links + oben (etwas mehr oben hilft oft!)
-        paddingBottomRight: [50, (props.bottomSheetHeight ?? 300) + 80], // unten mehr Abstand
-      });
+    if (!ride) return;
+
+    selectedRideIdLocal.value = ride.id; // 👉 wichtig: Marker bekommen die active Icons
+    renderRides(); // 👉 Marker neu zeichnen mit den neuen Icons
+
+    const latLngs = ride.route_geometry.map(([lng, lat]) => [lat, lng]) as [number, number][];
+
+    if (routePolyline) {
+      map.removeLayer(routePolyline);
     }
+
+    routePolyline = L.polyline(latLngs, {
+      color: getPrimaryColorActive(), // 👉 grün
+      weight: 5
+    }).addTo(map);
+
+    map.fitBounds(routePolyline.getBounds(), {
+      paddingTopLeft: [50, 0],
+      paddingBottomRight: [50, (props.bottomSheetHeight ?? 300) + 80],
+    });
   }
 );
 </script>
