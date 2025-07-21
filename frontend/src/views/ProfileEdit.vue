@@ -217,11 +217,11 @@ onMounted(() => {
 
     <div class="form-container">
       <h2>Abholdaten</h2>
-      <Input type="text" label="Land" v-model="country" :error="errors.country?.[0]" />
       <Input type="text" label="Straße" v-model="street" :error="errors.street?.[0]" />
       <Input type="text" label="Hausnummer" v-model="houseNumber" :error="errors.houseNumber?.[0]" />
-      <Input type="text" label="Stadt" v-model="city" :error="errors.city?.[0]" />
       <Input type="number" label="PLZ" v-model="postalCode" :error="errors.postalCode?.[0]" :maxLength="5"/>
+      <Input type="text" label="Stadt" v-model="city" :error="errors.city?.[0]" />
+      <Input type="text" label="Land" v-model="country" :error="errors.country?.[0]" />
     </div>
 
     <div class="form-container">

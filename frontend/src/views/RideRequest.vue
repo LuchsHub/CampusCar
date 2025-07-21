@@ -123,7 +123,7 @@ const codriveValidationSchema: ValidationSchema = {
   city: [required('Stadt')],
   street: [required('Straße')],
   houseNumber: [required('Hausnummer')],
-  seats: [required('Anz. Plätze'), largerThan(0, 'Anz. Plätze muss größer als 0 sein.'), ...(ride.value ? [smallerThan(ride.value.n_available_seats+1, 'Zu viele Sitzplätze.')] : [])]
+  seats: [required('Anzahl Plätze'), largerThan(0, 'Anzahl Plätze muss größer als 0 sein.'), ...(ride.value ? [smallerThan(ride.value.n_available_seats+1, 'Zu viele Sitzplätze.')] : [])]
 }
 
 const loadLocation = async () => {
@@ -223,11 +223,11 @@ onMounted(async () => {
     <h2>Abholort</h2>
     
     <div class="form-container">
-      <Input type="text" label="Land" v-model="country" @blur="calculateEstimatedCost" :error="errors.country?.[0]"/>
-      <Input type="text" label="PLZ" v-model="postalCode" :maxLength="5" @blur="calculateEstimatedCost" :error="errors.postalCode?.[0]"/>
-      <Input type="text" label="Stadt" v-model="city" @blur="calculateEstimatedCost" :error="errors.city?.[0]"/>
       <Input type="text" label="Straße" v-model="street" @blur="calculateEstimatedCost" :error="errors.street?.[0]"/>
       <Input type="text" label="Hausnummer" v-model="houseNumber" @blur="calculateEstimatedCost" :error="errors.houseNumber?.[0]"/>
+      <Input type="text" label="PLZ" v-model="postalCode" :maxLength="5" @blur="calculateEstimatedCost" :error="errors.postalCode?.[0]"/>
+      <Input type="text" label="Stadt" v-model="city" @blur="calculateEstimatedCost" :error="errors.city?.[0]"/>
+      <Input type="text" label="Land" v-model="country" @blur="calculateEstimatedCost" :error="errors.country?.[0]"/>
       <div v-if="locationError" class="margin-botton-l error-message-container">
         <p class="text-danger">Ungültiger Abholort. Bitte prüfe deine Adresseingabe auf Fehler. Möglicherweise akzeptiert der Fahrer keine Umwege dieser Länge.</p>
       </div>
