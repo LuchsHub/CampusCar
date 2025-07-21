@@ -18,7 +18,7 @@ export const useUserLocationStore = defineStore('userLocation', {
           navigator.geolocation.getCurrentPosition(resolve, reject)
         )
         this.coords = [position.coords.latitude, position.coords.longitude]
-      } catch (err) {
+      } catch {
         this.error = 'Standort konnte nicht ermittelt werden'
       } finally {
         this.loading = false
