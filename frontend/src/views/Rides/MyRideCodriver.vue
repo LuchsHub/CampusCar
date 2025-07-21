@@ -111,7 +111,7 @@ const onRejectCodrive = async () => {
         type=pointReward
         :value=myRideStore.requestedCodrive?.point_contribution
       />
-      <InformationItem
+      <InformationItem v-if="myRideStore.requestedCodrive?.message"
         type=message
         :value=myRideStore.requestedCodrive?.message
       />

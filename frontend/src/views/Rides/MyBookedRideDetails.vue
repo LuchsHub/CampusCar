@@ -119,7 +119,7 @@ const onCancelRating = () => {
       <div v-if="myRideStore.bookedRide?.state === 'payment not requested yet (codriver)'" class="margin-botton-l error-message-container">
         <p class="text-danger">Du kannst die Fahrt noch nicht bezahlen, da der Fahrer die Zahlung noch nicht angefordert hat.</p>
       </div>
-      <div v-if="myRideStore.bookedRide && currentBalance < Number(myRideStore.bookedRide.point_cost)/100" class="margin-botton-l error-message-container">
+      <div v-if="myRideStore.bookedRide && currentBalance < Number(myRideStore.bookedRide.point_cost)/100 && myRideStore.bookedRide.state === 'payment outstanding (codriver)'" class="margin-botton-l error-message-container">
         <p class="text-danger">Du hast nicht genügend Guthaben, um die Fahrt zu bezahlen. Lade zuerst Guthaben in deinem Profil auf.</p>
       </div>
     </div>

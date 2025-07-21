@@ -2,7 +2,9 @@
   import Button from './Button.vue'
   import type { HoverButtonProps } from '../types/Props'
   import { useRoute } from 'vue-router'
-
+  import { useKeyboardVisible, isKeyboardVisible } from '@/composables/useKeyboardVisible';
+  
+  useKeyboardVisible();
   const route = useRoute()
   const props = defineProps<HoverButtonProps>()
 </script>
@@ -10,7 +12,7 @@
 <template>
     <div
       class="hover-button-container" 
-      :class="route.meta.hideTabBar ? 'low-hover-button' : 'high-hover-button'"
+      :class="route.meta.hideTabBar || isKeyboardVisible ? 'low-hover-button' : 'high-hover-button'"
     >
         <Button 
             v-for="(button, i) in props.buttons"
@@ -27,7 +29,6 @@
     display: flex;
     flex-direction: column;
     gap: var(--horizontal-gap);
-    position: sticky;
     position: fixed;
     width: calc(100% - 60px);  /* 40px = 2*var(--app-padding-horizontal), but var() is not allowed inside of calc */
     margin: auto;

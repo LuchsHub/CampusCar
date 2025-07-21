@@ -60,7 +60,7 @@ export const useMyRideStore = defineStore("myRide", () => {
     // fill the rest with empty codrives (only if ride is NOT over)
     let empty: CodriveCardProps[] = []
     if (!checkIfRideIsOver(ride.value.arrival_date, ride.value.arrival_time)) {
-      empty = Array.from( {length: ride.value.n_available_seats}, () => ({} as CodriveCardProps)) // empty 
+      empty = Array.from( {length: ride.value.n_available_seats - requested.length}, () => ({} as CodriveCardProps)) // empty 
     }
     
     return [...accepted, ...requested, ...empty];
