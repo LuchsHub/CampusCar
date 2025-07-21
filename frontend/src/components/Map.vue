@@ -35,6 +35,8 @@ const props = defineProps<{
     end_location: { latitude: number; longitude: number }
     route_geometry: number[][]
   }>
+  selectedRideId?: string | null
+  bottomSheetHeight?: number
 }>()
 
 const loadFullRideAndGoToRequest = async (rideId: string) => {
@@ -127,6 +129,25 @@ watch(
     renderRides()
   }
 )
+
+watch(
+  () => props.selectedRideId,
+  (newId) => {
+    if (!newId || !map) return;
+    const ride = props.rides.find(r => r.id === newId);
+    if (ride) {
+      const latLngs = ride.route_geometry.map(([lng, lat]) => [lat, lng]) as [number, number][];
+      if (routePolyline) {
+        map.removeLayer(routePolyline);
+      }
+      routePolyline = L.polyline(latLngs, { color: 'blue', weight: 5 }).addTo(map);
+      map.fitBounds(routePolyline.getBounds(), {
+        paddingTopLeft: [50, 0], // links + oben (etwas mehr oben hilft oft!)
+        paddingBottomRight: [50, (props.bottomSheetHeight ?? 300) + 80], // unten mehr Abstand
+      });
+    }
+  }
+);
 </script>
 
 <style scoped>
